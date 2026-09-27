@@ -179,6 +179,7 @@ model BudgetCategory {
   reallocationsFrom   BudgetReallocation[] @relation("ReallocationFrom")
   reallocationsTo     BudgetReallocation[] @relation("ReallocationTo")
 
+  @@unique([familyId, name])
   @@map("budget_categories")
 }
 

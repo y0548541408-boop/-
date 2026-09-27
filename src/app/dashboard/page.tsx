@@ -1,7 +1,44 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
+import { getFamilyBudgetSummary, type CategorySummary } from "@/lib/budget";
 import { signOut } from "@/app/login/actions";
+import ExpenseTools from "./ExpenseTools";
+
+function BarColor(percentUsed: number) {
+  if (percentUsed >= 100) return "bg-red-500";
+  if (percentUsed >= 80) return "bg-amber-500";
+  return "bg-emerald-500";
+}
+
+function CategoryCard({ category }: { category: CategorySummary }) {
+  const percent = Math.min(category.percentUsed, 100);
+  return (
+    <div className="rounded-lg border border-gray-200 bg-white p-3">
+      <div className="flex items-baseline justify-between">
+        <span className="text-sm font-medium text-gray-900">{category.name}</span>
+        <span className="text-xs text-gray-500">
+          {category.spent.toFixed(0)} / {category.effectivePlanned.toFixed(0)} ₪
+        </span>
+      </div>
+      <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+        <div
+          className={`h-full ${BarColor(category.percentUsed)}`}
+          style={{ width: `${percent}%` }}
+        />
+      </div>
+      <p
+        className={`mt-1 text-xs ${
+          category.remaining < 0 ? "text-red-600" : "text-gray-500"
+        }`}
+      >
+        {category.remaining < 0
+          ? `חריגה של ${Math.abs(category.remaining).toFixed(0)} ₪`
+          : `נותרו ${category.remaining.toFixed(0)} ₪`}
+      </p>
+    </div>
+  );
+}
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -26,27 +63,91 @@ export default async function DashboardPage() {
     );
   }
 
+  const summary = await getFamilyBudgetSummary(member.familyId);
+  const fixed = summary.filter((c) => c.type === "fixed");
+  const variable = summary.filter((c) => c.type === "variable");
+
+  const totalPlanned = summary.reduce((sum, c) => sum + c.effectivePlanned, 0);
+  const totalSpent = summary.reduce((sum, c) => sum + c.spent, 0);
+  const totalPercent = totalPlanned > 0 ? (totalSpent / totalPlanned) * 100 : 0;
+
+  const monthLabel = new Date().toLocaleDateString("he-IL", {
+    month: "long",
+    year: "numeric",
+  });
+
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-10">
-      <div className="mx-auto max-w-md rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h1 className="text-xl font-semibold text-gray-900">
-          שלום, {member.fullName}
-        </h1>
-        <p className="mt-1 text-sm text-gray-500">
-          משפחת {member.family.displayName} · סטטוס: {member.family.status}
-        </p>
-        <p className="mt-4 text-sm text-gray-400">
-          כאן יופיע דשבורד התקציב. זהו רק אימות שהזדהות ובסיס הנתונים מדברים
-          אחד עם השני.
-        </p>
-        <form action={signOut} className="mt-6">
-          <button
-            type="submit"
-            className="text-sm text-gray-500 underline hover:text-gray-700"
-          >
-            התנתקות
-          </button>
-        </form>
+    <main className="min-h-screen bg-gray-50 px-4 py-8">
+      <div className="mx-auto max-w-md">
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900">
+              שלום, {member.fullName}
+            </h1>
+            <p className="text-sm text-gray-500">
+              משפחת {member.family.displayName} · {monthLabel}
+            </p>
+          </div>
+          <form action={signOut}>
+            <button type="submit" className="text-xs text-gray-400 underline">
+              התנתקות
+            </button>
+          </form>
+        </div>
+
+        <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+          <div className="flex items-baseline justify-between">
+            <span className="text-sm font-medium text-gray-700">התקציב החודשי</span>
+            <span className="text-sm text-gray-500">
+              {totalSpent.toFixed(0)} / {totalPlanned.toFixed(0)} ₪
+            </span>
+          </div>
+          <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-100">
+            <div
+              className={`h-full ${BarColor(totalPercent)}`}
+              style={{ width: `${Math.min(totalPercent, 100)}%` }}
+            />
+          </div>
+        </div>
+
+        {summary.length === 0 ? (
+          <p className="mt-6 text-center text-sm text-gray-400">
+            עדיין לא הוגדרו קטגוריות תקציב למשפחה הזו.
+          </p>
+        ) : (
+          <>
+            {fixed.length > 0 && (
+              <div className="mt-6">
+                <h2 className="mb-2 text-sm font-semibold text-gray-700">הוצאות קבועות</h2>
+                <div className="space-y-2">
+                  {fixed.map((c) => (
+                    <CategoryCard key={c.id} category={c} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {variable.length > 0 && (
+              <div className="mt-6">
+                <h2 className="mb-2 text-sm font-semibold text-gray-700">הוצאות משתנות</h2>
+                <div className="space-y-2">
+                  {variable.map((c) => (
+                    <CategoryCard key={c.id} category={c} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <ExpenseTools
+              categories={summary.map((c) => ({
+                id: c.id,
+                name: c.name,
+                type: c.type,
+                remaining: c.remaining,
+              }))}
+            />
+          </>
+        )}
       </div>
     </main>
   );

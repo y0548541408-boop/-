@@ -42,7 +42,23 @@ async function main() {
     },
   });
 
-  console.log("Seeded advisor + test family + family member.");
+  const categories: { name: string; type: "fixed" | "variable"; plannedAmount: number }[] = [
+    { name: "שכירות / משכנתא", type: "fixed", plannedAmount: 4500 },
+    { name: "ביטוחים", type: "fixed", plannedAmount: 800 },
+    { name: "סופר", type: "variable", plannedAmount: 2500 },
+    { name: "מסעדות", type: "variable", plannedAmount: 600 },
+    { name: "תחבורה", type: "variable", plannedAmount: 500 },
+  ];
+
+  for (const category of categories) {
+    await prisma.budgetCategory.upsert({
+      where: { familyId_name: { familyId: family.id, name: category.name } },
+      update: {},
+      create: { familyId: family.id, ...category },
+    });
+  }
+
+  console.log("Seeded advisor + test family + family member + budget categories.");
 }
 
 main().finally(() => prisma.$disconnect());
