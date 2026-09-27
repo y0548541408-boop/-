@@ -1,8 +1,13 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { getFamilyBudgetSummary, type CategorySummary } from "@/lib/budget";
+import {
+  getFamilyBudgetSummary,
+  getFamilyRecurringExpenses,
+  type CategorySummary,
+} from "@/lib/budget";
 import { signOut } from "@/app/login/actions";
+import { removeRecurringExpense } from "./actions";
 import ExpenseTools from "./ExpenseTools";
 
 function BarColor(percentUsed: number) {
@@ -35,6 +40,8 @@ function CategoryCard({ category }: { category: CategorySummary }) {
         {category.remaining < 0
           ? `חריגה של ${Math.abs(category.remaining).toFixed(0)} ₪`
           : `נותרו ${category.remaining.toFixed(0)} ₪`}
+        {category.recurringSpent > 0 &&
+          ` · מתוכם ${category.recurringSpent.toFixed(0)} ₪ קבועות`}
       </p>
     </div>
   );
@@ -64,6 +71,7 @@ export default async function DashboardPage() {
   }
 
   const summary = await getFamilyBudgetSummary(member.familyId);
+  const recurringExpenses = await getFamilyRecurringExpenses(member.familyId);
   const fixed = summary.filter((c) => c.type === "fixed");
   const variable = summary.filter((c) => c.type === "variable");
 
@@ -133,6 +141,40 @@ export default async function DashboardPage() {
                 <div className="space-y-2">
                   {variable.map((c) => (
                     <CategoryCard key={c.id} category={c} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {recurringExpenses.length > 0 && (
+              <div className="mt-6 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+                <h2 className="mb-2 text-sm font-semibold text-gray-700">
+                  הוצאות קבועות מוגדרות
+                </h2>
+                <div className="space-y-1">
+                  {recurringExpenses.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center justify-between text-sm"
+                    >
+                      <span className="text-gray-700">
+                        {item.name}{" "}
+                        <span className="text-gray-400">· {item.categoryName}</span>
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-gray-500">{item.amount.toFixed(0)} ₪</span>
+                        <form action={removeRecurringExpense}>
+                          <input type="hidden" name="id" value={item.id} />
+                          <button
+                            type="submit"
+                            className="text-xs text-gray-400 hover:text-red-600"
+                            aria-label="הסרת הוצאה קבועה"
+                          >
+                            הסר
+                          </button>
+                        </form>
+                      </div>
+                    </div>
                   ))}
                 </div>
               </div>

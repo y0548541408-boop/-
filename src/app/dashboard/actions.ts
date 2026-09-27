@@ -71,6 +71,68 @@ export async function addExpense(input: {
   return { ok: true };
 }
 
+export async function addRecurringExpense(input: {
+  categoryId: string;
+  name: string;
+  amount: number;
+}): Promise<ActionResult> {
+  const member = await getCurrentFamilyMember();
+  if (!member) return { error: "יש להתחבר מחדש." };
+
+  if (!input.categoryId) return { error: "יש לבחור קטגוריה." };
+  if (!input.name.trim()) return { error: "יש לתת שם להוצאה הקבועה." };
+  if (!Number.isFinite(input.amount) || input.amount <= 0) {
+    return { error: "יש להזין סכום תקין." };
+  }
+
+  const category = await prisma.budgetCategory.findFirst({
+    where: { id: input.categoryId, familyId: member.familyId },
+  });
+  if (!category) return { error: "קטגוריה לא נמצאה." };
+
+  await prisma.recurringExpense.create({
+    data: {
+      familyId: member.familyId,
+      categoryId: input.categoryId,
+      name: input.name.trim(),
+      amount: input.amount,
+    },
+  });
+
+  revalidatePath("/dashboard");
+
+  const summary = await getFamilyBudgetSummary(member.familyId);
+  const updated = summary.find((c) => c.id === input.categoryId);
+
+  if (updated && updated.remaining < 0) {
+    return {
+      ok: true,
+      overBudget: {
+        categoryId: updated.id,
+        categoryName: updated.name,
+        overageAmount: Math.abs(updated.remaining),
+      },
+    };
+  }
+
+  return { ok: true };
+}
+
+export async function removeRecurringExpense(formData: FormData) {
+  const member = await getCurrentFamilyMember();
+  if (!member) return;
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  await prisma.recurringExpense.updateMany({
+    where: { id, familyId: member.familyId },
+    data: { isActive: false },
+  });
+
+  revalidatePath("/dashboard");
+}
+
 export async function reallocateBudget(input: {
   fromCategoryId: string;
   toCategoryId: string;

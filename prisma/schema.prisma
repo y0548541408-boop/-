@@ -112,6 +112,7 @@ model Family {
   documents            Document[]
   budgetCategories     BudgetCategory[]
   expenses             Expense[]
+  recurringExpenses    RecurringExpense[]
   reallocations        BudgetReallocation[]
   tasks                Task[]
   whatsappMessages     WhatsappInboundMessage[]
@@ -176,11 +177,26 @@ model BudgetCategory {
   createdAt      DateTime           @default(now()) @map("created_at")
 
   expenses           Expense[]
+  recurringExpenses   RecurringExpense[]
   reallocationsFrom   BudgetReallocation[] @relation("ReallocationFrom")
   reallocationsTo     BudgetReallocation[] @relation("ReallocationTo")
 
   @@unique([familyId, name])
   @@map("budget_categories")
+}
+
+model RecurringExpense {
+  id         String         @id @default(uuid())
+  familyId   String         @map("family_id")
+  family     Family         @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  categoryId String         @map("category_id")
+  category   BudgetCategory @relation(fields: [categoryId], references: [id])
+  name       String
+  amount     Decimal        @db.Decimal(10, 2)
+  isActive   Boolean        @default(true) @map("is_active")
+  createdAt  DateTime       @default(now()) @map("created_at")
+
+  @@map("recurring_expenses")
 }
 
 model Expense {

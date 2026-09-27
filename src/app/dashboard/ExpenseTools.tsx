@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addExpense, reallocateBudget } from "./actions";
+import { addExpense, addRecurringExpense, reallocateBudget } from "./actions";
 
 type CategoryOption = { id: string; name: string; type: "fixed" | "variable"; remaining: number };
 
@@ -19,6 +19,7 @@ export default function ExpenseTools({ categories }: { categories: CategoryOptio
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
+  const [isRecurring, setIsRecurring] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [overBudget, setOverBudget] = useState<OverBudgetPrompt | null>(null);
@@ -32,7 +33,9 @@ export default function ExpenseTools({ categories }: { categories: CategoryOptio
     const parsedAmount = Number(amount);
 
     startTransition(async () => {
-      const result = await addExpense({ categoryId, amount: parsedAmount, note });
+      const result = isRecurring
+        ? await addRecurringExpense({ categoryId, name: note, amount: parsedAmount })
+        : await addExpense({ categoryId, amount: parsedAmount, note });
       if ("error" in result) {
         setError(result.error);
         return;
@@ -108,16 +111,26 @@ export default function ExpenseTools({ categories }: { categories: CategoryOptio
           type="text"
           value={note}
           onChange={(e) => setNote(e.target.value)}
-          placeholder="הערה (לא חובה)"
+          placeholder={isRecurring ? 'שם ההוצאה הקבועה (למשל "שכירות")' : "הערה (לא חובה)"}
+          required={isRecurring}
           className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
         />
+        <label className="mt-3 flex items-center gap-2 text-sm text-gray-700">
+          <input
+            type="checkbox"
+            checked={isRecurring}
+            onChange={(e) => setIsRecurring(e.target.checked)}
+            className="h-4 w-4 rounded border-gray-300"
+          />
+          הוצאה קבועה (תתחדש אוטומטית כל חודש)
+        </label>
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
         <button
           type="submit"
           disabled={isPending || !categoryId}
           className="mt-3 w-full rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
         >
-          {isPending ? "שומר..." : "הוסף הוצאה"}
+          {isPending ? "שומר..." : isRecurring ? "הוסף הוצאה קבועה" : "הוסף הוצאה"}
         </button>
       </form>
 
