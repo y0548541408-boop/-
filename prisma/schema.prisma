@@ -83,11 +83,12 @@ enum InvoiceStatus {
 }
 
 model Advisor {
-  id        String   @id @default(uuid())
-  fullName  String   @map("full_name")
-  email     String   @unique
-  phone     String?
-  createdAt DateTime @default(now()) @map("created_at")
+  id         String   @id @default(uuid())
+  fullName   String   @map("full_name")
+  email      String   @unique
+  phone      String?
+  authUserId String?  @unique @map("auth_user_id") // maps to Supabase auth.users.id
+  createdAt  DateTime @default(now()) @map("created_at")
 
   families      Family[]
   taskTemplates TaskTemplate[]
