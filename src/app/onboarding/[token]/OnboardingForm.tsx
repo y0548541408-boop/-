@@ -1,89 +1,163 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { submitOnboarding, type OnboardingResponses } from "./actions";
+import { submitOnboarding } from "./actions";
+import { STEPS, type FieldConfig } from "./formSchema";
 
-const STEPS = ["פרטים אישיים", "הכנסות", "הוצאות והתחייבויות", "חיסכון ומטרות"];
+type Values = Record<string, string | string[]>;
 
-type FormState = {
-  fullName: string;
-  phone: string;
-  spouseName: string;
-  childrenCount: string;
-  incomeSelf: string;
-  incomeSpouse: string;
-  incomeOther: string;
-  rentOrMortgage: string;
-  loanPayments: string;
-  creditCardDebt: string;
-  hasEmergencyFund: boolean;
-  emergencyFundAmount: string;
-  mainGoal: string;
-  biggestConcern: string;
-};
-
-const initialState: FormState = {
-  fullName: "",
-  phone: "",
-  spouseName: "",
-  childrenCount: "",
-  incomeSelf: "",
-  incomeSpouse: "",
-  incomeOther: "",
-  rentOrMortgage: "",
-  loanPayments: "",
-  creditCardDebt: "",
-  hasEmergencyFund: false,
-  emergencyFundAmount: "",
-  mainGoal: "",
-  biggestConcern: "",
-};
-
-function Field({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-1 block text-sm font-medium text-gray-700">{label}</span>
-      {children}
-    </label>
-  );
-}
-
+const OTHER_LABEL = "אחר";
 const inputClass =
   "w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-gray-500 focus:outline-none";
 
+function isEmpty(value: string | string[] | undefined): boolean {
+  if (value === undefined) return true;
+  if (Array.isArray(value)) return value.length === 0;
+  return value.trim().length === 0;
+}
+
+function Field({
+  field,
+  values,
+  onChange,
+  onToggle,
+}: {
+  field: FieldConfig;
+  values: Values;
+  onChange: (key: string, value: string) => void;
+  onToggle: (key: string, option: string) => void;
+}) {
+  const value = values[field.key];
+
+  return (
+    <div>
+      <label className="mb-1 block text-sm font-medium text-gray-700">
+        {field.label}
+        {field.required && <span className="text-red-500"> *</span>}
+      </label>
+      {field.hint && <p className="mb-1 text-xs text-gray-400">{field.hint}</p>}
+
+      {field.type === "text" && (
+        <input
+          type="text"
+          value={(value as string) ?? ""}
+          onChange={(e) => onChange(field.key, e.target.value)}
+          className={inputClass}
+        />
+      )}
+
+      {field.type === "textarea" && (
+        <textarea
+          rows={3}
+          value={(value as string) ?? ""}
+          onChange={(e) => onChange(field.key, e.target.value)}
+          className={inputClass}
+        />
+      )}
+
+      {field.type === "radio" && (
+        <div className="space-y-1.5">
+          {[...field.options, ...(field.hasOther ? [OTHER_LABEL] : [])].map((option) => (
+            <label key={option} className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="radio"
+                name={field.key}
+                checked={value === option}
+                onChange={() => onChange(field.key, option)}
+                className="h-4 w-4 border-gray-300"
+              />
+              {option}
+            </label>
+          ))}
+          {field.hasOther && value === OTHER_LABEL && (
+            <input
+              type="text"
+              placeholder="פרטו..."
+              value={(values[`${field.key}__other`] as string) ?? ""}
+              onChange={(e) => onChange(`${field.key}__other`, e.target.value)}
+              className={`${inputClass} mt-1`}
+            />
+          )}
+        </div>
+      )}
+
+      {field.type === "checkbox" && (
+        <div className="space-y-1.5">
+          {[...field.options, ...(field.hasOther ? [OTHER_LABEL] : [])].map((option) => (
+            <label key={option} className="flex items-center gap-2 text-sm text-gray-700">
+              <input
+                type="checkbox"
+                checked={Array.isArray(value) && value.includes(option)}
+                onChange={() => onToggle(field.key, option)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              {option}
+            </label>
+          ))}
+          {field.hasOther && Array.isArray(value) && value.includes(OTHER_LABEL) && (
+            <input
+              type="text"
+              placeholder="פרטו..."
+              value={(values[`${field.key}__other`] as string) ?? ""}
+              onChange={(e) => onChange(`${field.key}__other`, e.target.value)}
+              className={`${inputClass} mt-1`}
+            />
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function OnboardingForm({ token }: { token: string }) {
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState<FormState>(initialState);
+  const [contactName, setContactName] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [values, setValues] = useState<Values>({});
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  function update<K extends keyof FormState>(key: K, value: FormState[K]) {
-    setForm((prev) => ({ ...prev, [key]: value }));
+  const totalSteps = STEPS.length + 1; // +1 for the intro contact step
+
+  function onChange(key: string, value: string) {
+    setValues((prev) => ({ ...prev, [key]: value }));
   }
 
-  function validateStep(): string | null {
+  function onToggle(key: string, option: string) {
+    setValues((prev) => {
+      const current = Array.isArray(prev[key]) ? (prev[key] as string[]) : [];
+      const next = current.includes(option)
+        ? current.filter((o) => o !== option)
+        : [...current, option];
+      return { ...prev, [key]: next };
+    });
+  }
+
+  function validateCurrentStep(): string | null {
     if (step === 0) {
-      if (!form.fullName.trim()) return "יש להזין שם מלא.";
-      if (!form.phone.trim()) return "יש להזין מספר טלפון.";
+      if (!contactName.trim() || !contactPhone.trim()) {
+        return "יש להזין שם וטלפון ליצירת קשר.";
+      }
+      return null;
+    }
+    const section = STEPS[step - 1];
+    for (const field of section.fields) {
+      if (field.required && isEmpty(values[field.key])) {
+        return "יש למלא את כל השדות המסומנות בכוכבית לפני שממשיכים.";
+      }
     }
     return null;
   }
 
   function goNext() {
-    const validationError = validateStep();
+    const validationError = validateCurrentStep();
     if (validationError) {
       setError(validationError);
       return;
     }
     setError(null);
-    setStep((s) => Math.min(s + 1, STEPS.length - 1));
+    setStep((s) => Math.min(s + 1, totalSteps - 1));
   }
 
   function goBack() {
@@ -92,34 +166,19 @@ export default function OnboardingForm({ token }: { token: string }) {
   }
 
   function handleSubmit() {
-    const validationError = validateStep();
+    const validationError = validateCurrentStep();
     if (validationError) {
       setError(validationError);
       return;
     }
     setError(null);
 
-    const payload: OnboardingResponses = {
-      fullName: form.fullName.trim(),
-      phone: form.phone.trim(),
-      spouseName: form.spouseName.trim(),
-      childrenCount: Number(form.childrenCount) || 0,
-      incomeSelf: Number(form.incomeSelf) || 0,
-      incomeSpouse: Number(form.incomeSpouse) || 0,
-      incomeOther: Number(form.incomeOther) || 0,
-      rentOrMortgage: Number(form.rentOrMortgage) || 0,
-      loanPayments: Number(form.loanPayments) || 0,
-      creditCardDebt: Number(form.creditCardDebt) || 0,
-      hasEmergencyFund: form.hasEmergencyFund,
-      emergencyFundAmount: form.hasEmergencyFund
-        ? Number(form.emergencyFundAmount) || 0
-        : null,
-      mainGoal: form.mainGoal.trim(),
-      biggestConcern: form.biggestConcern.trim(),
-    };
-
     startTransition(async () => {
-      const result = await submitOnboarding(token, payload);
+      const result = await submitOnboarding(token, {
+        contactName: contactName.trim(),
+        contactPhone: contactPhone.trim(),
+        ...values,
+      });
       if ("error" in result) {
         setError(result.error);
         return;
@@ -140,177 +199,67 @@ export default function OnboardingForm({ token }: { token: string }) {
     );
   }
 
+  const isIntro = step === 0;
+  const isLastStep = step === totalSteps - 1;
+  const sectionTitle = isIntro ? "פרטי יצירת קשר" : STEPS[step - 1].title;
+
   return (
     <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm">
       <div className="mb-4">
         <div className="mb-2 flex justify-between text-xs text-gray-500">
-          <span>{STEPS[step]}</span>
+          <span>{sectionTitle}</span>
           <span>
-            שלב {step + 1} מתוך {STEPS.length}
+            שלב {step + 1} מתוך {totalSteps}
           </span>
         </div>
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
           <div
             className="h-full bg-gray-900 transition-all"
-            style={{ width: `${((step + 1) / STEPS.length) * 100}%` }}
+            style={{ width: `${((step + 1) / totalSteps) * 100}%` }}
           />
         </div>
       </div>
 
       <div className="space-y-4">
-        {step === 0 && (
+        {isIntro ? (
           <>
-            <Field label="שם מלא *">
+            <p className="text-xs text-gray-500">
+              רק כדי שנדע איך ליצור איתכם קשר, ואז נצלול לפרטים.
+            </p>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                שם מלא *
+              </label>
               <input
                 type="text"
-                required
-                value={form.fullName}
-                onChange={(e) => update("fullName", e.target.value)}
+                value={contactName}
+                onChange={(e) => setContactName(e.target.value)}
                 className={inputClass}
               />
-            </Field>
-            <Field label="טלפון *">
+            </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                טלפון *
+              </label>
               <input
                 type="tel"
                 dir="ltr"
-                required
-                value={form.phone}
-                onChange={(e) => update("phone", e.target.value)}
+                value={contactPhone}
+                onChange={(e) => setContactPhone(e.target.value)}
                 className={inputClass}
               />
-            </Field>
-            <Field label="שם בן/בת הזוג (אם רלוונטי)">
-              <input
-                type="text"
-                value={form.spouseName}
-                onChange={(e) => update("spouseName", e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-            <Field label="מספר ילדים">
-              <input
-                type="number"
-                inputMode="numeric"
-                min="0"
-                value={form.childrenCount}
-                onChange={(e) => update("childrenCount", e.target.value)}
-                className={inputClass}
-              />
-            </Field>
+            </div>
           </>
-        )}
-
-        {step === 1 && (
-          <>
-            <p className="text-xs text-gray-500">הכנסה חודשית נטו (אחרי מס), בש״ח.</p>
-            <Field label="ההכנסה שלך">
-              <input
-                type="number"
-                inputMode="decimal"
-                min="0"
-                value={form.incomeSelf}
-                onChange={(e) => update("incomeSelf", e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-            <Field label="הכנסת בן/בת הזוג">
-              <input
-                type="number"
-                inputMode="decimal"
-                min="0"
-                value={form.incomeSpouse}
-                onChange={(e) => update("incomeSpouse", e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-            <Field label="הכנסות נוספות (שכירות, קצבאות וכד׳)">
-              <input
-                type="number"
-                inputMode="decimal"
-                min="0"
-                value={form.incomeOther}
-                onChange={(e) => update("incomeOther", e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-          </>
-        )}
-
-        {step === 2 && (
-          <>
-            <Field label="שכר דירה / משכנתא חודשי">
-              <input
-                type="number"
-                inputMode="decimal"
-                min="0"
-                value={form.rentOrMortgage}
-                onChange={(e) => update("rentOrMortgage", e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-            <Field label="סה״כ החזרי הלוואות חודשי">
-              <input
-                type="number"
-                inputMode="decimal"
-                min="0"
-                value={form.loanPayments}
-                onChange={(e) => update("loanPayments", e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-            <Field label="יתרת חוב בכרטיסי אשראי / מסגרת">
-              <input
-                type="number"
-                inputMode="decimal"
-                min="0"
-                value={form.creditCardDebt}
-                onChange={(e) => update("creditCardDebt", e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-          </>
-        )}
-
-        {step === 3 && (
-          <>
-            <label className="flex items-center gap-2 text-sm text-gray-700">
-              <input
-                type="checkbox"
-                checked={form.hasEmergencyFund}
-                onChange={(e) => update("hasEmergencyFund", e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              יש לנו כיום קרן חירום
-            </label>
-            {form.hasEmergencyFund && (
-              <Field label="סכום משוער בקרן החירום">
-                <input
-                  type="number"
-                  inputMode="decimal"
-                  min="0"
-                  value={form.emergencyFundAmount}
-                  onChange={(e) => update("emergencyFundAmount", e.target.value)}
-                  className={inputClass}
-                />
-              </Field>
-            )}
-            <Field label="מה המטרה העיקרית שלכם מהתהליך?">
-              <textarea
-                rows={3}
-                value={form.mainGoal}
-                onChange={(e) => update("mainGoal", e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-            <Field label="מה הכי מטריד אתכם כלכלית כרגע?">
-              <textarea
-                rows={3}
-                value={form.biggestConcern}
-                onChange={(e) => update("biggestConcern", e.target.value)}
-                className={inputClass}
-              />
-            </Field>
-          </>
+        ) : (
+          STEPS[step - 1].fields.map((field) => (
+            <Field
+              key={field.key}
+              field={field}
+              values={values}
+              onChange={onChange}
+              onToggle={onToggle}
+            />
+          ))
         )}
       </div>
 
@@ -326,7 +275,7 @@ export default function OnboardingForm({ token }: { token: string }) {
             הקודם
           </button>
         )}
-        {step < STEPS.length - 1 ? (
+        {!isLastStep ? (
           <button
             type="button"
             onClick={goNext}
