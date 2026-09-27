@@ -11,7 +11,7 @@ export default async function OnboardingPage({
 
   if (!family) {
     return (
-      <main className="flex min-h-screen items-center justify-center bg-gray-50 px-4 text-center">
+      <main className="flex min-h-screen items-center justify-center bg-brand-cream px-4 text-center">
         <p className="text-gray-600">
           הקישור הזה אינו תקין. אם קיבלתם אותו מהיועץ שלכם, בקשו קישור מעודכן.
         </p>
@@ -20,10 +20,11 @@ export default async function OnboardingPage({
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-10">
+    <main className="min-h-screen bg-brand-cream px-4 py-10">
       <div className="mx-auto max-w-md">
-        <div className="mb-4 text-center">
-          <h1 className="text-lg font-semibold text-gray-900">
+        <div className="mb-5 text-center">
+          <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-brand-gold" />
+          <h1 className="text-lg font-semibold text-brand-navy">
             שאלון היכרות – {family.displayName}
           </h1>
           <p className="mt-1 text-sm text-gray-500">

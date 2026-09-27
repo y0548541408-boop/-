@@ -25,11 +25,32 @@ export type FieldConfig =
       required?: boolean;
     };
 
-export type Step = { title: string; fields: FieldConfig[] };
+export type Step = { title: string; chapter: string; fields: FieldConfig[] };
+
+export const CHAPTERS: { title: string; intro: string }[] = [
+  { title: "בואו נכיר", intro: "רק כמה פרטים בסיסיים כדי שנתחיל לבנות תמונה מלאה." },
+  {
+    title: "הכנסות ותקציב",
+    intro: "עכשיו בואו נבין מאיפה הכסף מגיע, ולאן הוא הולך.",
+  },
+  {
+    title: "דיור וכספים שוטפים",
+    intro: "פרטים על הבית שלכם וההתנהלות הבנקאית היומיומית.",
+  },
+  {
+    title: "חיסכון, ביטוח ופנסיה",
+    intro: "בואו נראה מה כבר בנוי לעתיד, ומה אולי פספסנו בדרך.",
+  },
+  {
+    title: "לסיכום",
+    intro: "כמעט סיימנו. עוד כמה שאלות שיעזרו לנו להתאים את הפגישה בדיוק לכם.",
+  },
+];
 
 export const STEPS: Step[] = [
   {
     title: "פרטים כלליים",
+    chapter: "בואו נכיר",
     fields: [
       { key: "lastName", label: "שם משפחה", type: "text" },
       { key: "husbandName", label: "שם הבעל", type: "text", required: true },
@@ -91,6 +112,7 @@ export const STEPS: Step[] = [
   },
   {
     title: "תעסוקה והכנסות",
+    chapter: "הכנסות ותקציב",
     fields: [
       {
         key: "husbandOccupation",
@@ -152,6 +174,7 @@ export const STEPS: Step[] = [
   },
   {
     title: "תקציב המשפחה",
+    chapter: "הכנסות ותקציב",
     fields: [
       {
         key: "totalMonthlyIncome",
@@ -201,6 +224,7 @@ export const STEPS: Step[] = [
   },
   {
     title: "מגורים",
+    chapter: "דיור וכספים שוטפים",
     fields: [
       { key: "currentAddress", label: "איפה אתם גרים?", type: "text" },
       {
@@ -242,6 +266,7 @@ export const STEPS: Step[] = [
   },
   {
     title: "בנקים",
+    chapter: "דיור וכספים שוטפים",
     fields: [
       {
         key: "banksAndMainAccount",
@@ -258,6 +283,7 @@ export const STEPS: Step[] = [
   },
   {
     title: "אמצעי תשלום",
+    chapter: "דיור וכספים שוטפים",
     fields: [
       {
         key: "paymentMethods",
@@ -293,6 +319,7 @@ export const STEPS: Step[] = [
   },
   {
     title: "השתדלות לחתונות הילדים",
+    chapter: "חיסכון, ביטוח ופנסיה",
     fields: [
       {
         key: "savingForWeddings",
@@ -331,6 +358,7 @@ export const STEPS: Step[] = [
   },
   {
     title: "ביטוחים",
+    chapter: "חיסכון, ביטוח ופנסיה",
     fields: [
       {
         key: "hasLifeInsurance",
@@ -368,6 +396,7 @@ export const STEPS: Step[] = [
   },
   {
     title: "פנסיה",
+    chapter: "חיסכון, ביטוח ופנסיה",
     fields: [
       {
         key: "pensionContribution",
@@ -403,6 +432,7 @@ export const STEPS: Step[] = [
   },
   {
     title: "מכשירים פיננסים",
+    chapter: "חיסכון, ביטוח ופנסיה",
     fields: [
       {
         key: "financialInstruments",
@@ -441,6 +471,7 @@ export const STEPS: Step[] = [
   },
   {
     title: "מיצוי זכויות",
+    chapter: "לסיכום",
     fields: [
       {
         key: "workGrantApplication",
@@ -476,6 +507,7 @@ export const STEPS: Step[] = [
   },
   {
     title: "בעלי מקצוע",
+    chapter: "לסיכום",
     fields: [
       {
         key: "interestedProfessionals",
@@ -497,6 +529,7 @@ export const STEPS: Step[] = [
   },
   {
     title: "תיאום ציפיות",
+    chapter: "לסיכום",
     fields: [
       {
         key: "mainReasonForProcess",

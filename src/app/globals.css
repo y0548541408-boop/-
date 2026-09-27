@@ -3,11 +3,20 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  /* Israel Sherman's brand palette (מוח/העדפות/brand.md) */
+  --brand-navy: #1e2a45;
+  --brand-navy-dark: #141d33;
+  --brand-gold: #d9b25c;
+  --brand-cream: #faf7f1;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-navy-dark: var(--brand-navy-dark);
+  --color-brand-gold: var(--brand-gold);
+  --color-brand-cream: var(--brand-cream);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
