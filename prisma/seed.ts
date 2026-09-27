@@ -58,7 +58,21 @@ async function main() {
     });
   }
 
-  console.log("Seeded advisor + test family + family member + budget categories.");
+  await prisma.family.upsert({
+    where: { onboardingToken: "demo-onboarding" },
+    update: {},
+    create: {
+      advisorId: advisor.id,
+      displayName: "משפחת לוי (ליד לדוגמה)",
+      status: "onboarding",
+      onboardingToken: "demo-onboarding",
+      portalActive: false,
+    },
+  });
+
+  console.log(
+    "Seeded advisor + test family + family member + budget categories + onboarding lead."
+  );
 }
 
 main().finally(() => prisma.$disconnect());
