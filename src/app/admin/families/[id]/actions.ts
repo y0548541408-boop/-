@@ -105,3 +105,63 @@ export async function addMeetingSummary(formData: FormData): Promise<void> {
   revalidatePath(`/admin/families/${familyId}`);
   revalidatePath("/dashboard");
 }
+
+export async function toggleFamilyDebt(formData: FormData): Promise<void> {
+  const familyId = String(formData.get("familyId") ?? "");
+  const nextValue = String(formData.get("nextValue") ?? "") === "true";
+
+  const { error: ownError } = await assertFamilyOwnedByAdvisor(familyId);
+  if (ownError) {
+    console.error("toggleFamilyDebt:", ownError);
+    return;
+  }
+
+  await prisma.family.update({
+    where: { id: familyId },
+    data: { hasDebt: nextValue },
+  });
+
+  revalidatePath(`/admin/families/${familyId}`);
+  revalidatePath("/admin");
+}
+
+export async function addTask(formData: FormData): Promise<void> {
+  const familyId = String(formData.get("familyId") ?? "");
+  const title = String(formData.get("title") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const deadline = String(formData.get("deadline") ?? "");
+  const taskType = String(formData.get("taskType") ?? "habit");
+  const toolboxLink = String(formData.get("toolboxLink") ?? "").trim();
+  const videoUrl = String(formData.get("videoUrl") ?? "").trim();
+  const savingsAmountAnnual = String(formData.get("savingsAmountAnnual") ?? "").trim();
+
+  const { error: ownError } = await assertFamilyOwnedByAdvisor(familyId);
+  if (ownError) {
+    console.error("addTask:", ownError);
+    return;
+  }
+
+  if (!title || !deadline) {
+    console.error("addTask: missing required field");
+    return;
+  }
+
+  await prisma.task.create({
+    data: {
+      familyId,
+      title,
+      description: description || null,
+      deadline: new Date(deadline),
+      taskType: taskType === "savings" ? "savings" : "habit",
+      toolboxLink: toolboxLink || null,
+      videoUrl: videoUrl || null,
+      savingsAmountAnnual:
+        taskType === "savings" && savingsAmountAnnual
+          ? savingsAmountAnnual
+          : null,
+    },
+  });
+
+  revalidatePath(`/admin/families/${familyId}`);
+  revalidatePath("/dashboard");
+}

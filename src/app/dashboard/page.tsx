@@ -7,8 +7,9 @@ import {
   type CategorySummary,
 } from "@/lib/budget";
 import { getFamilyMeetingSummaries } from "@/lib/meetings";
+import { getFamilyTasks, getFamilyTaskProgress } from "@/lib/tasks";
 import { signOut } from "@/app/login/actions";
-import { removeRecurringExpense } from "./actions";
+import { removeRecurringExpense, completeTask } from "./actions";
 import ExpenseTools from "./ExpenseTools";
 
 function BarColor(percentUsed: number) {
@@ -74,6 +75,9 @@ export default async function DashboardPage() {
   const summary = await getFamilyBudgetSummary(member.familyId);
   const recurringExpenses = await getFamilyRecurringExpenses(member.familyId);
   const meetingSummaries = await getFamilyMeetingSummaries(member.familyId);
+  const tasks = await getFamilyTasks(member.familyId);
+  const taskProgress = await getFamilyTaskProgress(member.familyId);
+  const openTasks = tasks.filter((t) => t.status !== "done");
   const latestMeeting = meetingSummaries[0];
   const fixed = summary.filter((c) => c.type === "fixed");
   const variable = summary.filter((c) => c.type === "variable");
@@ -120,6 +124,26 @@ export default async function DashboardPage() {
             />
           </div>
         </div>
+
+        {taskProgress.total > 0 && (
+          <div className="mt-3 rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm font-medium text-gray-700">
+                התקדמות במשימות
+              </span>
+              <span className="text-sm text-gray-500">
+                {taskProgress.completed} מתוך {taskProgress.total} (
+                {taskProgress.percent.toFixed(0)}%)
+              </span>
+            </div>
+            <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-100">
+              <div
+                className="h-full bg-brand-gold"
+                style={{ width: `${Math.min(taskProgress.percent, 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
 
         {latestMeeting?.nextFocus && (
           <div className="mt-4 rounded-2xl bg-brand-navy p-4 text-white shadow-sm">
@@ -225,6 +249,68 @@ export default async function DashboardPage() {
                   <p className="mt-1.5 text-sm leading-relaxed text-gray-600">
                     {meeting.summary}
                   </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {openTasks.length > 0 && (
+          <div className="mt-6">
+            <h2 className="mb-2 text-sm font-semibold text-brand-navy">המשימות שלי</h2>
+            <div className="space-y-2">
+              {openTasks.map((task) => (
+                <div
+                  key={task.id}
+                  className="rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5"
+                >
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-sm font-medium text-gray-800">
+                      {task.title}
+                    </span>
+                    <span
+                      className={`text-xs ${
+                        task.isOverdue ? "font-medium text-red-600" : "text-gray-400"
+                      }`}
+                    >
+                      {task.isOverdue ? "באיחור · " : ""}
+                      {task.deadline.toLocaleDateString("he-IL")}
+                    </span>
+                  </div>
+                  {task.description && (
+                    <p className="mt-1 text-sm text-gray-600">{task.description}</p>
+                  )}
+                  <div className="mt-2 flex items-center gap-3 text-xs">
+                    {task.toolboxLink && (
+                      <a
+                        href={task.toolboxLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-brand-navy underline"
+                      >
+                        כלי
+                      </a>
+                    )}
+                    {task.videoUrl && (
+                      <a
+                        href={task.videoUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-brand-navy underline"
+                      >
+                        סרטון
+                      </a>
+                    )}
+                  </div>
+                  <form action={completeTask} className="mt-2">
+                    <input type="hidden" name="id" value={task.id} />
+                    <button
+                      type="submit"
+                      className="rounded-lg bg-brand-navy px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-navy-dark"
+                    >
+                      סמן כהושלם
+                    </button>
+                  </form>
                 </div>
               ))}
             </div>

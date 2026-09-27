@@ -19,6 +19,9 @@ export default async function AdminPage() {
   const families = await prisma.family.findMany({
     where: { advisorId: advisor.id },
     orderBy: { createdAt: "desc" },
+    include: {
+      _count: { select: { meetingSummaries: true } },
+    },
   });
 
   return (
@@ -29,7 +32,12 @@ export default async function AdminPage() {
             <h1 className="text-xl font-semibold text-brand-navy">
               שלום, {advisor.fullName}
             </h1>
-            <p className="text-sm text-gray-500">הלקוחות שלך</p>
+            <nav className="mt-1 flex gap-3 text-sm">
+              <span className="font-medium text-brand-navy">לקוחות</span>
+              <Link href="/admin/leads" className="text-gray-400 hover:text-brand-navy">
+                לידים
+              </Link>
+            </nav>
           </div>
           <form action={signOut}>
             <button type="submit" className="text-xs text-gray-400 underline">
@@ -55,6 +63,16 @@ export default async function AdminPage() {
                 <span className="rounded-full bg-brand-gold/15 px-2 py-0.5 text-xs font-medium text-brand-navy">
                   {STATUS_LABEL[family.status] ?? family.status}
                 </span>
+              </div>
+              <div className="mt-1.5 flex items-center gap-2">
+                <span className="text-xs text-gray-400">
+                  {family._count.meetingSummaries} פגישות
+                </span>
+                {family.hasDebt && (
+                  <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-600">
+                    חוב פתוח
+                  </span>
+                )}
               </div>
             </Link>
           ))}

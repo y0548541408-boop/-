@@ -133,6 +133,21 @@ export async function removeRecurringExpense(formData: FormData) {
   revalidatePath("/dashboard");
 }
 
+export async function completeTask(formData: FormData): Promise<void> {
+  const member = await getCurrentFamilyMember();
+  if (!member) return;
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) return;
+
+  await prisma.task.updateMany({
+    where: { id, familyId: member.familyId },
+    data: { status: "done", completedAt: new Date() },
+  });
+
+  revalidatePath("/dashboard");
+}
+
 export async function reallocateBudget(input: {
   fromCategoryId: string;
   toCategoryId: string;

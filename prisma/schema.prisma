@@ -106,6 +106,7 @@ model Family {
   status         FamilyStatus @default(lead)
   onboardingToken String?     @unique @map("onboarding_token")
   portalActive   Boolean      @default(false) @map("portal_active")
+  hasDebt        Boolean      @default(false) @map("has_debt")
   createdAt      DateTime     @default(now()) @map("created_at")
 
   members             FamilyMember[]

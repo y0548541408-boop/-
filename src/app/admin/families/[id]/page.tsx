@@ -2,8 +2,14 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { getCurrentAdvisor } from "@/lib/advisor";
 import { prisma } from "@/lib/prisma";
-import { uploadDocument, addMeetingSummary } from "./actions";
+import { getFamilyTasks } from "@/lib/tasks";
+import { uploadDocument, addMeetingSummary, toggleFamilyDebt, addTask } from "./actions";
 import DocumentRow from "./DocumentRow";
+
+const TASK_TYPE_LABEL: Record<string, string> = {
+  savings: "חיסכון",
+  habit: "הרגל",
+};
 
 export default async function AdminFamilyPage({
   params,
@@ -24,6 +30,11 @@ export default async function AdminFamilyPage({
 
   if (!family) redirect("/admin");
 
+  const tasks = await getFamilyTasks(family.id);
+  const showOnboardingLink =
+    family.onboardingToken &&
+    (family.status === "lead" || family.status === "onboarding");
+
   return (
     <main className="min-h-screen bg-brand-cream px-4 py-8">
       <div className="mx-auto max-w-md">
@@ -33,6 +44,42 @@ export default async function AdminFamilyPage({
         <h1 className="mt-2 text-xl font-semibold text-brand-navy">
           {family.displayName}
         </h1>
+
+        <div className="mt-3 flex items-center justify-between rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
+          <span className="text-sm text-gray-700">
+            מצב תשלום:{" "}
+            <span
+              className={`font-medium ${
+                family.hasDebt ? "text-red-600" : "text-emerald-600"
+              }`}
+            >
+              {family.hasDebt ? "יש חוב" : "מסודר"}
+            </span>
+          </span>
+          <form action={toggleFamilyDebt}>
+            <input type="hidden" name="familyId" value={family.id} />
+            <input
+              type="hidden"
+              name="nextValue"
+              value={family.hasDebt ? "false" : "true"}
+            />
+            <button
+              type="submit"
+              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-brand-navy/30"
+            >
+              {family.hasDebt ? "סמן כמסודר" : "סמן כבעל חוב"}
+            </button>
+          </form>
+        </div>
+
+        {showOnboardingLink && (
+          <div className="mt-3 rounded-2xl border border-brand-gold/30 bg-brand-gold/10 p-4 text-sm text-brand-navy">
+            <p className="font-medium">קישור לשאלון קליטה</p>
+            <p className="mt-1 break-all text-xs text-brand-navy/70">
+              /onboarding/{family.onboardingToken}
+            </p>
+          </div>
+        )}
 
         <div className="mt-5 rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
           <h2 className="text-sm font-semibold text-brand-navy">מסמכים והקלטות</h2>
@@ -142,6 +189,100 @@ export default async function AdminFamilyPage({
               className="w-full rounded-lg bg-brand-navy px-3 py-2 text-sm font-medium text-white hover:bg-brand-navy-dark"
             >
               הוספת סיכום
+            </button>
+          </form>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
+          <h2 className="text-sm font-semibold text-brand-navy">משימות</h2>
+
+          {tasks.length > 0 && (
+            <div className="mt-3 space-y-2">
+              {tasks.map((task) => (
+                <div key={task.id} className="rounded-lg bg-gray-50 p-3 text-sm">
+                  <div className="flex items-baseline justify-between">
+                    <span className="font-medium text-gray-800">{task.title}</span>
+                    <span
+                      className={`text-xs ${
+                        task.status === "done"
+                          ? "text-emerald-600"
+                          : task.isOverdue
+                            ? "text-red-600"
+                            : "text-gray-400"
+                      }`}
+                    >
+                      {task.status === "done"
+                        ? "הושלם"
+                        : task.deadline.toLocaleDateString("he-IL")}
+                    </span>
+                  </div>
+                  <p className="mt-0.5 text-xs text-gray-500">
+                    {TASK_TYPE_LABEL[task.taskType]}
+                    {task.description && ` · ${task.description}`}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <form
+            action={addTask}
+            className="mt-4 space-y-2 border-t border-gray-100 pt-4"
+          >
+            <input type="hidden" name="familyId" value={family.id} />
+            <input
+              type="text"
+              name="title"
+              required
+              placeholder='כותרת (למשל "פתיחת קרן חירום")'
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            />
+            <textarea
+              name="description"
+              rows={2}
+              placeholder="פירוט (אופציונלי)"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            />
+            <div className="flex gap-2">
+              <input
+                type="date"
+                name="deadline"
+                required
+                className="w-1/2 rounded-lg border border-gray-200 px-3 py-2 text-sm"
+              />
+              <select
+                name="taskType"
+                className="w-1/2 rounded-lg border border-gray-200 px-3 py-2 text-sm"
+                defaultValue="habit"
+              >
+                <option value="habit">הרגל</option>
+                <option value="savings">חיסכון</option>
+              </select>
+            </div>
+            <input
+              type="number"
+              name="savingsAmountAnnual"
+              step="0.01"
+              placeholder="חיסכון שנתי משוער (₪, למשימת חיסכון בלבד)"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            />
+            <input
+              type="url"
+              name="toolboxLink"
+              placeholder="קישור לכלי (אופציונלי)"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            />
+            <input
+              type="url"
+              name="videoUrl"
+              placeholder="קישור לסרטון (אופציונלי)"
+              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
+            />
+            <button
+              type="submit"
+              className="w-full rounded-lg bg-brand-navy px-3 py-2 text-sm font-medium text-white hover:bg-brand-navy-dark"
+            >
+              הוספת משימה
             </button>
           </form>
         </div>
