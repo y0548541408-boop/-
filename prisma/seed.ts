@@ -58,6 +58,41 @@ async function main() {
     });
   }
 
+  const meetingSummaries: {
+    title: string;
+    meetingDate: Date;
+    summary: string;
+    nextFocus: string | null;
+  }[] = [
+    {
+      title: "פגישה 1 - מיפוי הוצאות",
+      meetingDate: new Date("2026-09-05"),
+      summary:
+        "עברנו יחד על כל ההוצאות הקבועות והמשתנות של המשפחה, ובנינו יחד את התקציב החודשי הראשון. זיהינו שההוצאה על מסעדות גבוהה משמעותית מהתכנון המקורי.",
+      nextFocus:
+        "בפגישה הבאה נתמקד בהגדלת ההכנסה: נבדוק מיצוי זכויות (מענק עבודה, הנחת ארנונה) ואפשרויות להכנסה נוספת.",
+    },
+    {
+      title: "פגישה 2 - הגדלת הכנסה ומיצוי זכויות",
+      meetingDate: new Date("2026-09-19"),
+      summary:
+        "בדקנו זכאות למענק עבודה ולהנחת ארנונה, ומילאנו יחד את הטפסים הנדרשים. דיברנו גם על אפשרות להיקף משרה נוסף.",
+      nextFocus:
+        "בפגישה הבאה נתחיל לבנות את קרן החירום: נגדיר יעד חיסכון חודשי ונבחר את המסלול המתאים.",
+    },
+  ];
+
+  for (const meeting of meetingSummaries) {
+    const existing = await prisma.meetingSummary.findFirst({
+      where: { familyId: family.id, title: meeting.title },
+    });
+    if (!existing) {
+      await prisma.meetingSummary.create({
+        data: { familyId: family.id, ...meeting },
+      });
+    }
+  }
+
   await prisma.family.upsert({
     where: { onboardingToken: "demo-onboarding" },
     update: {},
@@ -71,7 +106,7 @@ async function main() {
   });
 
   console.log(
-    "Seeded advisor + test family + family member + budget categories + onboarding lead."
+    "Seeded advisor + test family + family member + budget categories + meeting summaries + onboarding lead."
   );
 }
 

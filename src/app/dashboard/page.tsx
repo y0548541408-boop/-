@@ -6,6 +6,7 @@ import {
   getFamilyRecurringExpenses,
   type CategorySummary,
 } from "@/lib/budget";
+import { getFamilyMeetingSummaries } from "@/lib/meetings";
 import { signOut } from "@/app/login/actions";
 import { removeRecurringExpense } from "./actions";
 import ExpenseTools from "./ExpenseTools";
@@ -72,6 +73,8 @@ export default async function DashboardPage() {
 
   const summary = await getFamilyBudgetSummary(member.familyId);
   const recurringExpenses = await getFamilyRecurringExpenses(member.familyId);
+  const meetingSummaries = await getFamilyMeetingSummaries(member.familyId);
+  const latestMeeting = meetingSummaries[0];
   const fixed = summary.filter((c) => c.type === "fixed");
   const variable = summary.filter((c) => c.type === "variable");
 
@@ -85,11 +88,11 @@ export default async function DashboardPage() {
   });
 
   return (
-    <main className="min-h-screen bg-gray-50 px-4 py-8">
+    <main className="min-h-screen bg-brand-cream px-4 py-8">
       <div className="mx-auto max-w-md">
         <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">
+            <h1 className="text-xl font-semibold text-brand-navy">
               שלום, {member.fullName}
             </h1>
             <p className="text-sm text-gray-500">
@@ -103,7 +106,7 @@ export default async function DashboardPage() {
           </form>
         </div>
 
-        <div className="mt-4 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <div className="mt-4 rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
           <div className="flex items-baseline justify-between">
             <span className="text-sm font-medium text-gray-700">התקציב החודשי</span>
             <span className="text-sm text-gray-500">
@@ -117,6 +120,15 @@ export default async function DashboardPage() {
             />
           </div>
         </div>
+
+        {latestMeeting?.nextFocus && (
+          <div className="mt-4 rounded-2xl bg-brand-navy p-4 text-white shadow-sm">
+            <p className="text-xs font-medium text-brand-gold">
+              על מה נתמקד בפגישה הבאה
+            </p>
+            <p className="mt-1 text-sm leading-relaxed">{latestMeeting.nextFocus}</p>
+          </div>
+        )}
 
         {summary.length === 0 ? (
           <p className="mt-6 text-center text-sm text-gray-400">
@@ -189,6 +201,34 @@ export default async function DashboardPage() {
               }))}
             />
           </>
+        )}
+
+        {meetingSummaries.length > 0 && (
+          <div className="mt-6">
+            <h2 className="mb-2 text-sm font-semibold text-brand-navy">
+              סיכומי הפגישות שלנו
+            </h2>
+            <div className="space-y-3">
+              {meetingSummaries.map((meeting) => (
+                <div
+                  key={meeting.id}
+                  className="rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5"
+                >
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-sm font-semibold text-brand-navy">
+                      {meeting.title}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {meeting.meetingDate.toLocaleDateString("he-IL")}
+                    </span>
+                  </div>
+                  <p className="mt-1.5 text-sm leading-relaxed text-gray-600">
+                    {meeting.summary}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
     </main>

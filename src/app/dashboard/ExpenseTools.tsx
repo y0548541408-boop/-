@@ -128,7 +128,7 @@ export default function ExpenseTools({ categories }: { categories: CategoryOptio
         <button
           type="submit"
           disabled={isPending || !categoryId}
-          className="mt-3 w-full rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+          className="mt-3 w-full rounded-lg bg-brand-navy px-3 py-2 text-sm font-medium text-white hover:bg-brand-navy-dark disabled:opacity-50"
         >
           {isPending ? "שומר..." : isRecurring ? "הוסף הוצאה קבועה" : "הוסף הוצאה"}
         </button>
@@ -179,7 +179,7 @@ export default function ExpenseTools({ categories }: { categories: CategoryOptio
               <button
                 type="submit"
                 disabled={isPending || !fromCategoryId}
-                className="flex-1 rounded-lg bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+                className="flex-1 rounded-lg bg-brand-navy px-3 py-2 text-sm font-medium text-white hover:bg-brand-navy-dark disabled:opacity-50"
               >
                 {isPending ? "מעביר..." : "בצע קיזוז"}
               </button>

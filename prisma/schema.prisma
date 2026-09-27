@@ -114,6 +114,7 @@ model Family {
   expenses             Expense[]
   recurringExpenses    RecurringExpense[]
   reallocations        BudgetReallocation[]
+  meetingSummaries     MeetingSummary[]
   tasks                Task[]
   whatsappMessages     WhatsappInboundMessage[]
   notifications        NotificationLog[]
@@ -197,6 +198,19 @@ model RecurringExpense {
   createdAt  DateTime       @default(now()) @map("created_at")
 
   @@map("recurring_expenses")
+}
+
+model MeetingSummary {
+  id          String   @id @default(uuid())
+  familyId    String   @map("family_id")
+  family      Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  title       String
+  meetingDate DateTime @map("meeting_date")
+  summary     String
+  nextFocus   String?  @map("next_focus")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("meeting_summaries")
 }
 
 model Expense {
