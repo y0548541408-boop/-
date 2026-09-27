@@ -24,7 +24,10 @@ export async function requestOtp(email: string): Promise<ActionResult> {
     options: { shouldCreateUser: true },
   });
 
-  if (error) return { error: GENERIC_ERROR };
+  if (error) {
+    console.error("signInWithOtp error:", error);
+    return { error: GENERIC_ERROR };
+  }
   return { ok: true };
 }
 

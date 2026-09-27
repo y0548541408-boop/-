@@ -2,34 +2,30 @@
 
 Next.js + Supabase (Postgres, Auth, Storage) + Prisma.
 
-## מה כבר בנוי
+## מה כבר בנוי ונבדק מקצה לקצה
 
 - **Auth**: כניסה עם קוד חד־פעמי למייל (Supabase Auth, OTP). `src/app/login`
-- **DB**: סכמת Prisma מלאה לפי ה-PRD (`prisma/schema.prisma`) — משפחות, בני זוג, תקציב, הוצאות, קיזוזים, משימות, וואטסאפ, לידים, חשבוניות
+- **DB**: סכמת Prisma מלאה לפי ה-PRD (`prisma/schema.prisma`) — משפחות, בני זוג, תקציב, הוצאות, קיזוזים, משימות, וואטסאפ, לידים, חשבוניות. מחובר לפרויקט Supabase אמיתי (`qgexfrmmjrbsnswtmyaf`), migration ראשונה רצה בהצלחה.
+- **מיילים**: SMTP מותאם אישית מוגדר מול Resend (לא ברירת המחדל של Supabase). תבנית "אישור הרשמה" נערכה להציג קוד ({{ .Token }}) בטקסט גלוי, לא רק קישור.
 - **הגנת נתיבים**: `src/proxy.ts` (Next 16 proxy convention, מחליף middleware) מפנה משתמש לא מחובר ל-`/login`
-- דשבורד placeholder שמוכיח שההזדהות מקושרת נכון למשפחה שלה במסד הנתונים
+- דשבורד placeholder שמוכיח שההזדהות מקושרת נכון למשפחה שלה במסד הנתונים (נבדק בפועל: התחברות אמיתית עם קוד ממייל → דשבורד עם פרטי המשפחה)
 
-## הרצה ראשונה (חובה לפני שממשיכים)
+## הערה חשובה על Resend
 
-1. **צרו פרויקט Supabase חדש** (חינמי): https://supabase.com/dashboard
-2. ב-Project Settings → API, העתיקו:
-   - `Project URL` → `NEXT_PUBLIC_SUPABASE_URL`
-   - `anon public key` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `service_role key` → `SUPABASE_SERVICE_ROLE_KEY` (שמור בסוד, לא נחשף לדפדפן)
-3. ב-Project Settings → Database, העתיקו:
-   - `Connection pooling` (port 6543) → `DATABASE_URL`
-   - `Direct connection` (port 5432) → `DIRECT_URL`
-4. העתיקו `.env.example` ל-`.env.local` ומלאו את הערכים.
-5. Authentication → Providers → Email: ודאו ש"Email OTP" פעיל (ולא רק Magic Link). ב-Email Templates → Magic Link, ודאו שהתבנית כוללת `{{ .Token }}` כדי שהלקוח יקבל קוד בן 6 ספרות ולא רק קישור.
-6. הריצו:
+בלי אימות דומיין משלך, Resend שולח רק לכתובת המייל שאיתה נרשמת ב-Resend. **לפני שלקוחות אמיתיים יכולים להתחבר, צריך לחבר דומיין** (Resend → Domains → Add Domain, ואז כמה רשומות DNS). זה גם ישפר את אמינות המסירה (פחות סיכוי לתיקיית ספאם).
+
+## סביבת פיתוח
+
+הכל כבר מוגדר ורץ (`.env.local` קיים עם פרטי הפרויקט האמיתי, לא לשתף/להעלות ל-git). כדי להריץ מחדש:
 
 ```bash
 npm install
-npx prisma migrate dev --name init
 npm run dev
 ```
 
-7. פתחו http://localhost:3000 — תופנו אוטומטית ל-`/login`.
+פתחו http://localhost:3000 — תופנו אוטומטית ל-`/login`.
+
+יש משפחת בדיקה זרועה ב-DB (`prisma/seed.ts`, מריצים עם `npx tsx prisma/seed.ts`) עם המייל y0548541408@gmail.com כדי לבדוק את הזרימה.
 
 ## הערה על גרסת Prisma
 

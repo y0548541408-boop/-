@@ -48,7 +48,7 @@ export default function LoginPage() {
         <p className="mb-6 text-sm text-gray-500">
           {step === "email"
             ? "הזינו את כתובת המייל שלכם ונשלח קוד כניסה חד פעמי."
-            : `שלחנו קוד בן 6 ספרות ל-${email}.`}
+            : `שלחנו קוד כניסה ל-${email}.`}
         </p>
 
         {step === "email" ? (
@@ -93,7 +93,7 @@ export default function LoginPage() {
                 onChange={(e) => setCode(e.target.value)}
                 className="w-full rounded-lg border border-gray-300 px-3 py-2 text-center text-lg tracking-widest focus:border-gray-500 focus:outline-none"
                 placeholder="123456"
-                maxLength={6}
+                maxLength={10}
               />
             </div>
             {error && <p className="text-sm text-red-600">{error}</p>}
