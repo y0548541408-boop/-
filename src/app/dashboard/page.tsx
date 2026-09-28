@@ -122,6 +122,9 @@ export default async function DashboardPage() {
 
   const incomeSummary = await getFamilyIncomeSummary(member.familyId);
   const monthlyNet = await getFamilyMonthlyNet(member.familyId, totalSpent);
+  const totalIncomePlanned = incomeSummary.reduce((sum, c) => sum + c.plannedAmount, 0);
+  const totalIncomePercent =
+    totalIncomePlanned > 0 ? (monthlyNet.totalIncome / totalIncomePlanned) * 100 : 0;
 
   const monthLabel = new Date().toLocaleDateString("he-IL", {
     month: "long",
@@ -319,7 +322,21 @@ export default async function DashboardPage() {
 
         {incomeSummary.length > 0 && (
           <div className="mt-6">
-            <h2 className="mb-2 text-sm font-semibold text-gray-700">הכנסות</h2>
+            <div className="rounded-2xl border border-emerald-200 bg-white p-4 shadow-sm">
+              <div className="flex items-baseline justify-between">
+                <span className="text-sm font-medium text-gray-700">סה״כ הכנסות החודש</span>
+                <span className="text-sm text-gray-500">
+                  {monthlyNet.totalIncome.toFixed(0)} / {totalIncomePlanned.toFixed(0)} ₪
+                </span>
+              </div>
+              <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-100">
+                <div
+                  className="h-full bg-emerald-500"
+                  style={{ width: `${Math.min(totalIncomePercent, 100)}%` }}
+                />
+              </div>
+            </div>
+            <h2 className="mb-2 mt-4 text-sm font-semibold text-gray-700">הכנסות</h2>
             <div className="space-y-2">
               {incomeSummary.map((c) => (
                 <div key={c.id} className="rounded-lg border border-gray-200 bg-white p-3">
