@@ -90,7 +90,7 @@ export default function IncomeTools({
       <button
         type="submit"
         disabled={isPending || !categoryId}
-        className="mt-3 w-full rounded-lg bg-brand-gold px-3 py-2 text-sm font-medium text-brand-navy hover:brightness-95 disabled:opacity-50"
+        className="mt-3 w-full rounded-lg bg-brand-terracotta px-3 py-2 text-sm font-medium text-brand-teal hover:brightness-95 disabled:opacity-50"
       >
         {isPending ? "שומר..." : "הוסף הכנסה"}
       </button>

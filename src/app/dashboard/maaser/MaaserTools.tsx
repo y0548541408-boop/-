@@ -36,14 +36,14 @@ export default function MaaserTools({ summary }: { summary: MaaserSummary }) {
 
   return (
     <div className="mt-4 space-y-4">
-      <div className="rounded-xl border border-brand-navy/10 bg-white p-4 shadow-sm">
+      <div className="rounded-xl border border-brand-teal/10 bg-white p-4 shadow-sm">
         <p className="text-sm font-medium text-gray-700">סוג הפרשה</p>
         <div className="mt-2 grid grid-cols-2 gap-2">
           <button
             onClick={() => handleRateChange(10)}
             disabled={isPending}
             className={`rounded-lg border py-2 text-sm font-medium ${
-              summary.ratePercent === 10 ? "border-brand-navy bg-brand-navy text-white" : "border-gray-300 text-gray-600"
+              summary.ratePercent === 10 ? "border-brand-teal bg-brand-teal text-white" : "border-gray-300 text-gray-600"
             }`}
           >
             מעשר (10%)
@@ -52,7 +52,7 @@ export default function MaaserTools({ summary }: { summary: MaaserSummary }) {
             onClick={() => handleRateChange(20)}
             disabled={isPending}
             className={`rounded-lg border py-2 text-sm font-medium ${
-              summary.ratePercent === 20 ? "border-brand-navy bg-brand-navy text-white" : "border-gray-300 text-gray-600"
+              summary.ratePercent === 20 ? "border-brand-teal bg-brand-teal text-white" : "border-gray-300 text-gray-600"
             }`}
           >
             חומש (20%)
@@ -60,7 +60,7 @@ export default function MaaserTools({ summary }: { summary: MaaserSummary }) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-brand-gold/40 bg-white p-4 shadow-sm">
+      <div className="rounded-2xl border border-brand-terracotta/40 bg-white p-4 shadow-sm">
         <div className="grid grid-cols-2 gap-3 text-center">
           <div>
             <p className="text-xs text-gray-500">הכנסה חייבת</p>
@@ -118,7 +118,7 @@ export default function MaaserTools({ summary }: { summary: MaaserSummary }) {
         <button
           type="submit"
           disabled={isPending}
-          className="mt-3 w-full rounded-lg bg-brand-navy px-3 py-2 text-sm font-medium text-white hover:bg-brand-navy-dark disabled:opacity-50"
+          className="mt-3 w-full rounded-lg bg-brand-teal px-3 py-2 text-sm font-medium text-white hover:bg-brand-teal-dark disabled:opacity-50"
         >
           {isPending ? "שומר..." : "רשום תשלום"}
         </button>

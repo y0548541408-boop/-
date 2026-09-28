@@ -16,6 +16,7 @@ import ExpenseTools from "./ExpenseTools";
 import IncomeTools from "./IncomeTools";
 import DocumentRow from "./DocumentRow";
 import DashboardNav from "./DashboardNav";
+import { Logo } from "@/components/Logo";
 
 function BarColor(percentUsed: number) {
   if (percentUsed >= 100) return "bg-red-500";
@@ -135,9 +136,10 @@ export default async function DashboardPage() {
   return (
     <main className="min-h-screen bg-brand-cream px-4 py-8">
       <div className="mx-auto max-w-md">
-        <div className="flex items-start justify-between">
+        <Logo size={15} markSize={22} />
+        <div className="mt-4 flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-brand-navy">
+            <h1 className="text-xl font-semibold text-brand-teal">
               שלום, {member.fullName}
             </h1>
             <p className="text-sm text-gray-500">
@@ -179,7 +181,7 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="mt-3 rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
+        <div className="mt-3 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
           <div className="flex items-baseline justify-between">
             <span className="text-sm font-medium text-gray-700">התקציב החודשי</span>
             <span className="text-sm text-gray-500">
@@ -195,7 +197,7 @@ export default async function DashboardPage() {
         </div>
 
         {taskProgress.total > 0 && (
-          <div className="mt-3 rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
+          <div className="mt-3 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
             <div className="flex items-baseline justify-between">
               <span className="text-sm font-medium text-gray-700">
                 התקדמות במשימות
@@ -207,7 +209,7 @@ export default async function DashboardPage() {
             </div>
             <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-100">
               <div
-                className="h-full bg-brand-gold"
+                className="h-full bg-brand-terracotta"
                 style={{ width: `${Math.min(taskProgress.percent, 100)}%` }}
               />
             </div>
@@ -215,7 +217,7 @@ export default async function DashboardPage() {
         )}
 
         {savingsProgress && (
-          <div className="mt-3 rounded-2xl border border-brand-gold/30 bg-white p-4 shadow-sm shadow-brand-navy/5">
+          <div className="mt-3 rounded-2xl border border-brand-terracotta/30 bg-white p-4 shadow-sm shadow-brand-teal/5">
             <div className="flex items-baseline justify-between">
               <span className="text-sm font-medium text-gray-700">
                 יעד החיסכון שלנו
@@ -228,7 +230,7 @@ export default async function DashboardPage() {
             </div>
             <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-100">
               <div
-                className="h-full bg-brand-gold"
+                className="h-full bg-brand-terracotta"
                 style={{ width: `${Math.min(savingsProgress.percent, 100)}%` }}
               />
             </div>
@@ -236,8 +238,8 @@ export default async function DashboardPage() {
         )}
 
         {latestMeeting?.nextFocus && (
-          <div className="mt-4 rounded-2xl bg-brand-navy p-4 text-white shadow-sm">
-            <p className="text-xs font-medium text-brand-gold">
+          <div className="mt-4 rounded-2xl bg-brand-teal p-4 text-white shadow-sm">
+            <p className="text-xs font-medium text-brand-terracotta">
               על מה נתמקד בפגישה הבאה
             </p>
             <p className="mt-1 text-sm leading-relaxed">{latestMeeting.nextFocus}</p>
@@ -382,17 +384,17 @@ export default async function DashboardPage() {
 
         {meetingSummaries.length > 0 && (
           <div className="mt-6">
-            <h2 className="mb-2 text-sm font-semibold text-brand-navy">
+            <h2 className="mb-2 text-sm font-semibold text-brand-teal">
               סיכומי הפגישות שלנו
             </h2>
             <div className="space-y-3">
               {meetingSummaries.map((meeting) => (
                 <div
                   key={meeting.id}
-                  className="rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5"
+                  className="rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5"
                 >
                   <div className="flex items-baseline justify-between">
-                    <span className="text-sm font-semibold text-brand-navy">
+                    <span className="text-sm font-semibold text-brand-teal">
                       {meeting.title}
                     </span>
                     <span className="text-xs text-gray-400">
@@ -410,12 +412,12 @@ export default async function DashboardPage() {
 
         {openTasks.length > 0 && (
           <div className="mt-6">
-            <h2 className="mb-2 text-sm font-semibold text-brand-navy">המשימות שלי</h2>
+            <h2 className="mb-2 text-sm font-semibold text-brand-teal">המשימות שלי</h2>
             <div className="space-y-2">
               {openTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5"
+                  className="rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5"
                 >
                   <div className="flex items-baseline justify-between">
                     <span className="text-sm font-medium text-gray-800">
@@ -439,7 +441,7 @@ export default async function DashboardPage() {
                         href={task.toolboxLink}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-brand-navy underline"
+                        className="text-brand-teal underline"
                       >
                         כלי
                       </a>
@@ -449,7 +451,7 @@ export default async function DashboardPage() {
                         href={task.videoUrl}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="text-brand-navy underline"
+                        className="text-brand-teal underline"
                       >
                         סרטון
                       </a>
@@ -459,7 +461,7 @@ export default async function DashboardPage() {
                     <input type="hidden" name="id" value={task.id} />
                     <button
                       type="submit"
-                      className="rounded-lg bg-brand-navy px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-navy-dark"
+                      className="rounded-lg bg-brand-teal px-3 py-1.5 text-xs font-medium text-white hover:bg-brand-teal-dark"
                     >
                       סמן כהושלם
                     </button>
@@ -471,8 +473,8 @@ export default async function DashboardPage() {
         )}
 
         {documents.length > 0 && (
-          <div className="mt-6 rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
-            <h2 className="mb-1 text-sm font-semibold text-brand-navy">
+          <div className="mt-6 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
+            <h2 className="mb-1 text-sm font-semibold text-brand-teal">
               המסמכים וההקלטות שלנו
             </h2>
             <div className="mt-2">

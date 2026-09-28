@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentAdvisor } from "@/lib/advisor";
 import { prisma } from "@/lib/prisma";
 import { signOut } from "@/app/login/actions";
+import { Logo } from "@/components/Logo";
 
 const STATUS_LABEL: Record<string, string> = {
   lead: "ליד",
@@ -27,14 +28,15 @@ export default async function AdminPage() {
   return (
     <main className="min-h-screen bg-brand-cream px-4 py-8">
       <div className="mx-auto max-w-md">
-        <div className="flex items-start justify-between">
+        <Logo size={15} markSize={22} />
+        <div className="mt-4 flex items-start justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-brand-navy">
+            <h1 className="text-xl font-semibold text-brand-teal">
               שלום, {advisor.fullName}
             </h1>
             <nav className="mt-1 flex gap-3 text-sm">
-              <span className="font-medium text-brand-navy">לקוחות</span>
-              <Link href="/admin/leads" className="text-gray-400 hover:text-brand-navy">
+              <span className="font-medium text-brand-teal">לקוחות</span>
+              <Link href="/admin/leads" className="text-gray-400 hover:text-brand-teal">
                 לידים
               </Link>
             </nav>
@@ -54,13 +56,13 @@ export default async function AdminPage() {
             <Link
               key={family.id}
               href={`/admin/families/${family.id}`}
-              className="block rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5 transition hover:border-brand-navy/25"
+              className="block rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5 transition hover:border-brand-teal/25"
             >
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-brand-navy">
+                <span className="text-sm font-semibold text-brand-teal">
                   {family.displayName}
                 </span>
-                <span className="rounded-full bg-brand-gold/15 px-2 py-0.5 text-xs font-medium text-brand-navy">
+                <span className="rounded-full bg-brand-terracotta/15 px-2 py-0.5 text-xs font-medium text-brand-teal">
                   {STATUS_LABEL[family.status] ?? family.status}
                 </span>
               </div>

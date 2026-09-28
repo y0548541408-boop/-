@@ -27,9 +27,9 @@ export default async function AdminLeadsPage() {
         <Link href="/admin" className="text-xs text-gray-400 underline">
           ← חזרה ללקוחות
         </Link>
-        <h1 className="mt-2 text-xl font-semibold text-brand-navy">לידים</h1>
+        <h1 className="mt-2 text-xl font-semibold text-brand-teal">לידים</h1>
 
-        <div className="mt-5 rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
+        <div className="mt-5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
           <form action={createLead} className="space-y-2">
             <input
               type="text"
@@ -53,7 +53,7 @@ export default async function AdminLeadsPage() {
             />
             <button
               type="submit"
-              className="w-full rounded-lg bg-brand-navy px-3 py-2 text-sm font-medium text-white hover:bg-brand-navy-dark"
+              className="w-full rounded-lg bg-brand-teal px-3 py-2 text-sm font-medium text-white hover:bg-brand-teal-dark"
             >
               הוספת ליד
             </button>
@@ -67,13 +67,13 @@ export default async function AdminLeadsPage() {
           {leads.map((lead) => (
             <div
               key={lead.id}
-              className="rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5"
+              className="rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5"
             >
               <div className="flex items-baseline justify-between">
-                <span className="text-sm font-semibold text-brand-navy">
+                <span className="text-sm font-semibold text-brand-teal">
                   {lead.fullName}
                 </span>
-                <span className="rounded-full bg-brand-gold/15 px-2 py-0.5 text-xs font-medium text-brand-navy">
+                <span className="rounded-full bg-brand-terracotta/15 px-2 py-0.5 text-xs font-medium text-brand-teal">
                   {STATUS_LABEL[lead.status] ?? lead.status}
                 </span>
               </div>
@@ -98,7 +98,7 @@ export default async function AdminLeadsPage() {
                   </select>
                   <button
                     type="submit"
-                    className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600 hover:border-brand-navy/30"
+                    className="rounded-lg border border-gray-200 px-2 py-1 text-xs text-gray-600 hover:border-brand-teal/30"
                   >
                     עדכון
                   </button>
@@ -109,7 +109,7 @@ export default async function AdminLeadsPage() {
                     <input type="hidden" name="leadId" value={lead.id} />
                     <button
                       type="submit"
-                      className="rounded-lg bg-brand-navy px-2 py-1 text-xs font-medium text-white hover:bg-brand-navy-dark"
+                      className="rounded-lg bg-brand-teal px-2 py-1 text-xs font-medium text-white hover:bg-brand-teal-dark"
                     >
                       המרה למשפחה
                     </button>

@@ -23,8 +23,8 @@ export default async function OnboardingPage({
     <main className="min-h-screen bg-brand-cream px-4 py-10">
       <div className="mx-auto max-w-md">
         <div className="mb-5 text-center">
-          <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-brand-gold" />
-          <h1 className="text-lg font-semibold text-brand-navy">
+          <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-brand-terracotta" />
+          <h1 className="text-lg font-semibold text-brand-teal">
             שאלון היכרות – {family.displayName}
           </h1>
           <p className="mt-1 text-sm text-gray-500">

@@ -24,7 +24,7 @@ export default async function MaaserPage() {
   return (
     <main className="min-h-screen bg-brand-cream px-4 py-8">
       <div className="mx-auto max-w-md">
-        <h1 className="text-xl font-semibold text-brand-navy">מעשרות</h1>
+        <h1 className="text-xl font-semibold text-brand-teal">מעשרות</h1>
         <p className="text-sm text-gray-500">מעקב אחר חובת מעשר לפי הכנסה — {monthLabel}</p>
         <DashboardNav />
 

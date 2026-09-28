@@ -41,11 +41,11 @@ export default async function AdminFamilyPage({
         <Link href="/admin" className="text-xs text-gray-400 underline">
           ← חזרה ללקוחות
         </Link>
-        <h1 className="mt-2 text-xl font-semibold text-brand-navy">
+        <h1 className="mt-2 text-xl font-semibold text-brand-teal">
           {family.displayName}
         </h1>
 
-        <div className="mt-3 flex items-center justify-between rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
+        <div className="mt-3 flex items-center justify-between rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
           <span className="text-sm text-gray-700">
             מצב תשלום:{" "}
             <span
@@ -65,7 +65,7 @@ export default async function AdminFamilyPage({
             />
             <button
               type="submit"
-              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-brand-navy/30"
+              className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-brand-teal/30"
             >
               {family.hasDebt ? "סמן כמסודר" : "סמן כבעל חוב"}
             </button>
@@ -73,16 +73,16 @@ export default async function AdminFamilyPage({
         </div>
 
         {showOnboardingLink && (
-          <div className="mt-3 rounded-2xl border border-brand-gold/30 bg-brand-gold/10 p-4 text-sm text-brand-navy">
+          <div className="mt-3 rounded-2xl border border-brand-terracotta/30 bg-brand-terracotta/10 p-4 text-sm text-brand-teal">
             <p className="font-medium">קישור לשאלון קליטה</p>
-            <p className="mt-1 break-all text-xs text-brand-navy/70">
+            <p className="mt-1 break-all text-xs text-brand-teal/70">
               /onboarding/{family.onboardingToken}
             </p>
           </div>
         )}
 
-        <div className="mt-5 rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
-          <h2 className="text-sm font-semibold text-brand-navy">מסמכים והקלטות</h2>
+        <div className="mt-5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
+          <h2 className="text-sm font-semibold text-brand-teal">מסמכים והקלטות</h2>
 
           {family.documents.length > 0 && (
             <div className="mt-3">
@@ -115,19 +115,19 @@ export default async function AdminFamilyPage({
               type="file"
               name="file"
               required
-              className="w-full text-sm text-gray-600 file:ml-3 file:rounded-lg file:border-0 file:bg-brand-navy/5 file:px-3 file:py-2 file:text-brand-navy"
+              className="w-full text-sm text-gray-600 file:ml-3 file:rounded-lg file:border-0 file:bg-brand-teal/5 file:px-3 file:py-2 file:text-brand-teal"
             />
             <button
               type="submit"
-              className="w-full rounded-lg bg-brand-navy px-3 py-2 text-sm font-medium text-white hover:bg-brand-navy-dark"
+              className="w-full rounded-lg bg-brand-teal px-3 py-2 text-sm font-medium text-white hover:bg-brand-teal-dark"
             >
               העלאה
             </button>
           </form>
         </div>
 
-        <div className="mt-5 rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
-          <h2 className="text-sm font-semibold text-brand-navy">סיכומי פגישות</h2>
+        <div className="mt-5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
+          <h2 className="text-sm font-semibold text-brand-teal">סיכומי פגישות</h2>
 
           {family.meetingSummaries.length > 0 && (
             <div className="mt-3 space-y-3">
@@ -143,7 +143,7 @@ export default async function AdminFamilyPage({
                   </div>
                   <p className="mt-1 text-xs text-gray-600">{meeting.summary}</p>
                   {meeting.nextFocus && (
-                    <p className="mt-1 text-xs font-medium text-brand-navy">
+                    <p className="mt-1 text-xs font-medium text-brand-teal">
                       הבא בתור: {meeting.nextFocus}
                     </p>
                   )}
@@ -186,15 +186,15 @@ export default async function AdminFamilyPage({
             />
             <button
               type="submit"
-              className="w-full rounded-lg bg-brand-navy px-3 py-2 text-sm font-medium text-white hover:bg-brand-navy-dark"
+              className="w-full rounded-lg bg-brand-teal px-3 py-2 text-sm font-medium text-white hover:bg-brand-teal-dark"
             >
               הוספת סיכום
             </button>
           </form>
         </div>
 
-        <div className="mt-5 rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
-          <h2 className="text-sm font-semibold text-brand-navy">משימות</h2>
+        <div className="mt-5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
+          <h2 className="text-sm font-semibold text-brand-teal">משימות</h2>
 
           {tasks.length > 0 && (
             <div className="mt-3 space-y-2">
@@ -280,7 +280,7 @@ export default async function AdminFamilyPage({
             />
             <button
               type="submit"
-              className="w-full rounded-lg bg-brand-navy px-3 py-2 text-sm font-medium text-white hover:bg-brand-navy-dark"
+              className="w-full rounded-lg bg-brand-teal px-3 py-2 text-sm font-medium text-white hover:bg-brand-teal-dark"
             >
               הוספת משימה
             </button>

@@ -3,22 +3,22 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  /* Israel Sherman's brand palette (מוח/העדפות/brand.md) */
-  --brand-navy: #1e2a45;
-  --brand-navy-dark: #141d33;
-  --brand-gold: #d9b25c;
-  --brand-cream: #faf7f1;
+  /* Israel Sherman's brand palette, concept B ("חיבוק") — 2026-09-28 redesign */
+  --brand-teal: #1b4d3e;
+  --brand-teal-dark: #123930;
+  --brand-terracotta: #c97b4a;
+  --brand-cream: #f4f1ea;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-brand-navy: var(--brand-navy);
-  --color-brand-navy-dark: var(--brand-navy-dark);
-  --color-brand-gold: var(--brand-gold);
+  --color-brand-teal: var(--brand-teal);
+  --color-brand-teal-dark: var(--brand-teal-dark);
+  --color-brand-terracotta: var(--brand-terracotta);
   --color-brand-cream: var(--brand-cream);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-heebo);
+  --font-wordmark: var(--font-wordmark);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -31,5 +31,9 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+.font-wordmark {
+  font-family: var(--font-wordmark), serif;
 }

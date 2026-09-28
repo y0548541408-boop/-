@@ -35,7 +35,7 @@ export default function DocumentRow({
         type="button"
         onClick={handleOpen}
         disabled={isPending}
-        className="text-xs font-medium text-brand-navy underline disabled:opacity-50"
+        className="text-xs font-medium text-brand-teal underline disabled:opacity-50"
       >
         {isPending ? "פותח..." : "פתח"}
       </button>

@@ -18,8 +18,8 @@ function CategoryTable({ title, rows, planned }: { title: string; rows: AnnualCa
   if (rows.length === 0) return null;
   return (
     <div className="mt-4">
-      <h2 className="mb-2 text-sm font-semibold text-brand-navy">{title}</h2>
-      <div className="overflow-x-auto rounded-xl border border-brand-navy/10 bg-white shadow-sm">
+      <h2 className="mb-2 text-sm font-semibold text-brand-teal">{title}</h2>
+      <div className="overflow-x-auto rounded-xl border border-brand-teal/10 bg-white shadow-sm">
         <table className="w-full min-w-[720px] text-xs">
           <thead>
             <tr className="border-b border-gray-100 text-gray-500">
@@ -79,7 +79,7 @@ export default async function AnnualPage({
       <div className="mx-auto max-w-4xl">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-brand-navy">תקציב שנתי {year}</h1>
+            <h1 className="text-xl font-semibold text-brand-teal">תקציב שנתי {year}</h1>
             <p className="text-sm text-gray-500">תכנון מול בפועל, לפי קטגוריה וחודש</p>
           </div>
           <div className="flex gap-2 text-sm">
@@ -96,7 +96,7 @@ export default async function AnnualPage({
         <CategoryTable title="הכנסות" rows={table.incomeRows} planned="income" />
         <CategoryTable title="הוצאות" rows={table.expenseRows} planned="expense" />
 
-        <div className="mt-4 overflow-x-auto rounded-xl border border-brand-gold/40 bg-white p-3 shadow-sm">
+        <div className="mt-4 overflow-x-auto rounded-xl border border-brand-terracotta/40 bg-white p-3 shadow-sm">
           <table className="w-full min-w-[720px] text-xs">
             <tbody>
               <tr>
@@ -116,7 +116,7 @@ export default async function AnnualPage({
                 ))}
               </tr>
               <tr>
-                <td className="p-2 font-semibold text-brand-navy">נטו</td>
+                <td className="p-2 font-semibold text-brand-teal">נטו</td>
                 {table.netByMonth.map((v, i) => (
                   <td key={i} className={`p-2 text-center font-medium ${v >= 0 ? "text-emerald-700" : "text-red-700"}`}>
                     {v !== 0 ? v.toFixed(0) : "—"}

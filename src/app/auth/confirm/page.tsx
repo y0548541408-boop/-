@@ -47,7 +47,7 @@ export default function AuthConfirmPage() {
       {error ? (
         <div>
           <p className="text-gray-700">{error}</p>
-          <a href="/login" className="mt-3 inline-block text-sm text-brand-navy underline">
+          <a href="/login" className="mt-3 inline-block text-sm text-brand-teal underline">
             כניסה
           </a>
         </div>

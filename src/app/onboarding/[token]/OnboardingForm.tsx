@@ -8,7 +8,7 @@ type Values = Record<string, string | string[]>;
 
 const OTHER_LABEL = "אחר";
 const inputClass =
-  "w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-800 transition focus:border-brand-navy focus:outline-none focus:ring-2 focus:ring-brand-navy/10";
+  "w-full rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-800 transition focus:border-brand-teal focus:outline-none focus:ring-2 focus:ring-brand-teal/10";
 
 function isEmpty(value: string | string[] | undefined): boolean {
   if (value === undefined) return true;
@@ -42,7 +42,7 @@ function Field({
     <div>
       <label className="mb-1.5 block text-sm font-medium text-gray-800">
         {field.label}
-        {field.required && <span className="text-brand-gold font-semibold"> *</span>}
+        {field.required && <span className="text-brand-terracotta font-semibold"> *</span>}
       </label>
       {field.hint && <p className="mb-1.5 text-xs text-gray-400">{field.hint}</p>}
 
@@ -204,10 +204,10 @@ export default function OnboardingForm({ token }: { token: string }) {
 
   if (done) {
     return (
-      <div className="rounded-3xl border border-brand-navy/10 bg-white p-8 text-center shadow-lg shadow-brand-navy/5">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-brand-gold/15">
+      <div className="rounded-3xl border border-brand-teal/10 bg-white p-8 text-center shadow-lg shadow-brand-teal/5">
+        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-brand-terracotta/15">
           <svg
-            className="h-7 w-7 text-brand-gold"
+            className="h-7 w-7 text-brand-terracotta"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -216,7 +216,7 @@ export default function OnboardingForm({ token }: { token: string }) {
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="text-xl font-semibold text-brand-navy">תודה רבה!</h1>
+        <h1 className="text-xl font-semibold text-brand-teal">תודה רבה!</h1>
         <p className="mt-2 text-sm leading-relaxed text-gray-600">
           כל הכבוד שלקחתם את הזמן למלא את זה בקפידה. ישראל יעבור על הפרטים לקראת
           הפגישה שלכם ויצור איתכם קשר לתיאום.
@@ -234,7 +234,7 @@ export default function OnboardingForm({ token }: { token: string }) {
     step === 0 || chapterTitleForStep(step) !== chapterTitleForStep(step - 1);
 
   return (
-    <div className="rounded-3xl border border-brand-navy/10 bg-white p-6 shadow-lg shadow-brand-navy/5">
+    <div className="rounded-3xl border border-brand-teal/10 bg-white p-6 shadow-lg shadow-brand-teal/5">
       <div className="mb-5">
         <div className="mb-2.5 flex items-center justify-center gap-1.5">
           {CHAPTERS.map((c, i) => (
@@ -242,22 +242,22 @@ export default function OnboardingForm({ token }: { token: string }) {
               key={c.title}
               className={`h-1.5 flex-1 rounded-full transition-colors ${
                 i < chapterIndex
-                  ? "bg-brand-gold"
+                  ? "bg-brand-terracotta"
                   : i === chapterIndex
-                    ? "bg-brand-navy"
+                    ? "bg-brand-teal"
                     : "bg-gray-200"
               }`}
             />
           ))}
         </div>
-        <p className="text-center text-xs font-medium text-brand-navy/60">
+        <p className="text-center text-xs font-medium text-brand-teal/60">
           פרק {chapterIndex + 1} מתוך {CHAPTERS.length} · {chapter.title}
         </p>
         {isFirstStepOfChapter && (
           <p className="mt-2 text-center text-sm text-gray-500">{chapter.intro}</p>
         )}
         {!isIntro && (
-          <h2 className="mt-3 text-base font-semibold text-brand-navy">
+          <h2 className="mt-3 text-base font-semibold text-brand-teal">
             {sectionTitle}
           </h2>
         )}
@@ -271,7 +271,7 @@ export default function OnboardingForm({ token }: { token: string }) {
             </p>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-800">
-                שם מלא <span className="text-brand-gold font-semibold">*</span>
+                שם מלא <span className="text-brand-terracotta font-semibold">*</span>
               </label>
               <input
                 type="text"
@@ -282,7 +282,7 @@ export default function OnboardingForm({ token }: { token: string }) {
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-gray-800">
-                טלפון <span className="text-brand-gold font-semibold">*</span>
+                טלפון <span className="text-brand-terracotta font-semibold">*</span>
               </label>
               <input
                 type="tel"
@@ -313,7 +313,7 @@ export default function OnboardingForm({ token }: { token: string }) {
           <button
             type="button"
             onClick={goBack}
-            className="rounded-xl border border-brand-navy/20 px-4 py-2.5 text-sm font-medium text-brand-navy transition hover:bg-brand-navy/5"
+            className="rounded-xl border border-brand-teal/20 px-4 py-2.5 text-sm font-medium text-brand-teal transition hover:bg-brand-teal/5"
           >
             הקודם
           </button>
@@ -322,7 +322,7 @@ export default function OnboardingForm({ token }: { token: string }) {
           <button
             type="button"
             onClick={goNext}
-            className="flex-1 rounded-xl bg-brand-navy px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-navy-dark"
+            className="flex-1 rounded-xl bg-brand-teal px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-teal-dark"
           >
             הבא
           </button>
@@ -331,7 +331,7 @@ export default function OnboardingForm({ token }: { token: string }) {
             type="button"
             onClick={handleSubmit}
             disabled={isPending}
-            className="flex-1 rounded-xl bg-brand-navy px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-navy-dark disabled:opacity-50"
+            className="flex-1 rounded-xl bg-brand-teal px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-teal-dark disabled:opacity-50"
           >
             {isPending ? "שולח..." : "שליחה"}
           </button>

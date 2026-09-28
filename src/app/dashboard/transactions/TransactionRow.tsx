@@ -49,7 +49,7 @@ export default function TransactionRow({ entry }: { entry: TransactionEntry }) {
 
   if (editing) {
     return (
-      <div className="rounded-lg border border-brand-gold/40 bg-white p-3">
+      <div className="rounded-lg border border-brand-terracotta/40 bg-white p-3">
         <div className="grid grid-cols-2 gap-2">
           <input
             type="number"
@@ -77,7 +77,7 @@ export default function TransactionRow({ entry }: { entry: TransactionEntry }) {
           <button
             onClick={handleSave}
             disabled={isPending}
-            className="flex-1 rounded-lg bg-brand-navy px-2 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+            className="flex-1 rounded-lg bg-brand-teal px-2 py-1.5 text-xs font-medium text-white disabled:opacity-50"
           >
             {isPending ? "שומר..." : "שמירה"}
           </button>
@@ -106,7 +106,7 @@ export default function TransactionRow({ entry }: { entry: TransactionEntry }) {
           {isIncome ? "+" : "-"}
           {entry.amount.toFixed(0)} ₪
         </span>
-        <button onClick={() => setEditing(true)} className="text-xs text-gray-400 hover:text-brand-navy">
+        <button onClick={() => setEditing(true)} className="text-xs text-gray-400 hover:text-brand-teal">
           עריכה
         </button>
         <button onClick={handleDelete} disabled={isPending} className="text-xs text-gray-400 hover:text-red-600">

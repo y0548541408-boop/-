@@ -15,7 +15,7 @@ export default function DashboardNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="mt-3 flex gap-1 overflow-x-auto rounded-xl border border-brand-navy/10 bg-white p-1 text-xs shadow-sm">
+    <nav className="mt-3 flex gap-1 overflow-x-auto rounded-xl border border-brand-teal/10 bg-white p-1 text-xs shadow-sm">
       {ITEMS.map((item) => {
         const active = pathname === item.href;
         return (
@@ -23,7 +23,7 @@ export default function DashboardNav() {
             key={item.href}
             href={item.href}
             className={`shrink-0 rounded-lg px-3 py-2 font-medium transition-colors ${
-              active ? "bg-brand-navy text-white" : "text-gray-600 hover:bg-gray-50"
+              active ? "bg-brand-teal text-white" : "text-gray-600 hover:bg-gray-50"
             }`}
           >
             {item.label}

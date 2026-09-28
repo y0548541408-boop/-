@@ -23,7 +23,7 @@ export default async function TransactionsPage() {
   return (
     <main className="min-h-screen bg-brand-cream px-4 py-8">
       <div className="mx-auto max-w-md">
-        <h1 className="text-xl font-semibold text-brand-navy">יומן תנועות</h1>
+        <h1 className="text-xl font-semibold text-brand-teal">יומן תנועות</h1>
         <p className="text-sm text-gray-500">כל ההכנסות וההוצאות שלכם, מהחדש לישן</p>
         <DashboardNav />
 
