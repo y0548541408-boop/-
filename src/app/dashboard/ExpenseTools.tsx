@@ -17,6 +17,7 @@ export default function ExpenseTools({ categories }: { categories: CategoryOptio
   const [isPending, startTransition] = useTransition();
 
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [isRecurring, setIsRecurring] = useState(false);
@@ -30,18 +31,25 @@ export default function ExpenseTools({ categories }: { categories: CategoryOptio
   function handleAddExpense(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+
+    if (isRecurring && categoryId === "__new__") {
+      setError("להוצאה קבועה יש לבחור קטגוריה קיימת (אפשר להוסיף קטגוריה חדשה קודם כהוצאה רגילה).");
+      return;
+    }
+
     const parsedAmount = Number(amount);
 
     startTransition(async () => {
       const result = isRecurring
         ? await addRecurringExpense({ categoryId, name: note, amount: parsedAmount })
-        : await addExpense({ categoryId, amount: parsedAmount, note });
+        : await addExpense({ categoryId, newCategoryName, amount: parsedAmount, note });
       if ("error" in result) {
         setError(result.error);
         return;
       }
       setAmount("");
       setNote("");
+      setNewCategoryName("");
       if (result.overBudget) {
         setOverBudget(result.overBudget);
         setReallocAmount(String(result.overBudget.overageAmount));
@@ -94,6 +102,7 @@ export default function ExpenseTools({ categories }: { categories: CategoryOptio
                 {c.name}
               </option>
             ))}
+            <option value="__new__">+ קטגוריה חדשה</option>
           </select>
           <input
             type="number"
@@ -107,6 +116,16 @@ export default function ExpenseTools({ categories }: { categories: CategoryOptio
             className="rounded-lg border border-gray-300 px-3 py-2 text-sm sm:w-32"
           />
         </div>
+        {categoryId === "__new__" && (
+          <input
+            type="text"
+            required
+            value={newCategoryName}
+            onChange={(e) => setNewCategoryName(e.target.value)}
+            placeholder='שם הקטגוריה החדשה (למשל "בריאות")'
+            className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          />
+        )}
         <input
           type="text"
           value={note}

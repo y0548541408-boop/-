@@ -15,6 +15,7 @@ export default function IncomeTools({
   const [isPending, startTransition] = useTransition();
 
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
+  const [newCategoryName, setNewCategoryName] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -25,13 +26,14 @@ export default function IncomeTools({
     const parsedAmount = Number(amount);
 
     startTransition(async () => {
-      const result = await addIncome({ categoryId, amount: parsedAmount, note });
+      const result = await addIncome({ categoryId, newCategoryName, amount: parsedAmount, note });
       if ("error" in result) {
         setError(result.error);
         return;
       }
       setAmount("");
       setNote("");
+      setNewCategoryName("");
       router.refresh();
     });
   }
@@ -53,6 +55,7 @@ export default function IncomeTools({
               {c.name}
             </option>
           ))}
+          <option value="__new__">+ קטגוריה חדשה</option>
         </select>
         <input
           type="number"
@@ -66,6 +69,16 @@ export default function IncomeTools({
           className="rounded-lg border border-gray-300 px-3 py-2 text-sm sm:w-32"
         />
       </div>
+      {categoryId === "__new__" && (
+        <input
+          type="text"
+          required
+          value={newCategoryName}
+          onChange={(e) => setNewCategoryName(e.target.value)}
+          placeholder='שם הקטגוריה החדשה (למשל "טיפולים")'
+          className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+        />
+      )}
       <input
         type="text"
         value={note}

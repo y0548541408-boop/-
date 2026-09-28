@@ -25,8 +25,45 @@ async function getCurrentFamilyMember() {
   });
 }
 
+async function resolveBudgetCategoryId(
+  familyId: string,
+  categoryId: string,
+  newCategoryName: string | undefined,
+  type: "fixed" | "variable"
+): Promise<{ id: string } | { error: string }> {
+  if (categoryId !== "__new__") {
+    const category = await prisma.budgetCategory.findFirst({
+      where: { id: categoryId, familyId },
+    });
+    if (!category) return { error: "קטגוריה לא נמצאה." };
+    return { id: category.id };
+  }
+
+  const name = newCategoryName?.trim();
+  if (!name) return { error: "יש לתת שם לקטגוריה החדשה." };
+
+  const existing = await prisma.budgetCategory.findFirst({
+    where: { familyId, name },
+  });
+  if (existing) {
+    if (!existing.isActive) {
+      await prisma.budgetCategory.update({
+        where: { id: existing.id },
+        data: { isActive: true },
+      });
+    }
+    return { id: existing.id };
+  }
+
+  const created = await prisma.budgetCategory.create({
+    data: { familyId, name, type, plannedAmount: 0 },
+  });
+  return { id: created.id };
+}
+
 export async function addExpense(input: {
   categoryId: string;
+  newCategoryName?: string;
   amount: number;
   note?: string;
 }): Promise<ActionResult> {
@@ -38,15 +75,19 @@ export async function addExpense(input: {
     return { error: "יש להזין סכום תקין." };
   }
 
-  const category = await prisma.budgetCategory.findFirst({
-    where: { id: input.categoryId, familyId: member.familyId },
-  });
-  if (!category) return { error: "קטגוריה לא נמצאה." };
+  const resolved = await resolveBudgetCategoryId(
+    member.familyId,
+    input.categoryId,
+    input.newCategoryName,
+    "variable"
+  );
+  if ("error" in resolved) return { error: resolved.error };
+  const categoryId = resolved.id;
 
   await prisma.expense.create({
     data: {
       familyId: member.familyId,
-      categoryId: input.categoryId,
+      categoryId,
       amount: input.amount,
       note: input.note?.trim() || null,
       source: "dashboard",
@@ -58,7 +99,7 @@ export async function addExpense(input: {
   revalidatePath("/dashboard");
 
   const summary = await getFamilyBudgetSummary(member.familyId);
-  const updated = summary.find((c) => c.id === input.categoryId);
+  const updated = summary.find((c) => c.id === categoryId);
 
   if (updated && updated.remaining < 0) {
     return {
@@ -151,8 +192,44 @@ export async function completeTask(formData: FormData): Promise<void> {
   revalidatePath("/dashboard");
 }
 
+async function resolveIncomeCategoryId(
+  familyId: string,
+  categoryId: string,
+  newCategoryName: string | undefined
+): Promise<{ id: string } | { error: string }> {
+  if (categoryId !== "__new__") {
+    const category = await prisma.incomeCategory.findFirst({
+      where: { id: categoryId, familyId },
+    });
+    if (!category) return { error: "קטגוריה לא נמצאה." };
+    return { id: category.id };
+  }
+
+  const name = newCategoryName?.trim();
+  if (!name) return { error: "יש לתת שם לקטגוריה החדשה." };
+
+  const existing = await prisma.incomeCategory.findFirst({
+    where: { familyId, name },
+  });
+  if (existing) {
+    if (!existing.isActive) {
+      await prisma.incomeCategory.update({
+        where: { id: existing.id },
+        data: { isActive: true },
+      });
+    }
+    return { id: existing.id };
+  }
+
+  const created = await prisma.incomeCategory.create({
+    data: { familyId, name, plannedAmount: 0 },
+  });
+  return { id: created.id };
+}
+
 export async function addIncome(input: {
   categoryId: string;
+  newCategoryName?: string;
   amount: number;
   note?: string;
 }): Promise<SimpleActionResult> {
@@ -164,15 +241,17 @@ export async function addIncome(input: {
     return { error: "יש להזין סכום תקין." };
   }
 
-  const category = await prisma.incomeCategory.findFirst({
-    where: { id: input.categoryId, familyId: member.familyId },
-  });
-  if (!category) return { error: "קטגוריה לא נמצאה." };
+  const resolved = await resolveIncomeCategoryId(
+    member.familyId,
+    input.categoryId,
+    input.newCategoryName
+  );
+  if ("error" in resolved) return { error: resolved.error };
 
   await prisma.income.create({
     data: {
       familyId: member.familyId,
-      categoryId: input.categoryId,
+      categoryId: resolved.id,
       amount: input.amount,
       note: input.note?.trim() || null,
       occurredAt: new Date(),
