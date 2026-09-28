@@ -93,9 +93,9 @@ export default async function DashboardPage() {
 
   if (!member) {
     return (
-      <main className="flex min-h-screen items-center justify-center px-4 text-center">
+      <main className="flex min-h-screen items-center justify-center bg-brand-cream px-4 text-center">
         <p className="text-gray-600">
-          המשתמש מאומת אך לא משויך לאף משפחה במערכת. פנה ליועץ שלך.
+          עדיין לא שייכנו אתכם למשפחה במערכת. זה קורה — תנו ליועץ שלכם שנייה לסדר את זה.
         </p>
       </main>
     );
@@ -248,7 +248,7 @@ export default async function DashboardPage() {
 
         {summary.length === 0 ? (
           <p className="mt-6 text-center text-sm text-gray-400">
-            עדיין לא הוגדרו קטגוריות תקציב למשפחה הזו.
+            התקציב שלכם עוד לא נבנה. זה קורה יחד, בפגישה הראשונה.
           </p>
         ) : (
           <>

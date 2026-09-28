@@ -30,22 +30,24 @@ export async function sendTaskReminderEmail(input: {
     .join("");
 
   const html = `
-    <div dir="rtl" style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;">
-      <h2 style="color:#1E2A45;">שלום ${input.memberName},</h2>
-      <p style="color:#374151;">יש לך ${input.tasks.length} משימות פתוחות במשפחת ${input.familyName}:</p>
-      <table style="width:100%;border-collapse:collapse;">${taskRows}</table>
+    <div dir="rtl" style="font-family:Georgia,'Times New Roman',serif;max-width:480px;margin:0 auto;padding:8px;">
+      <div style="font-size:15px;font-weight:700;color:#1B4D3E;margin-bottom:20px;">כלכלת המשפחה</div>
+      <p style="font-family:Arial,sans-serif;color:#374151;font-size:15px;">שלום ${input.memberName},</p>
+      <p style="font-family:Arial,sans-serif;color:#374151;font-size:15px;">רגע לפני שממשיכים ביום — הנה מה שעדיין פתוח אצלכם:</p>
+      <table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;">${taskRows}</table>
       <p style="margin-top:24px;">
         <a href="${input.actionLink}"
-           style="background:#1E2A45;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;display:inline-block;">
-          כניסה לאזור האישי לעדכון
+           style="font-family:Arial,sans-serif;background:#1B4D3E;color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;display:inline-block;font-size:14px;">
+          כניסה לאזור האישי
         </a>
       </p>
+      <p style="font-family:Arial,sans-serif;color:#9CA3AF;font-size:12.5px;margin-top:28px;">בהצלחה,<br/>כלכלת המשפחה</p>
     </div>`;
 
   const { error } = await resend.emails.send({
     from: FROM_ADDRESS,
     to: input.to,
-    subject: `תזכורת: ${input.tasks.length} משימות פתוחות בכלכלת המשפחה`,
+    subject: `תזכורת קטנה: ${input.tasks.length} משימות מחכות לך`,
     html,
   });
 
