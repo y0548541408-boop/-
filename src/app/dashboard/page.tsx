@@ -150,26 +150,28 @@ export default async function DashboardPage() {
           </form>
         </div>
 
-        <div className="mt-4 rounded-2xl bg-brand-navy p-4 text-white shadow-sm">
-          <p className="text-xs font-medium text-brand-gold">סיכום חודשי</p>
-          <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+        <div
+          className={`mt-4 rounded-2xl p-4 text-white shadow-sm ${
+            monthlyNet.net < 0 ? "bg-red-600" : "bg-emerald-600"
+          }`}
+        >
+          <div className="flex items-baseline justify-between">
+            <p className="text-xs font-medium text-white/80">
+              {monthlyNet.net < 0 ? "גירעון החודש" : "עודף החודש"}
+            </p>
+            <p className="text-2xl font-bold">
+              {monthlyNet.net < 0 ? "▼" : "▲"} {monthlyNet.net < 0 ? "-" : "+"}
+              {Math.abs(monthlyNet.net).toFixed(0)} ₪
+            </p>
+          </div>
+          <div className="mt-3 grid grid-cols-2 gap-2 border-t border-white/20 pt-3 text-center">
             <div>
-              <p className="text-lg font-semibold">{monthlyNet.totalIncome.toFixed(0)}</p>
+              <p className="text-base font-semibold">{monthlyNet.totalIncome.toFixed(0)} ₪</p>
               <p className="text-xs text-white/70">סה״כ הכנסות</p>
             </div>
             <div>
-              <p className="text-lg font-semibold">{monthlyNet.totalExpenses.toFixed(0)}</p>
+              <p className="text-base font-semibold">{monthlyNet.totalExpenses.toFixed(0)} ₪</p>
               <p className="text-xs text-white/70">סה״כ הוצאות</p>
-            </div>
-            <div>
-              <p
-                className={`text-lg font-semibold ${
-                  monthlyNet.net < 0 ? "text-red-300" : "text-emerald-300"
-                }`}
-              >
-                {monthlyNet.net.toFixed(0)}
-              </p>
-              <p className="text-xs text-white/70">נטו</p>
             </div>
           </div>
         </div>
