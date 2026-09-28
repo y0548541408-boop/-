@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { getFamilyBudgetSummary } from "@/lib/budget";
+import { createAdminClient, DOCUMENTS_BUCKET } from "@/lib/supabase/admin";
 
 type ActionResult =
   | { error: string }
@@ -146,6 +147,24 @@ export async function completeTask(formData: FormData): Promise<void> {
   });
 
   revalidatePath("/dashboard");
+}
+
+export async function getMyDocumentUrl(storagePath: string): Promise<string | null> {
+  const member = await getCurrentFamilyMember();
+  if (!member) return null;
+
+  const doc = await prisma.document.findFirst({
+    where: { storagePath, familyId: member.familyId },
+  });
+  if (!doc) return null;
+
+  const admin = createAdminClient();
+  const { data, error } = await admin.storage
+    .from(DOCUMENTS_BUCKET)
+    .createSignedUrl(storagePath, 60 * 10);
+
+  if (error) return null;
+  return data.signedUrl;
 }
 
 export async function reallocateBudget(input: {

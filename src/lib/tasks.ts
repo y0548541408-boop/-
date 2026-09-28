@@ -45,3 +45,22 @@ export async function getFamilyTaskProgress(
   const percent = total > 0 ? (completed / total) * 100 : 0;
   return { completed, total, percent };
 }
+
+export async function getFamilySavingsProgress(
+  familyId: string
+): Promise<{ target: number; achieved: number; percent: number } | null> {
+  const savingsTasks = await prisma.task.findMany({
+    where: { familyId, taskType: "savings", savingsAmountAnnual: { not: null } },
+    select: { status: true, savingsAmountAnnual: true },
+  });
+
+  if (savingsTasks.length === 0) return null;
+
+  const target = savingsTasks.reduce((sum, t) => sum + Number(t.savingsAmountAnnual), 0);
+  const achieved = savingsTasks
+    .filter((t) => t.status === "done")
+    .reduce((sum, t) => sum + Number(t.savingsAmountAnnual), 0);
+  const percent = target > 0 ? (achieved / target) * 100 : 0;
+
+  return { target, achieved, percent };
+}

@@ -7,10 +7,12 @@ import {
   type CategorySummary,
 } from "@/lib/budget";
 import { getFamilyMeetingSummaries } from "@/lib/meetings";
-import { getFamilyTasks, getFamilyTaskProgress } from "@/lib/tasks";
+import { getFamilyTasks, getFamilyTaskProgress, getFamilySavingsProgress } from "@/lib/tasks";
+import { getFamilyDocuments } from "@/lib/documents";
 import { signOut } from "@/app/login/actions";
 import { removeRecurringExpense, completeTask } from "./actions";
 import ExpenseTools from "./ExpenseTools";
+import DocumentRow from "./DocumentRow";
 
 function BarColor(percentUsed: number) {
   if (percentUsed >= 100) return "bg-red-500";
@@ -18,7 +20,27 @@ function BarColor(percentUsed: number) {
   return "bg-emerald-500";
 }
 
-function CategoryCard({ category }: { category: CategorySummary }) {
+function SpentTrend({ current, previous }: { current: number; previous: number }) {
+  const delta = current - previous;
+  if (Math.abs(delta) < 1) {
+    return <span className="text-gray-400"> · כמו חודש שעבר</span>;
+  }
+  const isUp = delta > 0;
+  return (
+    <span className={isUp ? "text-red-500" : "text-emerald-600"}>
+      {" "}
+      · {isUp ? "▲" : "▼"} {Math.abs(delta).toFixed(0)} ₪ לעומת חודש שעבר
+    </span>
+  );
+}
+
+function CategoryCard({
+  category,
+  previousSpent,
+}: {
+  category: CategorySummary;
+  previousSpent?: number;
+}) {
   const percent = Math.min(category.percentUsed, 100);
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-3">
@@ -44,6 +66,9 @@ function CategoryCard({ category }: { category: CategorySummary }) {
           : `נותרו ${category.remaining.toFixed(0)} ₪`}
         {category.recurringSpent > 0 &&
           ` · מתוכם ${category.recurringSpent.toFixed(0)} ₪ קבועות`}
+        {previousSpent !== undefined && (
+          <SpentTrend current={category.spent} previous={previousSpent} />
+        )}
       </p>
     </div>
   );
@@ -72,15 +97,22 @@ export default async function DashboardPage() {
     );
   }
 
+  const now = new Date();
+  const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+
   const summary = await getFamilyBudgetSummary(member.familyId);
+  const previousSummary = await getFamilyBudgetSummary(member.familyId, previousMonth);
   const recurringExpenses = await getFamilyRecurringExpenses(member.familyId);
   const meetingSummaries = await getFamilyMeetingSummaries(member.familyId);
   const tasks = await getFamilyTasks(member.familyId);
   const taskProgress = await getFamilyTaskProgress(member.familyId);
+  const savingsProgress = await getFamilySavingsProgress(member.familyId);
+  const documents = await getFamilyDocuments(member.familyId);
   const openTasks = tasks.filter((t) => t.status !== "done");
   const latestMeeting = meetingSummaries[0];
   const fixed = summary.filter((c) => c.type === "fixed");
   const variable = summary.filter((c) => c.type === "variable");
+  const previousSpentByCategory = new Map(previousSummary.map((c) => [c.id, c.spent]));
 
   const totalPlanned = summary.reduce((sum, c) => sum + c.effectivePlanned, 0);
   const totalSpent = summary.reduce((sum, c) => sum + c.spent, 0);
@@ -145,6 +177,27 @@ export default async function DashboardPage() {
           </div>
         )}
 
+        {savingsProgress && (
+          <div className="mt-3 rounded-2xl border border-brand-gold/30 bg-white p-4 shadow-sm shadow-brand-navy/5">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm font-medium text-gray-700">
+                יעד החיסכון שלנו
+              </span>
+              <span className="text-sm text-gray-500">
+                {savingsProgress.achieved.toFixed(0)} מתוך{" "}
+                {savingsProgress.target.toFixed(0)} ₪ (
+                {savingsProgress.percent.toFixed(0)}%)
+              </span>
+            </div>
+            <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-100">
+              <div
+                className="h-full bg-brand-gold"
+                style={{ width: `${Math.min(savingsProgress.percent, 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+
         {latestMeeting?.nextFocus && (
           <div className="mt-4 rounded-2xl bg-brand-navy p-4 text-white shadow-sm">
             <p className="text-xs font-medium text-brand-gold">
@@ -165,7 +218,11 @@ export default async function DashboardPage() {
                 <h2 className="mb-2 text-sm font-semibold text-gray-700">הוצאות קבועות</h2>
                 <div className="space-y-2">
                   {fixed.map((c) => (
-                    <CategoryCard key={c.id} category={c} />
+                    <CategoryCard
+                      key={c.id}
+                      category={c}
+                      previousSpent={previousSpentByCategory.get(c.id)}
+                    />
                   ))}
                 </div>
               </div>
@@ -176,7 +233,11 @@ export default async function DashboardPage() {
                 <h2 className="mb-2 text-sm font-semibold text-gray-700">הוצאות משתנות</h2>
                 <div className="space-y-2">
                   {variable.map((c) => (
-                    <CategoryCard key={c.id} category={c} />
+                    <CategoryCard
+                      key={c.id}
+                      category={c}
+                      previousSpent={previousSpentByCategory.get(c.id)}
+                    />
                   ))}
                 </div>
               </div>
@@ -312,6 +373,25 @@ export default async function DashboardPage() {
                     </button>
                   </form>
                 </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {documents.length > 0 && (
+          <div className="mt-6 rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
+            <h2 className="mb-1 text-sm font-semibold text-brand-navy">
+              המסמכים וההקלטות שלנו
+            </h2>
+            <div className="mt-2">
+              {documents.map((doc) => (
+                <DocumentRow
+                  key={doc.id}
+                  storagePath={doc.storagePath}
+                  filename={doc.filename}
+                  tag={doc.tag}
+                  date={doc.createdAt.toLocaleDateString("he-IL")}
+                />
               ))}
             </div>
           </div>
