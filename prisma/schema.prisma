@@ -107,6 +107,7 @@ model Family {
   onboardingToken String?     @unique @map("onboarding_token")
   portalActive   Boolean      @default(false) @map("portal_active")
   hasDebt        Boolean      @default(false) @map("has_debt")
+  maaserRatePercent Int       @default(10) @map("maaser_rate_percent") // 10 = מעשר, 20 = חומש
   createdAt      DateTime     @default(now()) @map("created_at")
 
   members             FamilyMember[]

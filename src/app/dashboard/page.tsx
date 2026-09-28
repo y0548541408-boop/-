@@ -15,6 +15,7 @@ import { removeRecurringExpense, completeTask } from "./actions";
 import ExpenseTools from "./ExpenseTools";
 import IncomeTools from "./IncomeTools";
 import DocumentRow from "./DocumentRow";
+import DashboardNav from "./DashboardNav";
 
 function BarColor(percentUsed: number) {
   if (percentUsed >= 100) return "bg-red-500";
@@ -149,6 +150,8 @@ export default async function DashboardPage() {
             </button>
           </form>
         </div>
+
+        <DashboardNav />
 
         <div
           className={`mt-4 rounded-2xl p-4 text-white shadow-sm ${

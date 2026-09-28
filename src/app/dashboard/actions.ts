@@ -281,6 +281,121 @@ export async function getMyDocumentUrl(storagePath: string): Promise<string | nu
   return data.signedUrl;
 }
 
+export async function deleteTransaction(input: {
+  id: string;
+  kind: "expense" | "income";
+}): Promise<SimpleActionResult> {
+  const member = await getCurrentFamilyMember();
+  if (!member) return { error: "יש להתחבר מחדש." };
+
+  if (input.kind === "expense") {
+    const result = await prisma.expense.deleteMany({
+      where: { id: input.id, familyId: member.familyId },
+    });
+    if (result.count === 0) return { error: "התנועה לא נמצאה." };
+  } else {
+    const result = await prisma.income.deleteMany({
+      where: { id: input.id, familyId: member.familyId },
+    });
+    if (result.count === 0) return { error: "התנועה לא נמצאה." };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/transactions");
+  revalidatePath("/dashboard/reports");
+  revalidatePath("/dashboard/annual");
+  revalidatePath("/dashboard/maaser");
+  return { ok: true };
+}
+
+export async function updateTransaction(input: {
+  id: string;
+  kind: "expense" | "income";
+  amount: number;
+  note: string;
+  occurredAt: string; // yyyy-mm-dd
+}): Promise<SimpleActionResult> {
+  const member = await getCurrentFamilyMember();
+  if (!member) return { error: "יש להתחבר מחדש." };
+  if (!Number.isFinite(input.amount) || input.amount <= 0) {
+    return { error: "יש להזין סכום תקין." };
+  }
+  const occurredAt = new Date(input.occurredAt);
+  if (Number.isNaN(occurredAt.getTime())) return { error: "תאריך לא תקין." };
+
+  if (input.kind === "expense") {
+    const result = await prisma.expense.updateMany({
+      where: { id: input.id, familyId: member.familyId },
+      data: { amount: input.amount, note: input.note.trim() || null, occurredAt },
+    });
+    if (result.count === 0) return { error: "התנועה לא נמצאה." };
+  } else {
+    const result = await prisma.income.updateMany({
+      where: { id: input.id, familyId: member.familyId },
+      data: { amount: input.amount, note: input.note.trim() || null, occurredAt },
+    });
+    if (result.count === 0) return { error: "התנועה לא נמצאה." };
+  }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/transactions");
+  revalidatePath("/dashboard/reports");
+  revalidatePath("/dashboard/annual");
+  revalidatePath("/dashboard/maaser");
+  return { ok: true };
+}
+
+export async function setMaaserRate(ratePercent: 10 | 20): Promise<SimpleActionResult> {
+  const member = await getCurrentFamilyMember();
+  if (!member) return { error: "יש להתחבר מחדש." };
+
+  await prisma.family.update({
+    where: { id: member.familyId },
+    data: { maaserRatePercent: ratePercent },
+  });
+
+  revalidatePath("/dashboard/maaser");
+  return { ok: true };
+}
+
+export async function recordTithePayment(input: { amount: number; note?: string }): Promise<SimpleActionResult> {
+  const member = await getCurrentFamilyMember();
+  if (!member) return { error: "יש להתחבר מחדש." };
+  if (!Number.isFinite(input.amount) || input.amount <= 0) {
+    return { error: "יש להזין סכום תקין." };
+  }
+
+  let titheCategory = await prisma.budgetCategory.findFirst({
+    where: { familyId: member.familyId, name: "מעשרות" },
+  });
+  if (!titheCategory) {
+    titheCategory = await prisma.budgetCategory.create({
+      data: { familyId: member.familyId, name: "מעשרות", type: "variable", plannedAmount: 0 },
+    });
+  } else if (!titheCategory.isActive) {
+    titheCategory = await prisma.budgetCategory.update({
+      where: { id: titheCategory.id },
+      data: { isActive: true },
+    });
+  }
+
+  await prisma.expense.create({
+    data: {
+      familyId: member.familyId,
+      categoryId: titheCategory.id,
+      amount: input.amount,
+      note: input.note?.trim() || "תשלום מעשר",
+      source: "dashboard",
+      occurredAt: new Date(),
+      createdById: member.id,
+    },
+  });
+
+  revalidatePath("/dashboard");
+  revalidatePath("/dashboard/maaser");
+  return { ok: true };
+}
+
 export async function reallocateBudget(input: {
   fromCategoryId: string;
   toCategoryId: string;
