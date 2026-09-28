@@ -42,16 +42,47 @@ async function main() {
     },
   });
 
+  // Categories match Israel's real Excel tracker exactly (both names and
+  // fixed/variable split), so the demo family looks like his real one.
   const categories: { name: string; type: "fixed" | "variable"; plannedAmount: number }[] = [
-    { name: "שכירות / משכנתא", type: "fixed", plannedAmount: 4500 },
-    { name: "ביטוחים", type: "fixed", plannedAmount: 800 },
-    { name: "סופר", type: "variable", plannedAmount: 2500 },
-    { name: "מסעדות", type: "variable", plannedAmount: 600 },
-    { name: "תחבורה", type: "variable", plannedAmount: 500 },
+    { name: "הוצאות קבועות", type: "fixed", plannedAmount: 4500 },
+    { name: "מעשרות", type: "fixed", plannedAmount: 1000 },
+    { name: "החזרי חובות", type: "fixed", plannedAmount: 800 },
+    { name: "חיסכון לשנתי", type: "fixed", plannedAmount: 500 },
+    { name: "אוכל", type: "variable", plannedAmount: 2500 },
+    { name: "אוכל בחוץ", type: "variable", plannedAmount: 600 },
+    { name: "ביגוד והנעלה", type: "variable", plannedAmount: 400 },
+    { name: "דלק רכב קו", type: "variable", plannedAmount: 500 },
+    { name: "פנאי", type: "variable", plannedAmount: 300 },
+    { name: "רכישות קטנות", type: "variable", plannedAmount: 200 },
+    { name: "שונות (הוצאות)", type: "variable", plannedAmount: 200 },
   ];
+
+  const oldPlaceholderNames = ["שכירות / משכנתא", "ביטוחים", "סופר", "מסעדות", "תחבורה"];
+  await prisma.budgetCategory.updateMany({
+    where: { familyId: family.id, name: { in: oldPlaceholderNames } },
+    data: { isActive: false },
+  });
 
   for (const category of categories) {
     await prisma.budgetCategory.upsert({
+      where: { familyId_name: { familyId: family.id, name: category.name } },
+      update: { isActive: true },
+      create: { familyId: family.id, ...category },
+    });
+  }
+
+  const incomeCategories: { name: string; plannedAmount: number }[] = [
+    { name: "משכורת בעל", plannedAmount: 6000 },
+    { name: "משכורת אשה", plannedAmount: 5000 },
+    { name: "כולל", plannedAmount: 1500 },
+    { name: "קצבת ילדים", plannedAmount: 700 },
+    { name: "הורים", plannedAmount: 0 },
+    { name: "שונות (הכנסות)", plannedAmount: 0 },
+  ];
+
+  for (const category of incomeCategories) {
+    await prisma.incomeCategory.upsert({
       where: { familyId_name: { familyId: family.id, name: category.name } },
       update: {},
       create: { familyId: family.id, ...category },
@@ -106,7 +137,7 @@ async function main() {
   });
 
   console.log(
-    "Seeded advisor + test family + family member + budget categories + meeting summaries + onboarding lead."
+    "Seeded advisor + test family + family member + budget/income categories + meeting summaries + onboarding lead."
   );
 }
 

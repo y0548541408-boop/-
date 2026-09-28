@@ -121,6 +121,8 @@ model Family {
   whatsappMessages     WhatsappInboundMessage[]
   notifications        NotificationLog[]
   invoices             Invoice[]
+  incomeCategories     IncomeCategory[]
+  incomes              Income[]
 
   @@map("families")
 }
@@ -138,6 +140,7 @@ model FamilyMember {
 
   uploadedDocuments Document[] @relation("UploadedBy")
   createdExpenses   Expense[]  @relation("CreatedBy")
+  createdIncomes    Income[]   @relation("IncomeCreatedBy")
 
   @@unique([familyId, email])
   @@map("family_members")
@@ -200,6 +203,37 @@ model RecurringExpense {
   createdAt  DateTime       @default(now()) @map("created_at")
 
   @@map("recurring_expenses")
+}
+
+model IncomeCategory {
+  id            String   @id @default(uuid())
+  familyId      String   @map("family_id")
+  family        Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  name          String
+  plannedAmount Decimal  @map("planned_amount") @db.Decimal(10, 2)
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  incomes Income[]
+
+  @@unique([familyId, name])
+  @@map("income_categories")
+}
+
+model Income {
+  id          String         @id @default(uuid())
+  familyId    String         @map("family_id")
+  family      Family         @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  categoryId  String         @map("category_id")
+  category    IncomeCategory @relation(fields: [categoryId], references: [id])
+  amount      Decimal        @db.Decimal(10, 2)
+  note        String?
+  occurredAt  DateTime       @map("occurred_at")
+  createdById String?        @map("created_by")
+  createdBy   FamilyMember?  @relation("IncomeCreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime       @default(now()) @map("created_at")
+
+  @@map("incomes")
 }
 
 model MeetingSummary {

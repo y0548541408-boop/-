@@ -9,9 +9,11 @@ import {
 import { getFamilyMeetingSummaries } from "@/lib/meetings";
 import { getFamilyTasks, getFamilyTaskProgress, getFamilySavingsProgress } from "@/lib/tasks";
 import { getFamilyDocuments } from "@/lib/documents";
+import { getFamilyIncomeSummary, getFamilyMonthlyNet } from "@/lib/income";
 import { signOut } from "@/app/login/actions";
 import { removeRecurringExpense, completeTask } from "./actions";
 import ExpenseTools from "./ExpenseTools";
+import IncomeTools from "./IncomeTools";
 import DocumentRow from "./DocumentRow";
 
 function BarColor(percentUsed: number) {
@@ -118,6 +120,9 @@ export default async function DashboardPage() {
   const totalSpent = summary.reduce((sum, c) => sum + c.spent, 0);
   const totalPercent = totalPlanned > 0 ? (totalSpent / totalPlanned) * 100 : 0;
 
+  const incomeSummary = await getFamilyIncomeSummary(member.familyId);
+  const monthlyNet = await getFamilyMonthlyNet(member.familyId, totalSpent);
+
   const monthLabel = new Date().toLocaleDateString("he-IL", {
     month: "long",
     year: "numeric",
@@ -142,7 +147,31 @@ export default async function DashboardPage() {
           </form>
         </div>
 
-        <div className="mt-4 rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
+        <div className="mt-4 rounded-2xl bg-brand-navy p-4 text-white shadow-sm">
+          <p className="text-xs font-medium text-brand-gold">סיכום חודשי</p>
+          <div className="mt-2 grid grid-cols-3 gap-2 text-center">
+            <div>
+              <p className="text-lg font-semibold">{monthlyNet.totalIncome.toFixed(0)}</p>
+              <p className="text-xs text-white/70">סה״כ הכנסות</p>
+            </div>
+            <div>
+              <p className="text-lg font-semibold">{monthlyNet.totalExpenses.toFixed(0)}</p>
+              <p className="text-xs text-white/70">סה״כ הוצאות</p>
+            </div>
+            <div>
+              <p
+                className={`text-lg font-semibold ${
+                  monthlyNet.net < 0 ? "text-red-300" : "text-emerald-300"
+                }`}
+              >
+                {monthlyNet.net.toFixed(0)}
+              </p>
+              <p className="text-xs text-white/70">נטו</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-3 rounded-2xl border border-brand-navy/10 bg-white p-4 shadow-sm shadow-brand-navy/5">
           <div className="flex items-baseline justify-between">
             <span className="text-sm font-medium text-gray-700">התקציב החודשי</span>
             <span className="text-sm text-gray-500">
@@ -286,6 +315,47 @@ export default async function DashboardPage() {
               }))}
             />
           </>
+        )}
+
+        {incomeSummary.length > 0 && (
+          <div className="mt-6">
+            <h2 className="mb-2 text-sm font-semibold text-gray-700">הכנסות</h2>
+            <div className="space-y-2">
+              {incomeSummary.map((c) => (
+                <div key={c.id} className="rounded-lg border border-gray-200 bg-white p-3">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-sm font-medium text-gray-900">{c.name}</span>
+                    <span className="text-xs text-gray-500">
+                      {c.received.toFixed(0)} / {c.plannedAmount.toFixed(0)} ₪
+                    </span>
+                  </div>
+                  <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-100">
+                    <div
+                      className="h-full bg-emerald-500"
+                      style={{
+                        width: `${Math.min(
+                          c.plannedAmount > 0 ? (c.received / c.plannedAmount) * 100 : 0,
+                          100
+                        )}%`,
+                      }}
+                    />
+                  </div>
+                  <p
+                    className={`mt-1 text-xs ${
+                      c.remaining > 0 ? "text-amber-600" : "text-gray-500"
+                    }`}
+                  >
+                    {c.remaining > 0
+                      ? `נותרו ${c.remaining.toFixed(0)} ₪ לצפי`
+                      : "התקבל במלואו"}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <IncomeTools
+              categories={incomeSummary.map((c) => ({ id: c.id, name: c.name }))}
+            />
+          </div>
         )}
 
         {meetingSummaries.length > 0 && (

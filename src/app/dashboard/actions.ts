@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getFamilyBudgetSummary } from "@/lib/budget";
 import { createAdminClient, DOCUMENTS_BUCKET } from "@/lib/supabase/admin";
 
+type SimpleActionResult = { error: string } | { ok: true };
+
 type ActionResult =
   | { error: string }
   | { ok: true; overBudget?: { categoryId: string; categoryName: string; overageAmount: number } };
@@ -147,6 +149,39 @@ export async function completeTask(formData: FormData): Promise<void> {
   });
 
   revalidatePath("/dashboard");
+}
+
+export async function addIncome(input: {
+  categoryId: string;
+  amount: number;
+  note?: string;
+}): Promise<SimpleActionResult> {
+  const member = await getCurrentFamilyMember();
+  if (!member) return { error: "יש להתחבר מחדש." };
+
+  if (!input.categoryId) return { error: "יש לבחור קטגוריה." };
+  if (!Number.isFinite(input.amount) || input.amount <= 0) {
+    return { error: "יש להזין סכום תקין." };
+  }
+
+  const category = await prisma.incomeCategory.findFirst({
+    where: { id: input.categoryId, familyId: member.familyId },
+  });
+  if (!category) return { error: "קטגוריה לא נמצאה." };
+
+  await prisma.income.create({
+    data: {
+      familyId: member.familyId,
+      categoryId: input.categoryId,
+      amount: input.amount,
+      note: input.note?.trim() || null,
+      occurredAt: new Date(),
+      createdById: member.id,
+    },
+  });
+
+  revalidatePath("/dashboard");
+  return { ok: true };
 }
 
 export async function getMyDocumentUrl(storagePath: string): Promise<string | null> {
