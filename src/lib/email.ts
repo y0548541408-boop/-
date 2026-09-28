@@ -2,10 +2,11 @@ import { Resend } from "resend";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Until a custom domain is verified in Resend, this can only actually
-// deliver to the account owner's own address (same limitation already
-// documented for the Supabase Auth SMTP emails).
-const FROM_ADDRESS = "כלכלת המשפחה <onboarding@resend.dev>";
+// clalatmishpaha.com verified in Resend on 2026-09-28 — can now deliver to
+// any recipient, not just the account owner. The Supabase Auth SMTP sender
+// (login-code emails) is configured separately in the Supabase dashboard
+// and needs the same domain update there.
+const FROM_ADDRESS = "כלכלת המשפחה <noreply@clalatmishpaha.com>";
 
 export async function sendTaskReminderEmail(input: {
   to: string;
