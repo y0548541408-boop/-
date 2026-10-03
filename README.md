@@ -49,15 +49,30 @@ Next.js + Supabase (Postgres, Auth, Storage) + Prisma. פרויקט נפרד ל�
 ## הדומיין וה-deploy (עדכון 28.9.2026)
 
 - **`clalatmishpaha.com`** נקנה, אומת ב-Resend (DKIM + CNAME לשליחה + DMARC, הוגדרו ב-Namecheap Advanced DNS). מיילי תזכורת המשימות יוצאים ממנו עכשיו (`src/lib/email.ts`) — יכולים להגיע לכל נמען, לא רק לבעל חשבון ה-Resend.
-  - **עדיין לא עודכן**: כתובת השולח של מיילי ה-OTP (קוד ההתחברות) — זו מוגדרת בנפרד ב-Supabase Dashboard (Auth → SMTP Settings), לא בקוד. עד שמישהו יעדכן שם, קודי התחברות עדיין יגיעו רק לבעל חשבון ה-Resend/Supabase.
+  - כתובת השולח של מיילי ה-OTP עודכנה ב-3.10.2026 — ראו "חיבור ה-DB וה-SMTP ב-Supabase תוקנו" למטה (היא הסתבכה עם שתי תקלות נוספות, לא רק עדכון כתובת פשוט).
 - **הפרויקט חי ב-Vercel**: `https://family-finance-portal.vercel.app` (production, team `zzz-4ee2`). נמצאו ותוקנו שני באגים אמיתיים שמנעו deploy מוצלח, שני commits נפרדים:
   1. **`CRON_SECRET` עם רווח מיותר** בערך שנשמר ב-Vercel לפני כמה שעות — Vercel דוחה ערכי header עם whitespace, וזה הפיל את ה-build תוך 3 שניות, לפני שאפילו התחיל לקמפל. תוקן ע"י יצירת ערך חדש (בלי whitespace) דרך `vercel env add --sensitive`, בלי לחשוף אותו בשום מקום.
   2. **Prisma Client לא נוצר אף פעם ב-install נקי של Vercel** (`package.json` היה `"build": "next build"` בלבד) — כל קובץ שמייבא מ-`@prisma/client` נכשל עם "has no exported member", כולל שורה ארוכה של שגיאות `implicit any` שהיו רק תוצר לוואי. תוקן ע"י `"build": "prisma generate && next build"`. נבדק מקומית לפני ה-push: מחיקת `node_modules/.prisma` ואז build, כדי לדמות בדיוק install נקי.
   - שני התיקונים אומתו: build עובר נקי מקומית (סימולציה של install נקי) **וגם** ב-Vercel בפועל (`vercel ls` מראה `Ready`, ונבדק ש-`/login` באמת עולה מהאינטרנט, לא רק שה-build עבר).
 
+## חיבור ה-DB וה-SMTP ב-Supabase תוקנו (עדכון 3.10.2026)
+
+אחרי ה-deploy הראשון שעבד, הניסיון הראשון להתחבר בפועל נפל עם "A server error occurred" — לא עניין קוסמטי, שתי תקלות אמיתיות נפרדות, לא קשורות לשום דבר שנעשה קודם:
+
+1. **`DATABASE_URL`/`DIRECT_URL` הצביעו על החיבור הישיר** (`db.qgexfrmmjrbsnswtmyaf.supabase.co:5432`) — שהתגלה כבלתי נגיש (IPv6-only, לא עובד לא מ-Vercel ולא מהמחשב המקומי — `P1001 Can't reach database server`, גם ב-`prisma migrate status` וגם ב-build בפועל). **תוקן**: עברנו ל-connection pooler הרשמי של Supabase (Supavisor), ששתי הכתובות שלו נגישות ב-IPv4:
+   - `DATABASE_URL` → transaction pooler: `aws-0-ap-northeast-1.pooler.supabase.com:6543`
+   - `DIRECT_URL` → session pooler (אותו host, פורט 5432) — נדרש ל-migrations
+   - עודכן גם ב-`.env.local` וגם ב-Vercel (`vercel env add --force`), אומת עם חיבור `pg` ישיר לפני השינוי ואחריו.
+2. **`smtp_pass` השמור ב-Supabase Auth (Management API) היה מפתח Resend ישן/לא תואם** ל-`RESEND_API_KEY` הנוכחי ב-`.env.local` — ה-API key של Resend עצמו תקין (אומת ישירות מול Resend, גם שליחה אמיתית דרך ה-HTTP API של Resend עבדה), אבל ה-SMTP relay של Supabase קיבל `401 Invalid API key` / `500 Error sending confirmation email`. **תוקן**: עדכון `smtp_pass` ב-config/auth דרך ה-Management API לערך הנוכחי.
+3. גם `smtp_admin_email` (כתובת השולח של ה-OTP) עודכן ל-`noreply@clalatmishpaha.com` באותו תהליך — זה היה הפריט שתוכנן מראש, התגלה תוך כדי שיש עוד שתי תקלות נפרדות שחייבות תיקון כדי שההתחברות תעבוד בכלל.
+
+**איך זה אומת**: קריאת `POST /auth/v1/otp` ישירה מול Supabase (אותו endpoint וה-`anon key` שהאפליקציה עצמה קוראת) החזירה `200 {}` אחרי התיקון, לעומת `401`/`500` לפניו. זו בדיקה אמיתית של זרימת השליחה, לא רק שה-build עבר.
+
+**שימו לב**: ה-token שנוצר ב-Supabase (`sbp_...`, Full access, 7 ימים) שימש לכל התיקונים האלה דרך ה-Management API — **יש לוודא שהוא נמחק** ב-`supabase.com/dashboard/account/tokens` אם עוד לא נמחק.
+
 ## המשך מכאן (session חדש)
 
-1. **לעדכן את כתובת השולח של מיילי ה-OTP ב-Supabase Dashboard** (Auth → SMTP Settings) לדומיין המאומת — זה מה שחסם עד עכשיו קודי התחברות ללקוחות אמיתיים, ועדיין חסום.
+1. ~~לעדכן את כתובת השולח של מיילי ה-OTP~~ — **בוצע** (ראו סעיף למעלה). קוד ההתחברות אמור להגיע עכשיו לכל לקוח, לא רק לבעל החשבון.
 2. **שני פריטים שלא נבדקו בלחיצה אמיתית מדפדפן (דורשים את ישראל):** (א) העלאת קובץ אמיתי ב-`/admin/families/[id]`, (ב) לחיצה על קישור ה-magic link בפועל ממייל תזכורת משימות אמיתי (המנגנון עצמו אומת בקוד/API, רק לא "מהצד השני" של לחיצה בדפדפן אמיתי) — עכשיו שהדומיין מאומת, שווה לבדוק את זה שוב במייל אמיתי.
 3. **מה שהוחלט לא לבנות (במכוון) בממשק הלקוח**: מעקב שווי נקי/השקעות, ציון בריאות פיננסי (נשאל ישראל במפורש, ענה לא), דשבורד עם widgets להתאמה אישית, צ'אט מובנה (יש וואטסאפ לזה, מושהה) — לא מתאים למוצר ליווי תקציב (לא ניהול הון).
 4. **"רצף הרגלים"** (streak) על משימות מסוג habit נדחה — דורש להחליט על מנגנון "משימה חוזרת" שעדיין לא קיים בסכמה. לא התחלנו בזה.
