@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addExpense, addRecurringExpense, reallocateBudget } from "./actions";
+import { addExpense, addRecurringExpense, reallocateBudget , deleteTransaction } from "./actions";
+import SavedBanner, { type EntryStatus } from "./SavedBanner";
 
 type CategoryOption = { id: string; name: string; type: "fixed" | "variable"; remaining: number };
 
@@ -23,7 +24,8 @@ export default function ExpenseTools({
   const [isPending, startTransition] = useTransition();
 
   const [date, setDate] = useState(defaultDate);
-  const [saved, setSaved] = useState(false);
+  const [status, setStatus] = useState<EntryStatus>(null);
+  const [lastId, setLastId] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
   const [newCategoryName, setNewCategoryName] = useState("");
   const [amount, setAmount] = useState("");
@@ -35,6 +37,20 @@ export default function ExpenseTools({
   const [fromCategoryId, setFromCategoryId] = useState("");
   const [reallocAmount, setReallocAmount] = useState("");
   const [reallocError, setReallocError] = useState<string | null>(null);
+
+  function handleUndo() {
+    if (!lastId) return;
+    startTransition(async () => {
+      const result = await deleteTransaction({ id: lastId, kind: "expense" });
+      if ("error" in result) {
+        setError(result.error);
+        return;
+      }
+      setLastId(null);
+      setStatus("undone");
+      router.refresh();
+    });
+  }
 
   function handleAddExpense(e: React.FormEvent) {
     e.preventDefault();
@@ -58,7 +74,8 @@ export default function ExpenseTools({
       setAmount("");
       setNote("");
       setNewCategoryName("");
-      setSaved(true);
+      setStatus("saved");
+      setLastId("id" in result && result.id ? result.id : null);
       if (result.overBudget) {
         setOverBudget(result.overBudget);
         setReallocAmount(String(result.overBudget.overageAmount));
@@ -150,7 +167,7 @@ export default function ExpenseTools({
           value={note}
           onChange={(e) => {
             setNote(e.target.value);
-            setSaved(false);
+            setStatus(null);
           }}
           placeholder={isRecurring ? 'שם ההוצאה הקבועה (למשל "שכירות")' : "הערה (לא חובה)"}
           required={isRecurring}
@@ -166,7 +183,9 @@ export default function ExpenseTools({
           הוצאה קבועה (תתחדש אוטומטית כל חודש)
         </label>
         {error && <p className="mt-2 text-sm font-semibold text-ru-pink">{error}</p>}
-        {saved && !error && <p className="mt-2 text-sm font-semibold text-ru-green">נשמר ✓ אפשר להוסיף עוד.</p>}
+        {!error && (
+        <SavedBanner status={status} pending={isPending} onUndo={lastId ? handleUndo : undefined} />
+      )}
         <button
           type="submit"
           disabled={isPending || !categoryId}

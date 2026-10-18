@@ -2,7 +2,8 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addIncome } from "./actions";
+import { addIncome , deleteTransaction } from "./actions";
+import SavedBanner, { type EntryStatus } from "./SavedBanner";
 
 type IncomeCategoryOption = { id: string; name: string };
 
@@ -16,13 +17,28 @@ export default function IncomeTools({
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [date, setDate] = useState(defaultDate);
-  const [saved, setSaved] = useState(false);
+  const [status, setStatus] = useState<EntryStatus>(null);
+  const [lastId, setLastId] = useState<string | null>(null);
 
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
   const [newCategoryName, setNewCategoryName] = useState("");
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  function handleUndo() {
+    if (!lastId) return;
+    startTransition(async () => {
+      const result = await deleteTransaction({ id: lastId, kind: "income" });
+      if ("error" in result) {
+        setError(result.error);
+        return;
+      }
+      setLastId(null);
+      setStatus("undone");
+      router.refresh();
+    });
+  }
 
   function handleAddIncome(e: React.FormEvent) {
     e.preventDefault();
@@ -38,7 +54,8 @@ export default function IncomeTools({
       setAmount("");
       setNote("");
       setNewCategoryName("");
-      setSaved(true);
+      setStatus("saved");
+      setLastId("id" in result && result.id ? result.id : null);
       router.refresh();
     });
   }
@@ -97,13 +114,15 @@ export default function IncomeTools({
         value={note}
         onChange={(e) => {
           setNote(e.target.value);
-          setSaved(false);
+          setStatus(null);
         }}
         placeholder="הערה (לא חובה)"
         className="mt-3 w-full rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base"
       />
       {error && <p className="mt-2 text-sm font-semibold text-ru-pink">{error}</p>}
-      {saved && !error && <p className="mt-2 text-sm font-semibold text-ru-green">נשמר ✓ אפשר להוסיף עוד.</p>}
+      {!error && (
+        <SavedBanner status={status} pending={isPending} onUndo={lastId ? handleUndo : undefined} />
+      )}
       <button
         type="submit"
         disabled={isPending || !categoryId}

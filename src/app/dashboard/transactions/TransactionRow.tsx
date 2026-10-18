@@ -21,6 +21,7 @@ export default function TransactionRow({ entry }: { entry: TransactionEntry }) {
   const [note, setNote] = useState(entry.note ?? "");
   const [date, setDate] = useState(toDateInputValue(entry.occurredAt));
   const [error, setError] = useState<string | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   const isIncome = entry.kind === "income";
 
@@ -44,9 +45,13 @@ export default function TransactionRow({ entry }: { entry: TransactionEntry }) {
   }
 
   function handleDelete() {
-    if (!confirm("למחוק את התנועה הזו?")) return;
     startTransition(async () => {
-      await deleteTransaction({ id: entry.id, kind: entry.kind });
+      const result = await deleteTransaction({ id: entry.id, kind: entry.kind });
+      if ("error" in result) {
+        setError(result.error);
+        setConfirmingDelete(false);
+        return;
+      }
       router.refresh();
     });
   }
@@ -105,18 +110,40 @@ export default function TransactionRow({ entry }: { entry: TransactionEntry }) {
           {entry.occurredAt.toLocaleDateString("he-IL")}
           {entry.note && ` · ${entry.note}`}
         </div>
-        <div className="mt-1.5 flex gap-3 text-xs">
-          <button onClick={() => setEditing(true)} className="font-medium text-ru-blue">
-            עריכה
-          </button>
-          <button
-            onClick={handleDelete}
-            disabled={isPending}
-            className="text-ru-muted hover:text-ru-pink"
-          >
-            מחיקה
-          </button>
-        </div>
+        {confirmingDelete ? (
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+            <span className="font-semibold text-ru-ink">למחוק את התנועה?</span>
+            <button
+              onClick={handleDelete}
+              disabled={isPending}
+              className="rounded-full bg-ru-pink px-3 py-1.5 font-bold text-white disabled:opacity-50"
+            >
+              {isPending ? "מוחק..." : "כן, מחק"}
+            </button>
+            <button
+              onClick={() => setConfirmingDelete(false)}
+              className="rounded-full border border-ru-blue-soft px-3 py-1.5 text-ru-ink/70"
+            >
+              ביטול
+            </button>
+          </div>
+        ) : (
+          <div className="mt-2 flex gap-2 text-xs">
+            <button
+              onClick={() => setEditing(true)}
+              className="rounded-full bg-ru-blue-soft px-3 py-1.5 font-bold text-ru-blue"
+            >
+              עריכה
+            </button>
+            <button
+              onClick={() => setConfirmingDelete(true)}
+              className="rounded-full bg-ru-pink-soft px-3 py-1.5 font-bold text-ru-pink"
+            >
+              מחיקה
+            </button>
+          </div>
+        )}
+        {error && <p className="mt-1 text-xs font-semibold text-ru-pink">{error}</p>}
       </div>
       <span className={`shrink-0 text-xl font-bold ${isIncome ? "text-ru-green" : "text-ru-pink"}`}>
         {isIncome ? "+" : "-"}

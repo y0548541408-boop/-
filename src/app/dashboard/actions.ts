@@ -11,7 +11,11 @@ type SimpleActionResult = { error: string } | { ok: true };
 
 type ActionResult =
   | { error: string }
-  | { ok: true; overBudget?: { categoryId: string; categoryName: string; overageAmount: number } };
+  | {
+      ok: true;
+      id?: string;
+      overBudget?: { categoryId: string; categoryName: string; overageAmount: number };
+    };
 
 async function getCurrentFamilyMember() {
   const supabase = await createClient();
@@ -87,7 +91,7 @@ export async function addExpense(input: {
   const categoryId = resolved.id;
   const occurredAt = parseEntryDate(input.date);
 
-  await prisma.expense.create({
+  const createdExpense = await prisma.expense.create({
     data: {
       familyId: member.familyId,
       categoryId,
@@ -107,6 +111,7 @@ export async function addExpense(input: {
   if (updated && updated.remaining < 0) {
     return {
       ok: true,
+      id: createdExpense.id,
       overBudget: {
         categoryId: updated.id,
         categoryName: updated.name,
@@ -115,7 +120,7 @@ export async function addExpense(input: {
     };
   }
 
-  return { ok: true };
+  return { ok: true, id: createdExpense.id };
 }
 
 export async function addRecurringExpense(input: {
@@ -236,7 +241,7 @@ export async function addIncome(input: {
   amount: number;
   note?: string;
   date?: string;
-}): Promise<SimpleActionResult> {
+}): Promise<{ error: string } | { ok: true; id: string }> {
   const member = await getCurrentFamilyMember();
   if (!member) return { error: "יש להתחבר מחדש." };
 
@@ -252,7 +257,7 @@ export async function addIncome(input: {
   );
   if ("error" in resolved) return { error: resolved.error };
 
-  await prisma.income.create({
+  const createdIncome = await prisma.income.create({
     data: {
       familyId: member.familyId,
       categoryId: resolved.id,
@@ -264,7 +269,7 @@ export async function addIncome(input: {
   });
 
   revalidatePath("/dashboard", "layout");
-  return { ok: true };
+  return { ok: true, id: createdIncome.id };
 }
 
 export async function updateExpenseCategoryPlanned(input: {
