@@ -55,11 +55,11 @@ export default function DashboardNav() {
 
       <Link
         href={`/dashboard/add${monthSuffix}`}
-        aria-label="הוספת תנועה"
+        aria-label="הוספה"
         className="fixed bottom-5 left-5 z-40 flex items-center gap-2 rounded-full bg-ru-blue px-6 py-4 text-base font-bold text-white shadow-[0_6px_20px_rgba(91,123,255,0.45)] hover:brightness-105"
       >
         <span className="text-2xl leading-none">＋</span>
-        הוספת תנועה
+        הוספה
       </Link>
     </>
   );

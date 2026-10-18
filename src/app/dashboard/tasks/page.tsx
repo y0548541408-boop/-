@@ -9,6 +9,7 @@ import DocumentRow from "../DocumentRow";
 import DashboardNav from "../DashboardNav";
 import RiseCard, { formatShekel } from "../RiseCard";
 import SubTabs, { TASKS_REPORTS_TABS } from "../SubTabs";
+import AdvisorHelp from "../AdvisorHelp";
 
 export default async function TasksPage() {
   const supabase = await createClient();
@@ -108,7 +109,7 @@ export default async function TasksPage() {
                         task.isOverdue ? "font-semibold text-ru-pink" : "text-ru-muted"
                       }`}
                     >
-                      {task.isOverdue ? "באיחור · " : ""}
+                      {task.isOverdue ? "מחכה לכם · " : ""}
                       {task.deadline.toLocaleDateString("he-IL")}
                     </span>
                   </div>
@@ -190,6 +191,8 @@ export default async function TasksPage() {
             </div>
           </div>
         )}
+
+        <AdvisorHelp familyId={member.familyId} />
       </div>
     </main>
   );

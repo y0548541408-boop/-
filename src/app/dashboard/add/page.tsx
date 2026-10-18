@@ -44,7 +44,7 @@ export default async function AddTransactionPage({
         <Link href={backHref} className="text-sm font-medium text-ru-blue">
           ← חזרה לסקירה
         </Link>
-        <h1 className="mt-2 text-2xl font-bold">הוספת תנועה</h1>
+        <h1 className="mt-2 text-2xl font-bold">הוספה</h1>
         <p className="text-sm text-ru-muted">הכנסה או הוצאה — מתעדכן מיד בתקציב</p>
 
         <AddTabs

@@ -37,7 +37,7 @@ export default async function TransactionsPage({
   return (
     <main className="min-h-screen bg-ru-bg px-4 pb-32 pt-6 text-ru-ink">
       <div className="mx-auto max-w-md">
-        <h1 className="text-2xl font-bold">יומן תנועות</h1>
+        <h1 className="text-2xl font-bold">מה נכנס ומה יצא</h1>
         <p className="text-sm text-ru-muted">כל ההכנסות וההוצאות של החודש, מהחדש לישן</p>
         <DashboardNav />
         <SubTabs items={BUDGET_TABS} active="/dashboard/transactions" month={monthParam} />
@@ -46,7 +46,7 @@ export default async function TransactionsPage({
         <div className="mt-4 space-y-2">
           {entries.length === 0 && (
             <p className="mt-8 text-center text-sm text-ru-muted">
-              אין תנועות בחודש הזה. כפתור ההוספה בפינה יעשה את זה בשנייה.
+              החודש עוד שקט. כפתור ההוספה בפינה יעשה את זה בשנייה.
             </p>
           )}
           {entries.map((e) => (

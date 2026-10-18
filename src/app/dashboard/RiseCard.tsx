@@ -52,7 +52,7 @@ export default function RiseCard({
               over ? "bg-ru-pink-soft text-ru-pink" : "bg-ru-green-soft text-ru-green"
             }`}
           >
-            <p className="text-[11px] font-semibold leading-tight">{over ? "חריגה" : "יתרה לשימוש"}</p>
+            <p className="text-[11px] font-semibold leading-tight">{over ? "מעבר לתכנון" : "יתרה לשימוש"}</p>
             <p className="text-lg font-bold leading-tight">{formatShekel(Math.abs(remaining))}</p>
           </div>
         )}

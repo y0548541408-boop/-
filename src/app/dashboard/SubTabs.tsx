@@ -31,7 +31,7 @@ export default function SubTabs({
 
 export const BUDGET_TABS: SubTab[] = [
   { path: "/dashboard", label: "החודש", keepsMonth: true },
-  { path: "/dashboard/transactions", label: "תנועות", keepsMonth: true },
+  { path: "/dashboard/transactions", label: "יומן", keepsMonth: true },
   { path: "/dashboard/annual", label: "שנתי" },
   { path: "/dashboard/maaser", label: "מעשרות" },
 ];

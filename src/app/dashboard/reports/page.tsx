@@ -26,7 +26,7 @@ function Breakdown({
     <div className={`mt-4 ${CARD}`}>
       <h2 className="mb-3 text-lg font-bold">{title}</h2>
       {rows.length === 0 ? (
-        <p className="text-sm text-ru-muted">אין נתונים לחודש זה</p>
+        <p className="text-sm text-ru-muted">החודש עוד שקט. ברגע שיהיו תנועות הן יופיעו כאן</p>
       ) : (
         <div className="space-y-4">
           {rows.map((c) => (

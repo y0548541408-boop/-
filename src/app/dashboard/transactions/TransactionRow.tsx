@@ -112,7 +112,7 @@ export default function TransactionRow({ entry }: { entry: TransactionEntry }) {
         </div>
         {confirmingDelete ? (
           <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
-            <span className="font-semibold text-ru-ink">למחוק את התנועה?</span>
+            <span className="font-semibold text-ru-ink">למחוק?</span>
             <button
               onClick={handleDelete}
               disabled={isPending}

@@ -6,6 +6,8 @@ import { addExpense, addRecurringExpense, reallocateBudget , deleteTransaction }
 import SavedBanner, { type EntryStatus } from "./SavedBanner";
 import { formatShekel } from "./RiseCard";
 
+const QUICK_AMOUNTS = [20, 50, 100, 200, 500];
+
 type CategoryOption = { id: string; name: string; type: "fixed" | "variable"; remaining: number };
 
 type OverBudgetPrompt = {
@@ -147,6 +149,22 @@ export default function ExpenseTools({
             className="rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base sm:w-32"
           />
         </div>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {QUICK_AMOUNTS.map((value) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setAmount(String(value))}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                amount === String(value)
+                  ? "bg-ru-blue text-white"
+                  : "bg-ru-blue-soft text-ru-blue"
+              }`}
+            >
+              ₪{value}
+            </button>
+          ))}
+        </div>
         {categoryId === "__new__" && (
           <input
             type="text"
@@ -197,7 +215,7 @@ export default function ExpenseTools({
             budgetLeft &&
             (budgetLeft.remaining >= 0
               ? `נשארו ${formatShekel(budgetLeft.remaining)} ב${budgetLeft.categoryName}`
-              : `חריגה של ${formatShekel(-budgetLeft.remaining)} ב${budgetLeft.categoryName}`)
+              : `עברתם את התכנון ב${budgetLeft.categoryName} ב-${formatShekel(-budgetLeft.remaining)}`)
           }
         />
       )}
@@ -217,10 +235,10 @@ export default function ExpenseTools({
             className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl"
           >
             <h3 className="text-lg font-bold text-ru-ink">
-              חריגה בקטגוריית {overBudget.categoryName}
+              מעבר לתכנון ב{overBudget.categoryName}
             </h3>
             <p className="mt-1 text-sm text-ru-ink/70">
-              חרגתם ב-{overBudget.overageAmount.toFixed(0)} ₪. על חשבון מה נעביר את הסכום הזה?
+              עברתם את התכנון ב-{overBudget.overageAmount.toFixed(0)} ₪. מאיפה נעביר את הסכום הזה?
             </p>
 
             <label className="mt-4 block text-sm font-medium text-ru-ink">

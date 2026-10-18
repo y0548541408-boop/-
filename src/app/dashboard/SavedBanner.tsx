@@ -19,7 +19,7 @@ export default function SavedBanner({
   if (status === "undone") {
     return (
       <div className="mt-3 rounded-2xl bg-ru-blue-soft px-4 py-3 text-sm font-semibold text-ru-blue">
-        התנועה בוטלה ונמחקה.
+        נמחק. אפשר להכניס מחדש.
       </div>
     );
   }
@@ -36,7 +36,7 @@ export default function SavedBanner({
           disabled={pending}
           className="shrink-0 rounded-full bg-white px-3 py-1.5 text-xs font-bold text-ru-pink disabled:opacity-50"
         >
-          טעות? מחיקת התנועה
+          הכנסתם בטעות? מוחקים
         </button>
       )}
     </div>
