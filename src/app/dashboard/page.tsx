@@ -9,7 +9,7 @@ import {
 import { getFamilyMeetingSummaries } from "@/lib/meetings";
 import { getFamilyTasks, getFamilyTaskProgress, getFamilySavingsProgress } from "@/lib/tasks";
 import { getFamilyDocuments } from "@/lib/documents";
-import { getFamilyIncomeSummary, getFamilyMonthlyNet } from "@/lib/income";
+import { getFamilyIncomeSummary } from "@/lib/income";
 import { signOut } from "@/app/login/actions";
 import { removeRecurringExpense, completeTask } from "./actions";
 import DocumentRow from "./DocumentRow";
@@ -123,14 +123,27 @@ export default async function DashboardPage({
 
   const previousMonth = shiftMonth(month, -1);
 
-  const summary = await getFamilyBudgetSummary(member.familyId, month);
-  const previousSummary = await getFamilyBudgetSummary(member.familyId, previousMonth);
-  const recurringExpenses = await getFamilyRecurringExpenses(member.familyId);
-  const meetingSummaries = await getFamilyMeetingSummaries(member.familyId);
-  const tasks = await getFamilyTasks(member.familyId);
-  const taskProgress = await getFamilyTaskProgress(member.familyId);
-  const savingsProgress = await getFamilySavingsProgress(member.familyId);
-  const documents = await getFamilyDocuments(member.familyId);
+  const [
+    summary,
+    previousSummary,
+    recurringExpenses,
+    meetingSummaries,
+    tasks,
+    taskProgress,
+    savingsProgress,
+    documents,
+    incomeSummary,
+  ] = await Promise.all([
+    getFamilyBudgetSummary(member.familyId, month),
+    getFamilyBudgetSummary(member.familyId, previousMonth),
+    getFamilyRecurringExpenses(member.familyId),
+    getFamilyMeetingSummaries(member.familyId),
+    getFamilyTasks(member.familyId),
+    getFamilyTaskProgress(member.familyId),
+    getFamilySavingsProgress(member.familyId),
+    getFamilyDocuments(member.familyId),
+    getFamilyIncomeSummary(member.familyId, month),
+  ]);
   const openTasks = tasks.filter((t) => t.status !== "done");
   const latestMeeting = meetingSummaries[0];
   const fixed = summary.filter((c) => c.type === "fixed");
@@ -141,8 +154,8 @@ export default async function DashboardPage({
   const totalSpent = summary.reduce((sum, c) => sum + c.spent, 0);
   const totalPercent = totalPlanned > 0 ? (totalSpent / totalPlanned) * 100 : 0;
 
-  const incomeSummary = await getFamilyIncomeSummary(member.familyId, month);
-  const monthlyNet = await getFamilyMonthlyNet(member.familyId, totalSpent, month);
+  const totalIncome = incomeSummary.reduce((sum, c) => sum + c.received, 0);
+  const monthlyNet = { totalIncome, totalExpenses: totalSpent, net: totalIncome - totalSpent };
   const totalIncomePlanned = incomeSummary.reduce((sum, c) => sum + c.plannedAmount, 0);
   const totalIncomePercent =
     totalIncomePlanned > 0 ? (monthlyNet.totalIncome / totalIncomePlanned) * 100 : 0;
