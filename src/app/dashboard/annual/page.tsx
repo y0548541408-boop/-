@@ -7,22 +7,22 @@ import DashboardNav from "../DashboardNav";
 const MONTH_LABELS = ["ינו", "פבר", "מרץ", "אפר", "מאי", "יונ", "יול", "אוג", "ספט", "אוק", "נוב", "דצמ"];
 
 function cellClass(actual: number, planned: number) {
-  if (planned <= 0) return "text-gray-500";
+  if (planned <= 0) return "text-ru-muted";
   const pct = (actual / planned) * 100;
-  if (pct > 100) return "text-red-600 font-semibold";
+  if (pct > 100) return "text-ru-pink font-bold";
   if (pct >= 80) return "text-amber-600";
-  return "text-gray-700";
+  return "text-ru-ink";
 }
 
 function CategoryTable({ title, rows, planned }: { title: string; rows: AnnualCategoryRow[]; planned: "expense" | "income" }) {
   if (rows.length === 0) return null;
   return (
     <div className="mt-4">
-      <h2 className="mb-2 text-sm font-semibold text-brand-teal">{title}</h2>
-      <div className="overflow-x-auto rounded-xl border border-brand-teal/10 bg-white shadow-sm">
+      <h2 className="mb-3 text-lg font-bold">{title}</h2>
+      <div className="overflow-x-auto rounded-3xl bg-white shadow-[0_2px_14px_rgba(46,46,46,0.07)]">
         <table className="w-full min-w-[720px] text-xs">
           <thead>
-            <tr className="border-b border-gray-100 text-gray-500">
+            <tr className="border-b border-gray-100 text-ru-muted">
               <th className="p-2 text-right">קטגוריה</th>
               <th className="p-2 text-right">מתוכנן/חודש</th>
               {MONTH_LABELS.map((m) => (
@@ -36,14 +36,14 @@ function CategoryTable({ title, rows, planned }: { title: string; rows: AnnualCa
           <tbody>
             {rows.map((row) => (
               <tr key={row.id} className="border-b border-gray-50">
-                <td className="p-2 font-medium text-gray-900">{row.name}</td>
-                <td className="p-2 text-gray-500">{row.planned.toFixed(0)} ₪</td>
+                <td className="p-2 font-medium text-ru-ink">{row.name}</td>
+                <td className="p-2 text-ru-muted">{row.planned.toFixed(0)} ₪</td>
                 {row.actualByMonth.map((v, i) => (
-                  <td key={i} className={`p-2 text-center ${planned === "expense" ? cellClass(v, row.planned) : "text-gray-700"}`}>
+                  <td key={i} className={`p-2 text-center ${planned === "expense" ? cellClass(v, row.planned) : "text-ru-ink"}`}>
                     {v > 0 ? v.toFixed(0) : "—"}
                   </td>
                 ))}
-                <td className="p-2 text-center font-semibold text-gray-900">{row.yearActual.toFixed(0)}</td>
+                <td className="p-2 text-center font-semibold text-ru-ink">{row.yearActual.toFixed(0)}</td>
               </tr>
             ))}
           </tbody>
@@ -75,18 +75,18 @@ export default async function AnnualPage({
   const table = await getFamilyAnnualBudget(member.familyId, year);
 
   return (
-    <main className="min-h-screen bg-brand-cream px-4 pb-28 pt-8">
+    <main className="min-h-screen bg-ru-bg px-4 pb-32 pt-6 text-ru-ink">
       <div className="mx-auto max-w-4xl">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-brand-teal">תקציב שנתי {year}</h1>
-            <p className="text-sm text-gray-500">תכנון מול בפועל, לפי קטגוריה וחודש</p>
+            <h1 className="text-2xl font-bold">תקציב שנתי {year}</h1>
+            <p className="text-sm text-ru-muted">תכנון מול בפועל, לפי קטגוריה וחודש</p>
           </div>
           <div className="flex gap-2 text-sm">
-            <a href={`/dashboard/annual?year=${year - 1}`} className="rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">
+            <a href={`/dashboard/annual?year=${year - 1}`} className="rounded-full bg-white px-4 py-2 font-semibold text-ru-blue shadow-[0_1px_6px_rgba(46,46,46,0.08)]">
               {year - 1}
             </a>
-            <a href={`/dashboard/annual?year=${year + 1}`} className="rounded-lg border border-gray-300 px-3 py-1.5 hover:bg-gray-50">
+            <a href={`/dashboard/annual?year=${year + 1}`} className="rounded-full bg-white px-4 py-2 font-semibold text-ru-blue shadow-[0_1px_6px_rgba(46,46,46,0.08)]">
               {year + 1}
             </a>
           </div>
@@ -96,11 +96,11 @@ export default async function AnnualPage({
         <CategoryTable title="הכנסות" rows={table.incomeRows} planned="income" />
         <CategoryTable title="הוצאות" rows={table.expenseRows} planned="expense" />
 
-        <div className="mt-4 overflow-x-auto rounded-xl border border-brand-terracotta/40 bg-white p-3 shadow-sm">
+        <div className="mt-4 overflow-x-auto rounded-3xl bg-white p-3 shadow-[0_2px_14px_rgba(46,46,46,0.07)]">
           <table className="w-full min-w-[720px] text-xs">
             <tbody>
               <tr>
-                <td className="p-2 font-semibold text-emerald-700">סה&quot;כ הכנסות</td>
+                <td className="p-2 font-semibold text-ru-green">סה&quot;כ הכנסות</td>
                 {table.incomeTotalByMonth.map((v, i) => (
                   <td key={i} className="p-2 text-center">
                     {v > 0 ? v.toFixed(0) : "—"}
@@ -108,7 +108,7 @@ export default async function AnnualPage({
                 ))}
               </tr>
               <tr>
-                <td className="p-2 font-semibold text-red-700">סה&quot;כ הוצאות</td>
+                <td className="p-2 font-semibold text-ru-pink">סה&quot;כ הוצאות</td>
                 {table.expenseTotalByMonth.map((v, i) => (
                   <td key={i} className="p-2 text-center">
                     {v > 0 ? v.toFixed(0) : "—"}
@@ -116,9 +116,9 @@ export default async function AnnualPage({
                 ))}
               </tr>
               <tr>
-                <td className="p-2 font-semibold text-brand-teal">נטו</td>
+                <td className="p-2 font-semibold text-ru-blue">נטו</td>
                 {table.netByMonth.map((v, i) => (
-                  <td key={i} className={`p-2 text-center font-medium ${v >= 0 ? "text-emerald-700" : "text-red-700"}`}>
+                  <td key={i} className={`p-2 text-center font-medium ${v >= 0 ? "text-ru-green" : "text-ru-pink"}`}>
                     {v !== 0 ? v.toFixed(0) : "—"}
                   </td>
                 ))}

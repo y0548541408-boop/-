@@ -14,14 +14,14 @@ export default function TrendChart({ data }: { data: MonthPoint[] }) {
   return (
     <ResponsiveContainer width="100%" height={220}>
       <LineChart data={chartData}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+        <CartesianGrid strokeDasharray="3 3" stroke="#f0ebdd" />
         <XAxis dataKey="name" fontSize={11} />
         <YAxis fontSize={11} />
         <Tooltip />
         <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Line type="monotone" dataKey="הכנסות" stroke="#059669" strokeWidth={2} dot={false} />
-        <Line type="monotone" dataKey="הוצאות" stroke="#dc2626" strokeWidth={2} dot={false} />
-        <Line type="monotone" dataKey="נטו" stroke="#1e2a45" strokeWidth={2} dot={false} />
+        <Line type="monotone" dataKey="הכנסות" stroke="#00bf6f" strokeWidth={3} dot={false} />
+        <Line type="monotone" dataKey="הוצאות" stroke="#ec4f8a" strokeWidth={3} dot={false} />
+        <Line type="monotone" dataKey="נטו" stroke="#5b7bff" strokeWidth={3} dot={false} />
       </LineChart>
     </ResponsiveContainer>
   );

@@ -19,7 +19,7 @@ export default function DashboardNav() {
 
   return (
     <>
-      <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 text-sm">
+      <nav className="mt-4 flex gap-2 overflow-x-auto pb-1 text-sm [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {ITEMS.map((item) => {
           const active = pathname === item.href;
           return (

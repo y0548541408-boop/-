@@ -24,12 +24,12 @@ export default function AddTabs({
 
   return (
     <div>
-      <div className="mt-4 grid grid-cols-2 gap-1 rounded-xl border border-brand-teal/10 bg-white p-1 text-sm shadow-sm">
+      <div className="mt-4 grid grid-cols-2 gap-1 rounded-full bg-white p-1.5 text-base shadow-[0_2px_14px_rgba(46,46,46,0.07)]">
         <button
           type="button"
           onClick={() => setTab("expense")}
-          className={`rounded-lg px-3 py-2 font-medium ${
-            tab === "expense" ? "bg-red-500 text-white" : "text-gray-600"
+          className={`rounded-full px-3 py-2.5 font-bold ${
+            tab === "expense" ? "bg-ru-pink text-white" : "text-ru-ink/60"
           }`}
         >
           הוצאה
@@ -37,8 +37,8 @@ export default function AddTabs({
         <button
           type="button"
           onClick={() => setTab("income")}
-          className={`rounded-lg px-3 py-2 font-medium ${
-            tab === "income" ? "bg-emerald-600 text-white" : "text-gray-600"
+          className={`rounded-full px-3 py-2.5 font-bold ${
+            tab === "income" ? "bg-ru-green text-white" : "text-ru-ink/60"
           }`}
         >
           הכנסה

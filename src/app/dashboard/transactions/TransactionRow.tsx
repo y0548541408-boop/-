@@ -3,11 +3,15 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { deleteTransaction, updateTransaction } from "../actions";
+import { formatShekel } from "../RiseCard";
 import type { TransactionEntry } from "@/lib/transactions";
 
 function toDateInputValue(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
+
+const INPUT = "rounded-2xl border border-ru-blue-soft bg-white px-3 py-2.5 text-base";
+const CARD = "rounded-3xl bg-white p-4 shadow-[0_2px_14px_rgba(46,46,46,0.07)]";
 
 export default function TransactionRow({ entry }: { entry: TransactionEntry }) {
   const router = useRouter();
@@ -49,20 +53,21 @@ export default function TransactionRow({ entry }: { entry: TransactionEntry }) {
 
   if (editing) {
     return (
-      <div className="rounded-lg border border-brand-terracotta/40 bg-white p-3">
+      <div className={`${CARD} ring-2 ring-ru-blue-soft`}>
+        <p className="mb-3 font-bold">{entry.categoryName}</p>
         <div className="grid grid-cols-2 gap-2">
           <input
             type="number"
             step="0.01"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+            className={INPUT}
           />
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+            className={INPUT}
           />
         </div>
         <input
@@ -70,20 +75,20 @@ export default function TransactionRow({ entry }: { entry: TransactionEntry }) {
           value={note}
           onChange={(e) => setNote(e.target.value)}
           placeholder="הערה"
-          className="mt-2 w-full rounded-lg border border-gray-300 px-2 py-1.5 text-sm"
+          className={`${INPUT} mt-2 w-full`}
         />
-        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
-        <div className="mt-2 flex gap-2">
+        {error && <p className="mt-2 text-sm font-semibold text-ru-pink">{error}</p>}
+        <div className="mt-3 flex gap-2">
           <button
             onClick={handleSave}
             disabled={isPending}
-            className="flex-1 rounded-lg bg-brand-teal px-2 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+            className="flex-1 rounded-full bg-ru-blue px-4 py-2.5 text-sm font-bold text-white disabled:opacity-50"
           >
             {isPending ? "שומר..." : "שמירה"}
           </button>
           <button
             onClick={() => setEditing(false)}
-            className="rounded-lg border border-gray-300 px-2 py-1.5 text-xs text-gray-600"
+            className="rounded-full border border-ru-blue-soft px-4 py-2.5 text-sm text-ru-ink/70"
           >
             ביטול
           </button>
@@ -93,26 +98,30 @@ export default function TransactionRow({ entry }: { entry: TransactionEntry }) {
   }
 
   return (
-    <div className="flex items-center justify-between rounded-lg border border-gray-200 bg-white p-3 text-sm">
-      <div>
-        <div className="font-medium text-gray-900">
-          {entry.categoryName}
-          {entry.note && <span className="font-normal text-gray-500"> · {entry.note}</span>}
+    <div className={`${CARD} flex items-center justify-between gap-3`}>
+      <div className="min-w-0">
+        <div className="truncate font-bold text-ru-ink">{entry.categoryName}</div>
+        <div className="truncate text-xs text-ru-muted">
+          {entry.occurredAt.toLocaleDateString("he-IL")}
+          {entry.note && ` · ${entry.note}`}
         </div>
-        <div className="text-xs text-gray-400">{entry.occurredAt.toLocaleDateString("he-IL")}</div>
+        <div className="mt-1.5 flex gap-3 text-xs">
+          <button onClick={() => setEditing(true)} className="font-medium text-ru-blue">
+            עריכה
+          </button>
+          <button
+            onClick={handleDelete}
+            disabled={isPending}
+            className="text-ru-muted hover:text-ru-pink"
+          >
+            מחיקה
+          </button>
+        </div>
       </div>
-      <div className="flex items-center gap-2">
-        <span className={`font-semibold ${isIncome ? "text-emerald-600" : "text-red-600"}`}>
-          {isIncome ? "+" : "-"}
-          {entry.amount.toFixed(0)} ₪
-        </span>
-        <button onClick={() => setEditing(true)} className="text-xs text-gray-400 hover:text-brand-teal">
-          עריכה
-        </button>
-        <button onClick={handleDelete} disabled={isPending} className="text-xs text-gray-400 hover:text-red-600">
-          מחיקה
-        </button>
-      </div>
+      <span className={`shrink-0 text-xl font-bold ${isIncome ? "text-ru-green" : "text-ru-pink"}`}>
+        {isIncome ? "+" : "-"}
+        {formatShekel(entry.amount)}
+      </span>
     </div>
   );
 }

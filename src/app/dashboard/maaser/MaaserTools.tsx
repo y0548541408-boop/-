@@ -3,7 +3,11 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { setMaaserRate, recordTithePayment } from "../actions";
+import RiseCard, { formatShekel } from "../RiseCard";
 import type { MaaserSummary } from "@/lib/maaser";
+
+const CARD = "rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]";
+const INPUT = "rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base";
 
 export default function MaaserTools({ summary }: { summary: MaaserSummary }) {
   const router = useRouter();
@@ -34,74 +38,64 @@ export default function MaaserTools({ summary }: { summary: MaaserSummary }) {
     });
   }
 
+  const paidPercent = summary.required > 0 ? (summary.paid / summary.required) * 100 : 0;
+  const settled = summary.remaining <= 0;
+
   return (
-    <div className="mt-4 space-y-4">
-      <div className="rounded-xl border border-brand-teal/10 bg-white p-4 shadow-sm">
-        <p className="text-sm font-medium text-gray-700">סוג הפרשה</p>
-        <div className="mt-2 grid grid-cols-2 gap-2">
+    <div className="mt-5 space-y-3">
+      <div className="grid grid-cols-2 gap-1 rounded-full bg-white p-1.5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]">
+        {([10, 20] as const).map((rate) => (
           <button
-            onClick={() => handleRateChange(10)}
+            key={rate}
+            onClick={() => handleRateChange(rate)}
             disabled={isPending}
-            className={`rounded-lg border py-2 text-sm font-medium ${
-              summary.ratePercent === 10 ? "border-brand-teal bg-brand-teal text-white" : "border-gray-300 text-gray-600"
+            className={`rounded-full px-3 py-2.5 text-base font-bold ${
+              summary.ratePercent === rate ? "bg-ru-blue text-white" : "text-ru-ink/60"
             }`}
           >
-            מעשר (10%)
+            {rate === 10 ? "מעשר (10%)" : "חומש (20%)"}
           </button>
-          <button
-            onClick={() => handleRateChange(20)}
-            disabled={isPending}
-            className={`rounded-lg border py-2 text-sm font-medium ${
-              summary.ratePercent === 20 ? "border-brand-teal bg-brand-teal text-white" : "border-gray-300 text-gray-600"
-            }`}
-          >
-            חומש (20%)
-          </button>
-        </div>
+        ))}
       </div>
 
-      <div className="rounded-2xl border border-brand-terracotta/40 bg-white p-4 shadow-sm">
-        <div className="grid grid-cols-2 gap-3 text-center">
-          <div>
-            <p className="text-xs text-gray-500">הכנסה חייבת</p>
-            <p className="mt-1 font-semibold text-gray-900">{summary.taxableIncome.toFixed(0)} ₪</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500">חובה ({summary.ratePercent}%)</p>
-            <p className="mt-1 font-semibold text-gray-900">{summary.required.toFixed(0)} ₪</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500">שולם החודש</p>
-            <p className="mt-1 font-semibold text-emerald-600">{summary.paid.toFixed(0)} ₪</p>
-          </div>
-          <div>
-            <p className="text-xs text-gray-500">נותר</p>
-            <p className={`mt-1 font-semibold ${summary.remaining > 0 ? "text-red-600" : "text-emerald-600"}`}>
-              {summary.remaining > 0 ? `${summary.remaining.toFixed(0)} ₪` : "שולם במלואו ✓"}
-            </p>
-          </div>
-        </div>
+      <RiseCard
+        size="lg"
+        title="מעשרות החודש"
+        actualLabel="שולם"
+        actual={summary.paid}
+        expectedLabel={`חובה (${summary.ratePercent}%)`}
+        expected={formatShekel(summary.required)}
+        percent={paidPercent}
+        tone={settled ? "green" : "blue"}
+        footer={
+          <>
+            <span className={settled ? "font-semibold text-ru-green" : "font-semibold text-ru-ink"}>
+              {settled ? "שולם במלואו ✓" : `נותרו ${formatShekel(summary.remaining)}`}
+            </span>
+            {` · הכנסה חייבת ${formatShekel(summary.taxableIncome)}`}
+          </>
+        }
+      />
 
-        {summary.priorDebt > 0 ? (
-          <p className="mt-3 rounded-lg bg-red-50 p-2 text-center text-xs text-red-700">
-            חוב מעשר מחודשים קודמים: {summary.priorDebt.toFixed(0)} ₪
-          </p>
-        ) : (
-          <p className="mt-3 rounded-lg bg-emerald-50 p-2 text-center text-xs text-emerald-700">
-            אין חוב פתוח מחודשים קודמים ✓
-          </p>
-        )}
+      <div
+        className={`rounded-3xl px-5 py-4 text-center text-sm font-semibold ${
+          summary.priorDebt > 0 ? "bg-ru-pink-soft text-ru-pink" : "bg-ru-green-soft text-ru-green"
+        }`}
+      >
+        {summary.priorDebt > 0
+          ? `חוב מעשר מחודשים קודמים: ${formatShekel(summary.priorDebt)}`
+          : "אין חוב פתוח מחודשים קודמים ✓"}
       </div>
 
-      <form onSubmit={handlePayment} className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-gray-900">רישום תשלום מעשר</h2>
+      <form onSubmit={handlePayment} className={CARD}>
+        <h2 className="mb-4 text-lg font-bold">רישום תשלום מעשר</h2>
         <div className="grid grid-cols-[1fr_auto] gap-2">
           <input
             type="text"
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder="למי (לא חובה)"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className={INPUT}
           />
           <input
             type="number"
@@ -111,14 +105,14 @@ export default function MaaserTools({ summary }: { summary: MaaserSummary }) {
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="סכום"
-            className="w-28 rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className={`${INPUT} w-28`}
           />
         </div>
-        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+        {error && <p className="mt-2 text-sm font-semibold text-ru-pink">{error}</p>}
         <button
           type="submit"
           disabled={isPending}
-          className="mt-3 w-full rounded-lg bg-brand-teal px-3 py-2 text-sm font-medium text-white hover:bg-brand-teal-dark disabled:opacity-50"
+          className="mt-3 w-full rounded-full bg-ru-blue px-4 py-3 text-base font-bold text-white shadow-[0_4px_14px_rgba(91,123,255,0.35)] disabled:opacity-50"
         >
           {isPending ? "שומר..." : "רשום תשלום"}
         </button>

@@ -97,14 +97,14 @@ export default function ExpenseTools({
     <div className="mt-6">
       <form
         onSubmit={handleAddExpense}
-        className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
+        className="rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]"
       >
-        <h2 className="mb-3 text-sm font-semibold text-gray-900">הוספת הוצאה</h2>
+        <h2 className="mb-4 text-lg font-bold text-ru-ink">הוספת הוצאה</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base"
           >
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
@@ -122,7 +122,7 @@ export default function ExpenseTools({
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="סכום בש״ח"
-            className="rounded-lg border border-gray-300 px-3 py-2 text-sm sm:w-32"
+            className="rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base sm:w-32"
           />
         </div>
         {categoryId === "__new__" && (
@@ -132,7 +132,7 @@ export default function ExpenseTools({
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
             placeholder='שם הקטגוריה החדשה (למשל "בריאות")'
-            className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="mt-3 w-full rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base"
           />
         )}
         {!isRecurring && (
@@ -142,7 +142,7 @@ export default function ExpenseTools({
             value={date}
             onChange={(e) => setDate(e.target.value)}
             aria-label="תאריך"
-            className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+            className="mt-3 w-full rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base"
           />
         )}
         <input
@@ -154,23 +154,23 @@ export default function ExpenseTools({
           }}
           placeholder={isRecurring ? 'שם ההוצאה הקבועה (למשל "שכירות")' : "הערה (לא חובה)"}
           required={isRecurring}
-          className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          className="mt-3 w-full rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base"
         />
-        <label className="mt-3 flex items-center gap-2 text-sm text-gray-700">
+        <label className="mt-3 flex items-center gap-2 text-sm text-ru-ink">
           <input
             type="checkbox"
             checked={isRecurring}
             onChange={(e) => setIsRecurring(e.target.checked)}
-            className="h-4 w-4 rounded border-gray-300"
+            className="h-5 w-5 rounded accent-ru-blue"
           />
           הוצאה קבועה (תתחדש אוטומטית כל חודש)
         </label>
-        {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
-        {saved && !error && <p className="mt-2 text-sm text-emerald-600">נשמר ✓ אפשר להוסיף עוד.</p>}
+        {error && <p className="mt-2 text-sm font-semibold text-ru-pink">{error}</p>}
+        {saved && !error && <p className="mt-2 text-sm font-semibold text-ru-green">נשמר ✓ אפשר להוסיף עוד.</p>}
         <button
           type="submit"
           disabled={isPending || !categoryId}
-          className="mt-3 w-full rounded-lg bg-brand-teal px-3 py-2 text-sm font-medium text-white hover:bg-brand-teal-dark disabled:opacity-50"
+          className="mt-3 w-full rounded-full bg-ru-blue px-4 py-3 text-base font-bold text-white shadow-[0_4px_14px_rgba(91,123,255,0.35)] disabled:opacity-50"
         >
           {isPending ? "שומר..." : isRecurring ? "הוסף הוצאה קבועה" : "הוסף הוצאה"}
         </button>
@@ -180,22 +180,22 @@ export default function ExpenseTools({
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-4 sm:items-center">
           <form
             onSubmit={handleReallocate}
-            className="w-full max-w-sm rounded-xl bg-white p-5 shadow-lg"
+            className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-xl"
           >
-            <h3 className="text-base font-semibold text-gray-900">
+            <h3 className="text-lg font-bold text-ru-ink">
               חריגה בקטגוריית {overBudget.categoryName}
             </h3>
-            <p className="mt-1 text-sm text-gray-600">
+            <p className="mt-1 text-sm text-ru-ink/70">
               חרגתם ב-{overBudget.overageAmount.toFixed(0)} ₪. על חשבון מה נעביר את הסכום הזה?
             </p>
 
-            <label className="mt-4 block text-sm font-medium text-gray-700">
+            <label className="mt-4 block text-sm font-medium text-ru-ink">
               קיזוז מקטגוריה
             </label>
             <select
               value={fromCategoryId}
               onChange={(e) => setFromCategoryId(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base"
             >
               {reallocationSources.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -204,7 +204,7 @@ export default function ExpenseTools({
               ))}
             </select>
 
-            <label className="mt-3 block text-sm font-medium text-gray-700">סכום להעברה</label>
+            <label className="mt-3 block text-sm font-medium text-ru-ink">סכום להעברה</label>
             <input
               type="number"
               inputMode="decimal"
@@ -212,23 +212,23 @@ export default function ExpenseTools({
               min="0"
               value={reallocAmount}
               onChange={(e) => setReallocAmount(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+              className="mt-1 w-full rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base"
             />
 
-            {reallocError && <p className="mt-2 text-sm text-red-600">{reallocError}</p>}
+            {reallocError && <p className="mt-2 text-sm font-semibold text-ru-pink">{reallocError}</p>}
 
             <div className="mt-4 flex gap-2">
               <button
                 type="submit"
                 disabled={isPending || !fromCategoryId}
-                className="flex-1 rounded-lg bg-brand-teal px-3 py-2 text-sm font-medium text-white hover:bg-brand-teal-dark disabled:opacity-50"
+                className="flex-1 rounded-full bg-ru-blue px-4 py-3 text-base font-bold text-white shadow-[0_4px_14px_rgba(91,123,255,0.35)] disabled:opacity-50"
               >
                 {isPending ? "מעביר..." : "בצע קיזוז"}
               </button>
               <button
                 type="button"
                 onClick={() => setOverBudget(null)}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-600 hover:bg-gray-50"
+                className="rounded-full border border-ru-blue-soft px-4 py-3 text-sm text-ru-ink/70"
               >
                 אטפל בזה אחר כך
               </button>

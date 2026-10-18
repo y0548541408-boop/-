@@ -39,13 +39,13 @@ export default async function AddTransactionPage({
   const backHref = `/dashboard?month=${formatMonthParam(month)}`;
 
   return (
-    <main className="min-h-screen bg-brand-cream px-4 py-8">
+    <main className="min-h-screen bg-ru-bg px-4 pb-10 pt-6 text-ru-ink">
       <div className="mx-auto max-w-md">
-        <Link href={backHref} className="text-xs text-gray-400 underline">
+        <Link href={backHref} className="text-sm font-medium text-ru-blue">
           ← חזרה לסקירה
         </Link>
-        <h1 className="mt-2 text-xl font-semibold text-brand-teal">הוספת תנועה</h1>
-        <p className="text-sm text-gray-500">הכנסה או הוצאה — מתעדכן מיד בתקציב</p>
+        <h1 className="mt-2 text-2xl font-bold">הוספת תנועה</h1>
+        <p className="text-sm text-ru-muted">הכנסה או הוצאה — מתעדכן מיד בתקציב</p>
 
         <AddTabs
           expenseCategories={expenseSummary.map((c) => ({

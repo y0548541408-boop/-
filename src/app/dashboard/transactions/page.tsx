@@ -34,16 +34,16 @@ export default async function TransactionsPage({
   });
 
   return (
-    <main className="min-h-screen bg-brand-cream px-4 pb-28 pt-8">
+    <main className="min-h-screen bg-ru-bg px-4 pb-32 pt-6 text-ru-ink">
       <div className="mx-auto max-w-md">
-        <h1 className="text-xl font-semibold text-brand-teal">יומן תנועות</h1>
-        <p className="text-sm text-gray-500">כל ההכנסות וההוצאות של החודש, מהחדש לישן</p>
+        <h1 className="text-2xl font-bold">יומן תנועות</h1>
+        <p className="text-sm text-ru-muted">כל ההכנסות וההוצאות של החודש, מהחדש לישן</p>
         <DashboardNav />
         <MonthSwitcher month={month} basePath="/dashboard/transactions" />
 
         <div className="mt-4 space-y-2">
           {entries.length === 0 && (
-            <p className="mt-8 text-center text-sm text-gray-400">
+            <p className="mt-8 text-center text-sm text-ru-muted">
               אין תנועות בחודש הזה. כפתור ההוספה בפינה יעשה את זה בשנייה.
             </p>
           )}
