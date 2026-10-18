@@ -1,7 +1,9 @@
+import { cache } from "react";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 
-export async function getCurrentFamilyMember() {
+// Cached per request: the dashboard layout and the page both ask for it.
+export const getCurrentFamilyMember = cache(async () => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -12,4 +14,4 @@ export async function getCurrentFamilyMember() {
     where: { authUserId: user.id },
     include: { family: true },
   });
-}
+});

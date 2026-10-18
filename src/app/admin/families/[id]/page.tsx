@@ -5,7 +5,13 @@ import FamilyAccess from "./FamilyAccess";
 import { getCurrentAdvisor } from "@/lib/advisor";
 import { prisma } from "@/lib/prisma";
 import { getFamilyTasks } from "@/lib/tasks";
-import { uploadDocument, addMeetingSummary, toggleFamilyDebt, addTask } from "./actions";
+import {
+  uploadDocument,
+  addMeetingSummary,
+  toggleFamilyDebt,
+  setFamilyBudgetOnly,
+  addTask,
+} from "./actions";
 import DocumentRow from "./DocumentRow";
 
 const TASK_TYPE_LABEL: Record<string, string> = {
@@ -78,6 +84,36 @@ export default async function AdminFamilyPage({
               {family.hasDebt ? "סמן כמסודר" : "סמן כבעל חוב"}
             </button>
           </form>
+        </div>
+
+        <div className="mt-3 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-sm text-gray-700">
+              סוג גישה:{" "}
+              <span className="font-medium text-brand-teal">
+                {family.budgetOnly ? "תקציב בלבד" : "ליווי מלא"}
+              </span>
+            </span>
+            <form action={setFamilyBudgetOnly}>
+              <input type="hidden" name="familyId" value={family.id} />
+              <input
+                type="hidden"
+                name="nextValue"
+                value={family.budgetOnly ? "false" : "true"}
+              />
+              <button
+                type="submit"
+                className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-600 hover:border-brand-teal/30"
+              >
+                {family.budgetOnly ? "הפעל ליווי מלא" : "עבור לתקציב בלבד"}
+              </button>
+            </form>
+          </div>
+          <p className="mt-2 text-xs text-gray-500">
+            {family.budgetOnly
+              ? "הלקוח רואה רק את התקציב והדוחות. בלי משימות, פגישות, מסמכים ושווי נקי."
+              : "הלקוח רואה את הכל: תקציב, שווי נקי ויעדים, משימות ופגישות."}
+          </p>
         </div>
 
         <FamilyAccess

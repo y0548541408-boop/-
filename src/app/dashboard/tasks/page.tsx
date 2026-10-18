@@ -8,7 +8,8 @@ import { completeTask } from "../actions";
 import DocumentRow from "../DocumentRow";
 import DashboardNav from "../DashboardNav";
 import RiseCard, { formatShekel } from "../RiseCard";
-import SubTabs, { TASKS_REPORTS_TABS } from "../SubTabs";
+import SubTabs from "../SubTabs";
+import { TASKS_REPORTS_TABS } from "../subTabItems";
 export default async function TasksPage() {
   const supabase = await createClient();
   const {
@@ -18,8 +19,10 @@ export default async function TasksPage() {
 
   const member = await prisma.familyMember.findUnique({
     where: { authUserId: user.id },
+    include: { family: true },
   });
   if (!member) redirect("/login");
+  if (member.family.budgetOnly) redirect("/dashboard");
 
   const [meetingSummaries, tasks, taskProgress, savingsProgress, documents] = await Promise.all([
     getFamilyMeetingSummaries(member.familyId),

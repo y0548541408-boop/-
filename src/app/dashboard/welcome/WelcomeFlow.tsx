@@ -45,17 +45,29 @@ function AmountField({
   );
 }
 
-function StepHeader({ step, title, hint }: { step: number; title: string; hint: string }) {
+function StepHeader({
+  step,
+  total,
+  title,
+  hint,
+}: {
+  step: number;
+  total: number;
+  title: string;
+  hint: string;
+}) {
   return (
     <div>
       <div className="flex items-center justify-between text-xs font-semibold text-ru-muted">
-        <span>צעד {step} מתוך 3</span>
+        <span>
+          צעד {step} מתוך {total}
+        </span>
         <span>דקה וחצי בסך הכל</span>
       </div>
       <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-ru-blue-soft">
         <div
           className="h-full rounded-full bg-ru-blue transition-all"
-          style={{ width: `${(step / 3) * 100}%` }}
+          style={{ width: `${(step / total) * 100}%` }}
         />
       </div>
       <h2 className="mt-5 text-2xl font-bold">{title}</h2>
@@ -69,7 +81,9 @@ export default function WelcomeFlow({
   incomeCategories,
   fixedCategories,
   variableCategories,
+  budgetOnly,
 }: {
+  budgetOnly: boolean;
   firstName: string;
   incomeCategories: Category[];
   fixedCategories: Category[];
@@ -85,6 +99,7 @@ export default function WelcomeFlow({
   const [goalTitle, setGoalTitle] = useState("");
   const [goalTarget, setGoalTarget] = useState("");
 
+  const totalSteps = budgetOnly ? 2 : 3;
   const totalIncome = sum(income);
   const totalExpenses = sum(expenses);
   const left = totalIncome - totalExpenses;
@@ -102,7 +117,7 @@ export default function WelcomeFlow({
               expenses: [...fixedCategories, ...variableCategories]
                 .filter((c) => expenses[c.id])
                 .map((c) => ({ id: c.id, amount: toNumber(expenses[c.id]) })),
-              goal: { title: goalTitle, target: toNumber(goalTarget) },
+              goal: budgetOnly ? undefined : { title: goalTitle, target: toNumber(goalTarget) },
             }
       );
       if ("error" in result) {
@@ -120,7 +135,9 @@ export default function WelcomeFlow({
         <div className={CARD}>
           <h1 className="text-2xl font-bold">ברוכים הבאים, {firstName}</h1>
           <p className="mt-3 text-base leading-relaxed text-ru-ink/80">
-            בשלושה צעדים קטנים נבנה את התקציב של המשפחה: כמה נכנס, כמה מתכננים להוציא, ולמה חוסכים.
+            {budgetOnly
+              ? "בשני צעדים קטנים נבנה את התקציב של המשפחה: כמה נכנס, וכמה מתכננים להוציא."
+              : "בשלושה צעדים קטנים נבנה את התקציב של המשפחה: כמה נכנס, כמה מתכננים להוציא, ולמה חוסכים."}
           </p>
           <p className="mt-2 text-sm text-ru-muted">
             בערך זה בסדר גמור. הכל אפשר לתקן אחר כך בלחיצה.
@@ -142,6 +159,7 @@ export default function WelcomeFlow({
       <div className="mt-6 space-y-4">
         <StepHeader
           step={1}
+          total={totalSteps}
           title="כמה נכנס אליכם בחודש?"
           hint="מה שיש, בערך. מה שלא רלוונטי משאירים ריק."
         />
@@ -174,6 +192,7 @@ export default function WelcomeFlow({
       <div className="mt-6 space-y-4">
         <StepHeader
           step={2}
+          total={totalSteps}
           title="כמה מתכננים להוציא בחודש?"
           hint="לכל סוג הוצאה, סכום חודשי משוער. תמיד אפשר לשנות."
         />
@@ -218,9 +237,16 @@ export default function WelcomeFlow({
           )}
         </div>
 
-        <button type="button" className={PRIMARY} onClick={() => setStep(3)}>
-          המשך
-        </button>
+        {error && <p className="text-sm font-semibold text-ru-pink">{error}</p>}
+        {budgetOnly ? (
+          <button type="button" className={PRIMARY} disabled={isPending} onClick={() => finish(false)}>
+            {isPending ? "שומר..." : "סיימנו, לתקציב שלי"}
+          </button>
+        ) : (
+          <button type="button" className={PRIMARY} onClick={() => setStep(3)}>
+            המשך
+          </button>
+        )}
         <button type="button" className={GHOST} onClick={() => setStep(1)}>
           חזרה
         </button>
@@ -232,6 +258,7 @@ export default function WelcomeFlow({
     <div className="mt-6 space-y-4">
       <StepHeader
         step={3}
+        total={totalSteps}
         title="יש משהו שחוסכים אליו?"
         hint="יעד אחד מספיק להתחלה. אפשר גם לדלג."
       />

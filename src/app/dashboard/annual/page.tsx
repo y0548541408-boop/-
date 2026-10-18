@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { getFamilyAnnualBudget, type AnnualCategoryRow } from "@/lib/annualBudget";
 import DashboardNav from "../DashboardNav";
-import SubTabs, { BUDGET_TABS } from "../SubTabs";
+import SubTabs from "../SubTabs";
+import { BUDGET_TABS } from "../subTabItems";
 
 const MONTH_LABELS = ["ינו", "פבר", "מרץ", "אפר", "מאי", "יונ", "יול", "אוג", "ספט", "אוק", "נוב", "דצמ"];
 

@@ -155,6 +155,26 @@ export async function toggleFamilyDebt(formData: FormData): Promise<void> {
   revalidatePath("/admin");
 }
 
+export async function setFamilyBudgetOnly(formData: FormData): Promise<void> {
+  const familyId = String(formData.get("familyId") ?? "");
+  const nextValue = String(formData.get("nextValue") ?? "") === "true";
+
+  const { error: ownError } = await assertFamilyOwnedByAdvisor(familyId);
+  if (ownError) {
+    console.error("setFamilyBudgetOnly:", ownError);
+    return;
+  }
+
+  await prisma.family.update({
+    where: { id: familyId },
+    data: { budgetOnly: nextValue },
+  });
+
+  revalidatePath(`/admin/families/${familyId}`);
+  revalidatePath("/admin");
+  revalidatePath("/dashboard", "layout");
+}
+
 export async function addTask(formData: FormData): Promise<void> {
   const familyId = String(formData.get("familyId") ?? "");
   const title = String(formData.get("title") ?? "").trim();

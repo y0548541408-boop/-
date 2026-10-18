@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
+import { useBudgetOnly } from "./FamilyMode";
 
 // Three main areas. Every inner screen (transactions, annual, maaser...) belongs
 // to one of them, so the right tab stays lit wherever the client is.
@@ -29,12 +30,14 @@ function isActive(pathname: string, area: (typeof AREAS)[number]) {
 
 export default function DashboardNav() {
   const pathname = usePathname();
+  const budgetOnly = useBudgetOnly();
   const month = useSearchParams().get("month");
   const monthSuffix = month ? `?month=${month}` : "";
 
   return (
     <>
-      <nav className="mt-4 grid grid-cols-3 gap-2 text-sm">
+      {/* Budget-only clients have a single area, so there is nothing to switch between. */}
+      <nav className={`mt-4 grid grid-cols-3 gap-2 text-sm ${budgetOnly ? "hidden" : ""}`}>
         {AREAS.map((area) => {
           const active = isActive(pathname, area);
           return (

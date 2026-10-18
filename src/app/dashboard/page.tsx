@@ -15,7 +15,9 @@ import MonthSwitcher from "./MonthSwitcher";
 import InstallHint from "./InstallHint";
 import PlannedAmountEditor from "./PlannedAmountEditor";
 import RiseCard, { formatShekel } from "./RiseCard";
-import SubTabs, { BUDGET_TABS } from "./SubTabs";import { parseMonthParam, shiftMonth } from "@/lib/month";
+import SubTabs from "./SubTabs";
+import { BUDGET_TABS } from "./subTabItems";
+import { parseMonthParam, shiftMonth } from "@/lib/month";
 import { ensureDefaultCategories, familyHasNoCategories } from "@/lib/defaultCategories";
 import { Logo } from "@/components/Logo";
 

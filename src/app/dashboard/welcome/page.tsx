@@ -32,6 +32,7 @@ export default async function WelcomePage() {
       <div className="mx-auto max-w-md">
         <Logo size={15} markSize={22} />
         <WelcomeFlow
+          budgetOnly={member.family.budgetOnly}
           firstName={member.fullName.split(" ")[0]}
           incomeCategories={incomeCategories}
           fixedCategories={expenseCategories.filter((c) => c.type === "fixed")}

@@ -5,7 +5,8 @@ import { getFamilyTransactionLog } from "@/lib/transactions";
 import { parseMonthParam, shiftMonth } from "@/lib/month";
 import DashboardNav from "../DashboardNav";
 import MonthSwitcher from "../MonthSwitcher";
-import SubTabs, { BUDGET_TABS } from "../SubTabs";
+import SubTabs from "../SubTabs";
+import { BUDGET_TABS } from "../subTabItems";
 import TransactionRow from "./TransactionRow";
 
 export default async function TransactionsPage({

@@ -1,6 +1,8 @@
-import Link from "next/link";
+"use client";
 
-type SubTab = { path: string; label: string; keepsMonth?: boolean };
+import Link from "next/link";
+import { useBudgetOnly } from "./FamilyMode";
+import { BUDGET_ONLY_TABS, type SubTab } from "./subTabItems";
 
 // Segmented control for switching between screens inside one main area.
 export default function SubTabs({
@@ -12,9 +14,12 @@ export default function SubTabs({
   active: string;
   month?: string;
 }) {
+  const budgetOnly = useBudgetOnly();
+  const tabs = budgetOnly ? BUDGET_ONLY_TABS : items;
+
   return (
     <div className="mt-5 flex rounded-full bg-white p-1 shadow-[0_1px_6px_rgba(46,46,46,0.06)]">
-      {items.map((item) => (
+      {tabs.map((item) => (
         <Link
           key={item.path}
           href={`${item.path}${item.keepsMonth && month ? `?month=${month}` : ""}`}
@@ -28,15 +33,3 @@ export default function SubTabs({
     </div>
   );
 }
-
-export const BUDGET_TABS: SubTab[] = [
-  { path: "/dashboard", label: "החודש", keepsMonth: true },
-  { path: "/dashboard/transactions", label: "יומן", keepsMonth: true },
-  { path: "/dashboard/annual", label: "שנתי" },
-  { path: "/dashboard/maaser", label: "מעשרות" },
-];
-
-export const TASKS_REPORTS_TABS: SubTab[] = [
-  { path: "/dashboard/tasks", label: "משימות ופגישות" },
-  { path: "/dashboard/reports", label: "דוחות" },
-];

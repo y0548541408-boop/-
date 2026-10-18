@@ -3,7 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { getFamilyMaaserSummary } from "@/lib/maaser";
 import DashboardNav from "../DashboardNav";
-import SubTabs, { BUDGET_TABS } from "../SubTabs";
+import SubTabs from "../SubTabs";
+import { BUDGET_TABS } from "../subTabItems";
 import MaaserTools from "./MaaserTools";
 
 export default async function MaaserPage() {

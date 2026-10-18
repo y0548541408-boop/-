@@ -5,7 +5,8 @@ import { getFamilyMonthlyTrend, getFamilyCategoryBreakdown } from "@/lib/reports
 import DashboardNav from "../DashboardNav";
 import { formatShekel } from "../RiseCard";
 import TrendChart from "./TrendChart";
-import SubTabs, { TASKS_REPORTS_TABS } from "../SubTabs";
+import SubTabs from "../SubTabs";
+import { TASKS_REPORTS_TABS } from "../subTabItems";
 
 const CARD = "rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]";
 
@@ -73,7 +74,9 @@ export default async function ReportsPage() {
   return (
     <main className="min-h-screen bg-ru-bg px-4 pb-32 pt-6 text-ru-ink">
       <div className="mx-auto max-w-md">
-        <h1 className="text-2xl font-bold">משימות ודוחות</h1>
+        <h1 className="text-2xl font-bold">
+          {member.family.budgetOnly ? "דוחות" : "משימות ודוחות"}
+        </h1>
         <p className="text-sm text-ru-muted">מגמות והתפלגות לפי קטגוריה</p>
         <DashboardNav />
         <SubTabs items={TASKS_REPORTS_TABS} active="/dashboard/reports" />

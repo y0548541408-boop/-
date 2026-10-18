@@ -27,8 +27,10 @@ export default async function NetWorthPage() {
 
   const member = await prisma.familyMember.findUnique({
     where: { authUserId: user.id },
+    include: { family: true },
   });
   if (!member) redirect("/login");
+  if (member.family.budgetOnly) redirect("/dashboard");
 
   const [worth, goals] = await Promise.all([
     getFamilyNetWorth(member.familyId),
