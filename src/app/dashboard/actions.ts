@@ -15,6 +15,7 @@ type ActionResult =
       ok: true;
       id?: string;
       overBudget?: { categoryId: string; categoryName: string; overageAmount: number };
+      budgetLeft?: { categoryName: string; remaining: number };
     };
 
 async function resolveBudgetCategoryId(
@@ -107,7 +108,11 @@ export async function addExpense(input: {
     };
   }
 
-  return { ok: true, id: createdExpense.id };
+  return {
+    ok: true,
+    id: createdExpense.id,
+    budgetLeft: updated ? { categoryName: updated.name, remaining: updated.remaining } : undefined,
+  };
 }
 
 export async function addRecurringExpense(input: {

@@ -24,6 +24,7 @@ export default function RiseCard({
   tone,
   size = "md",
   footer,
+  remaining,
 }: {
   title: string;
   actualLabel: string;
@@ -34,13 +35,28 @@ export default function RiseCard({
   tone: Tone;
   size?: "md" | "lg";
   footer?: ReactNode;
+  // Budget left to spend. Shown prominently so the client always knows where they stand.
+  remaining?: number;
 }) {
   const t = TONES[tone];
   const width = Math.max(0, Math.min(percent, 100));
+  const over = remaining !== undefined && remaining < 0;
 
   return (
     <div className="rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]">
-      <h3 className={`font-bold text-ru-ink ${size === "lg" ? "text-xl" : "text-lg"}`}>{title}</h3>
+      <div className="flex items-start justify-between gap-3">
+        <h3 className={`font-bold text-ru-ink ${size === "lg" ? "text-xl" : "text-lg"}`}>{title}</h3>
+        {remaining !== undefined && (
+          <div
+            className={`shrink-0 rounded-2xl px-3 py-1.5 text-left ${
+              over ? "bg-ru-pink-soft text-ru-pink" : "bg-ru-green-soft text-ru-green"
+            }`}
+          >
+            <p className="text-[11px] font-semibold leading-tight">{over ? "חריגה" : "יתרה לשימוש"}</p>
+            <p className="text-lg font-bold leading-tight">{formatShekel(Math.abs(remaining))}</p>
+          </div>
+        )}
+      </div>
 
       <div className="mt-4 flex items-end justify-between gap-4">
         <div>

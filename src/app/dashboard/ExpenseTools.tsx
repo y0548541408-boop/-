@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { addExpense, addRecurringExpense, reallocateBudget , deleteTransaction } from "./actions";
 import SavedBanner, { type EntryStatus } from "./SavedBanner";
+import { formatShekel } from "./RiseCard";
 
 type CategoryOption = { id: string; name: string; type: "fixed" | "variable"; remaining: number };
 
@@ -26,6 +27,9 @@ export default function ExpenseTools({
   const [date, setDate] = useState(defaultDate);
   const [status, setStatus] = useState<EntryStatus>(null);
   const [lastId, setLastId] = useState<string | null>(null);
+  const [budgetLeft, setBudgetLeft] = useState<{ categoryName: string; remaining: number } | null>(
+    null
+  );
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
   const [newCategoryName, setNewCategoryName] = useState("");
   const [amount, setAmount] = useState("");
@@ -76,6 +80,7 @@ export default function ExpenseTools({
       setNewCategoryName("");
       setStatus("saved");
       setLastId("id" in result && result.id ? result.id : null);
+      setBudgetLeft(result.budgetLeft ?? null);
       if (result.overBudget) {
         setOverBudget(result.overBudget);
         setReallocAmount(String(result.overBudget.overageAmount));
@@ -184,7 +189,17 @@ export default function ExpenseTools({
         </label>
         {error && <p className="mt-2 text-sm font-semibold text-ru-pink">{error}</p>}
         {!error && (
-        <SavedBanner status={status} pending={isPending} onUndo={lastId ? handleUndo : undefined} />
+        <SavedBanner
+          status={status}
+          pending={isPending}
+          onUndo={lastId ? handleUndo : undefined}
+          detail={
+            budgetLeft &&
+            (budgetLeft.remaining >= 0
+              ? `נשארו ${formatShekel(budgetLeft.remaining)} ב${budgetLeft.categoryName}`
+              : `חריגה של ${formatShekel(-budgetLeft.remaining)} ב${budgetLeft.categoryName}`)
+          }
+        />
       )}
         <button
           type="submit"

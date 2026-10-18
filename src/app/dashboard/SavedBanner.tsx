@@ -6,10 +6,13 @@ export default function SavedBanner({
   status,
   onUndo,
   pending,
+  detail,
 }: {
   status: EntryStatus;
   onUndo?: () => void;
   pending: boolean;
+  // e.g. what's left in the category after this entry
+  detail?: string | null;
 }) {
   if (!status) return null;
 
@@ -23,7 +26,9 @@ export default function SavedBanner({
 
   return (
     <div className="mt-3 flex items-center justify-between gap-3 rounded-2xl bg-ru-green-soft px-4 py-3 text-sm font-semibold text-ru-green">
-      <span>נשמר ✓ אפשר להוסיף עוד.</span>
+      <span>
+        נשמר ✓ {detail ? <span className="font-bold text-ru-ink">{detail}</span> : "אפשר להוסיף עוד."}
+      </span>
       {onUndo && (
         <button
           type="button"

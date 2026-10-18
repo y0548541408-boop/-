@@ -56,20 +56,16 @@ function ExpenseCategoryCard({
       }
       percent={category.percentUsed}
       tone={over ? "pink" : "blue"}
+      remaining={category.remaining}
       footer={
-        <>
-          {over ? (
-            <span className="font-semibold text-ru-pink">
-              חריגה של {formatShekel(Math.abs(category.remaining))}
-            </span>
-          ) : (
-            <span>נותרו {formatShekel(category.remaining)}</span>
-          )}
-          {category.recurringSpent > 0 && ` · מתוכם ${formatShekel(category.recurringSpent)} קבועות`}
-          {previousSpent !== undefined && (
-            <SpentTrend current={category.spent} previous={previousSpent} />
-          )}
-        </>
+        category.recurringSpent > 0 || previousSpent !== undefined ? (
+          <>
+            {category.recurringSpent > 0 && `מתוכם ${formatShekel(category.recurringSpent)} קבועות`}
+            {previousSpent !== undefined && (
+              <SpentTrend current={category.spent} previous={previousSpent} />
+            )}
+          </>
+        ) : undefined
       }
     />
   );
@@ -171,6 +167,7 @@ export default async function DashboardPage({
             expected={formatShekel(totalPlanned)}
             percent={totalPercent}
             tone="pink"
+            remaining={totalPlanned - totalSpent}
           />
           <div
             className={`flex items-center justify-between rounded-3xl px-5 py-4 ${
