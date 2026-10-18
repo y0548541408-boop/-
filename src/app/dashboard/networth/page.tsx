@@ -4,9 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getFamilyNetWorth } from "@/lib/netWorth";
 import { getFamilyGoals } from "@/lib/goals";
 import { ASSET_GROUPS, LIABILITY_GROUPS } from "@/lib/netWorthGroups";
-import DashboardNav from "../DashboardNav";
-import AdvisorHelp from "../AdvisorHelp";
-import { formatShekel } from "../RiseCard";
+import DashboardNav from "../DashboardNav";import { formatShekel } from "../RiseCard";
 import NetWorthItems from "./NetWorthItems";
 import NetWorthChart from "./NetWorthChart";
 import Goals from "./Goals";
@@ -118,8 +116,6 @@ export default async function NetWorthPage() {
           groups={worth.liabilityGroups}
           groupOptions={LIABILITY_GROUPS}
         />
-
-        <AdvisorHelp familyId={member.familyId} />
       </div>
     </main>
   );

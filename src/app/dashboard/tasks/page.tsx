@@ -9,8 +9,6 @@ import DocumentRow from "../DocumentRow";
 import DashboardNav from "../DashboardNav";
 import RiseCard, { formatShekel } from "../RiseCard";
 import SubTabs, { TASKS_REPORTS_TABS } from "../SubTabs";
-import AdvisorHelp from "../AdvisorHelp";
-
 export default async function TasksPage() {
   const supabase = await createClient();
   const {
@@ -191,8 +189,6 @@ export default async function TasksPage() {
             </div>
           </div>
         )}
-
-        <AdvisorHelp familyId={member.familyId} />
       </div>
     </main>
   );

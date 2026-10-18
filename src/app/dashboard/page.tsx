@@ -15,9 +15,7 @@ import MonthSwitcher from "./MonthSwitcher";
 import InstallHint from "./InstallHint";
 import PlannedAmountEditor from "./PlannedAmountEditor";
 import RiseCard, { formatShekel } from "./RiseCard";
-import SubTabs, { BUDGET_TABS } from "./SubTabs";
-import AdvisorHelp from "./AdvisorHelp";
-import { parseMonthParam, shiftMonth } from "@/lib/month";
+import SubTabs, { BUDGET_TABS } from "./SubTabs";import { parseMonthParam, shiftMonth } from "@/lib/month";
 import { ensureDefaultCategories, familyHasNoCategories } from "@/lib/defaultCategories";
 import { Logo } from "@/components/Logo";
 
@@ -291,8 +289,6 @@ export default async function DashboardPage({
         >
           ניהול הקטגוריות שלי
         </Link>
-
-        <AdvisorHelp familyId={member.familyId} />
       </div>
     </main>
   );
