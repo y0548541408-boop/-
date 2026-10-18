@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import Link from "next/link";
+import FamilyAccess from "./FamilyAccess";
 import { getCurrentAdvisor } from "@/lib/advisor";
 import { prisma } from "@/lib/prisma";
 import { getFamilyTasks } from "@/lib/tasks";
@@ -25,10 +27,16 @@ export default async function AdminFamilyPage({
     include: {
       documents: { orderBy: { createdAt: "desc" } },
       meetingSummaries: { orderBy: { meetingDate: "desc" } },
+      members: { orderBy: { createdAt: "asc" } },
     },
   });
 
   if (!family) redirect("/admin");
+
+  const requestHeaders = await headers();
+  const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
+  const proto = requestHeaders.get("x-forwarded-proto") ?? "https";
+  const loginUrl = `${proto}://${host}/login`;
 
   const tasks = await getFamilyTasks(family.id);
   const showOnboardingLink =
@@ -71,6 +79,17 @@ export default async function AdminFamilyPage({
             </button>
           </form>
         </div>
+
+        <FamilyAccess
+          familyId={family.id}
+          loginUrl={loginUrl}
+          members={family.members.map((m) => ({
+            id: m.id,
+            fullName: m.fullName,
+            email: m.email,
+            role: m.role,
+          }))}
+        />
 
         {showOnboardingLink && (
           <div className="mt-3 rounded-2xl border border-brand-terracotta/30 bg-brand-terracotta/10 p-4 text-sm text-brand-teal">

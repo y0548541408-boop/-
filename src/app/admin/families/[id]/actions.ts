@@ -4,6 +4,36 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAdvisor } from "@/lib/advisor";
 import { createAdminClient, DOCUMENTS_BUCKET } from "@/lib/supabase/admin";
+import { addFamilyMemberRecord, type AddMemberResult } from "@/lib/familyMembers";
+
+export async function addFamilyMember(input: {
+  familyId: string;
+  fullName: string;
+  email: string;
+  phone?: string;
+  role: "primary" | "spouse";
+}): Promise<AddMemberResult> {
+  const { error: ownError } = await assertFamilyOwnedByAdvisor(input.familyId);
+  if (ownError) return { error: ownError };
+
+  const result = await addFamilyMemberRecord(input.familyId, input);
+  revalidatePath(`/admin/families/${input.familyId}`);
+  return result;
+}
+
+export async function removeFamilyMember(input: {
+  familyId: string;
+  memberId: string;
+}): Promise<AddMemberResult> {
+  const { error: ownError } = await assertFamilyOwnedByAdvisor(input.familyId);
+  if (ownError) return { error: ownError };
+
+  await prisma.familyMember.deleteMany({
+    where: { id: input.memberId, familyId: input.familyId },
+  });
+  revalidatePath(`/admin/families/${input.familyId}`);
+  return { ok: true };
+}
 
 async function assertFamilyOwnedByAdvisor(familyId: string) {
   const advisor = await getCurrentAdvisor();

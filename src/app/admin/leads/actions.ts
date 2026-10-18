@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAdvisor } from "@/lib/advisor";
 import { ensureDefaultCategories } from "@/lib/defaultCategories";
+import { addFamilyMemberRecord } from "@/lib/familyMembers";
 
 async function assertLeadOwnedByAdvisor(leadId: string) {
   const advisor = await getCurrentAdvisor();
@@ -90,6 +91,17 @@ export async function convertLeadToFamily(formData: FormData): Promise<void> {
   });
 
   await ensureDefaultCategories(family.id);
+
+  // Give the lead's own email access right away, so the advisor can send
+  // the login link without an extra step. A conflict (email already used)
+  // is left for the advisor to resolve on the family page.
+  const access = await addFamilyMemberRecord(family.id, {
+    fullName: lead.fullName,
+    email: lead.email,
+    phone: lead.phone,
+    role: "primary",
+  });
+  if ("error" in access) console.error("convertLeadToFamily access:", access.error);
 
   await prisma.lead.update({
     where: { id: leadId },
