@@ -8,11 +8,15 @@ type IncomeCategoryOption = { id: string; name: string };
 
 export default function IncomeTools({
   categories,
+  defaultDate,
 }: {
   categories: IncomeCategoryOption[];
+  defaultDate: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [date, setDate] = useState(defaultDate);
+  const [saved, setSaved] = useState(false);
 
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -26,7 +30,7 @@ export default function IncomeTools({
     const parsedAmount = Number(amount);
 
     startTransition(async () => {
-      const result = await addIncome({ categoryId, newCategoryName, amount: parsedAmount, note });
+      const result = await addIncome({ categoryId, newCategoryName, amount: parsedAmount, note, date });
       if ("error" in result) {
         setError(result.error);
         return;
@@ -34,6 +38,7 @@ export default function IncomeTools({
       setAmount("");
       setNote("");
       setNewCategoryName("");
+      setSaved(true);
       router.refresh();
     });
   }
@@ -80,13 +85,25 @@ export default function IncomeTools({
         />
       )}
       <input
+        type="date"
+        required
+        value={date}
+        onChange={(e) => setDate(e.target.value)}
+        aria-label="תאריך"
+        className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+      />
+      <input
         type="text"
         value={note}
-        onChange={(e) => setNote(e.target.value)}
+        onChange={(e) => {
+          setNote(e.target.value);
+          setSaved(false);
+        }}
         placeholder="הערה (לא חובה)"
         className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
       />
       {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+      {saved && !error && <p className="mt-2 text-sm text-emerald-600">נשמר ✓ אפשר להוסיף עוד.</p>}
       <button
         type="submit"
         disabled={isPending || !categoryId}

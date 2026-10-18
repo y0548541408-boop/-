@@ -75,7 +75,7 @@ export default async function AnnualPage({
   const table = await getFamilyAnnualBudget(member.familyId, year);
 
   return (
-    <main className="min-h-screen bg-brand-cream px-4 py-8">
+    <main className="min-h-screen bg-brand-cream px-4 pb-28 pt-8">
       <div className="mx-auto max-w-4xl">
         <div className="flex items-center justify-between">
           <div>

@@ -12,10 +12,18 @@ type OverBudgetPrompt = {
   overageAmount: number;
 };
 
-export default function ExpenseTools({ categories }: { categories: CategoryOption[] }) {
+export default function ExpenseTools({
+  categories,
+  defaultDate,
+}: {
+  categories: CategoryOption[];
+  defaultDate: string;
+}) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
+  const [date, setDate] = useState(defaultDate);
+  const [saved, setSaved] = useState(false);
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
   const [newCategoryName, setNewCategoryName] = useState("");
   const [amount, setAmount] = useState("");
@@ -42,7 +50,7 @@ export default function ExpenseTools({ categories }: { categories: CategoryOptio
     startTransition(async () => {
       const result = isRecurring
         ? await addRecurringExpense({ categoryId, name: note, amount: parsedAmount })
-        : await addExpense({ categoryId, newCategoryName, amount: parsedAmount, note });
+        : await addExpense({ categoryId, newCategoryName, amount: parsedAmount, note, date });
       if ("error" in result) {
         setError(result.error);
         return;
@@ -50,6 +58,7 @@ export default function ExpenseTools({ categories }: { categories: CategoryOptio
       setAmount("");
       setNote("");
       setNewCategoryName("");
+      setSaved(true);
       if (result.overBudget) {
         setOverBudget(result.overBudget);
         setReallocAmount(String(result.overBudget.overageAmount));
@@ -126,10 +135,23 @@ export default function ExpenseTools({ categories }: { categories: CategoryOptio
             className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
           />
         )}
+        {!isRecurring && (
+          <input
+            type="date"
+            required
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            aria-label="תאריך"
+            className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
+          />
+        )}
         <input
           type="text"
           value={note}
-          onChange={(e) => setNote(e.target.value)}
+          onChange={(e) => {
+            setNote(e.target.value);
+            setSaved(false);
+          }}
           placeholder={isRecurring ? 'שם ההוצאה הקבועה (למשל "שכירות")' : "הערה (לא חובה)"}
           required={isRecurring}
           className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm"
@@ -144,6 +166,7 @@ export default function ExpenseTools({ categories }: { categories: CategoryOptio
           הוצאה קבועה (תתחדש אוטומטית כל חודש)
         </label>
         {error && <p className="mt-2 text-sm text-red-600">{error}</p>}
+        {saved && !error && <p className="mt-2 text-sm text-emerald-600">נשמר ✓ אפשר להוסיף עוד.</p>}
         <button
           type="submit"
           disabled={isPending || !categoryId}

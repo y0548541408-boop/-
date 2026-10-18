@@ -12,10 +12,13 @@ import { getFamilyDocuments } from "@/lib/documents";
 import { getFamilyIncomeSummary, getFamilyMonthlyNet } from "@/lib/income";
 import { signOut } from "@/app/login/actions";
 import { removeRecurringExpense, completeTask } from "./actions";
-import ExpenseTools from "./ExpenseTools";
-import IncomeTools from "./IncomeTools";
 import DocumentRow from "./DocumentRow";
 import DashboardNav from "./DashboardNav";
+import MonthSwitcher from "./MonthSwitcher";
+import InstallHint from "./InstallHint";
+import PlannedAmountEditor from "./PlannedAmountEditor";
+import { parseMonthParam, shiftMonth } from "@/lib/month";
+import { ensureDefaultCategories, familyHasNoCategories } from "@/lib/defaultCategories";
 import { Logo } from "@/components/Logo";
 
 function BarColor(percentUsed: number) {
@@ -50,8 +53,14 @@ function CategoryCard({
     <div className="rounded-lg border border-gray-200 bg-white p-3">
       <div className="flex items-baseline justify-between">
         <span className="text-sm font-medium text-gray-900">{category.name}</span>
-        <span className="text-xs text-gray-500">
-          {category.spent.toFixed(0)} / {category.effectivePlanned.toFixed(0)} ₪
+        <span className="flex items-center gap-1.5 text-xs text-gray-500">
+          {category.spent.toFixed(0)} /
+          <PlannedAmountEditor
+            kind="expense"
+            categoryId={category.id}
+            displayAmount={category.effectivePlanned}
+            baseAmount={category.plannedAmount}
+          />
         </span>
       </div>
       <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-100">
@@ -78,7 +87,13 @@ function CategoryCard({
   );
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ month?: string }>;
+}) {
+  const { month: monthParam } = await searchParams;
+  const month = parseMonthParam(monthParam);
   const supabase = await createClient();
   const {
     data: { user },
@@ -101,10 +116,14 @@ export default async function DashboardPage() {
     );
   }
 
-  const now = new Date();
-  const previousMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  // A brand-new client has no categories yet: start from Israel's Excel template.
+  if (await familyHasNoCategories(member.familyId)) {
+    await ensureDefaultCategories(member.familyId);
+  }
 
-  const summary = await getFamilyBudgetSummary(member.familyId);
+  const previousMonth = shiftMonth(month, -1);
+
+  const summary = await getFamilyBudgetSummary(member.familyId, month);
   const previousSummary = await getFamilyBudgetSummary(member.familyId, previousMonth);
   const recurringExpenses = await getFamilyRecurringExpenses(member.familyId);
   const meetingSummaries = await getFamilyMeetingSummaries(member.familyId);
@@ -122,19 +141,14 @@ export default async function DashboardPage() {
   const totalSpent = summary.reduce((sum, c) => sum + c.spent, 0);
   const totalPercent = totalPlanned > 0 ? (totalSpent / totalPlanned) * 100 : 0;
 
-  const incomeSummary = await getFamilyIncomeSummary(member.familyId);
-  const monthlyNet = await getFamilyMonthlyNet(member.familyId, totalSpent);
+  const incomeSummary = await getFamilyIncomeSummary(member.familyId, month);
+  const monthlyNet = await getFamilyMonthlyNet(member.familyId, totalSpent, month);
   const totalIncomePlanned = incomeSummary.reduce((sum, c) => sum + c.plannedAmount, 0);
   const totalIncomePercent =
     totalIncomePlanned > 0 ? (monthlyNet.totalIncome / totalIncomePlanned) * 100 : 0;
 
-  const monthLabel = new Date().toLocaleDateString("he-IL", {
-    month: "long",
-    year: "numeric",
-  });
-
   return (
-    <main className="min-h-screen bg-brand-cream px-4 py-8">
+    <main className="min-h-screen bg-brand-cream px-4 pb-28 pt-8">
       <div className="mx-auto max-w-md">
         <Logo size={15} markSize={22} />
         <div className="mt-4 flex items-start justify-between">
@@ -143,7 +157,7 @@ export default async function DashboardPage() {
               שלום, {member.fullName}
             </h1>
             <p className="text-sm text-gray-500">
-              משפחת {member.family.displayName} · {monthLabel}
+              משפחת {member.family.displayName}
             </p>
           </div>
           <form action={signOut}>
@@ -154,9 +168,11 @@ export default async function DashboardPage() {
         </div>
 
         <DashboardNav />
+        <MonthSwitcher month={month} basePath="/dashboard" />
+        <InstallHint />
 
         <div
-          className={`mt-4 rounded-2xl p-4 text-white shadow-sm ${
+          className={`mt-3 rounded-2xl p-4 text-white shadow-sm ${
             monthlyNet.net < 0 ? "bg-red-600" : "bg-emerald-600"
           }`}
         >
@@ -195,56 +211,6 @@ export default async function DashboardPage() {
             />
           </div>
         </div>
-
-        {taskProgress.total > 0 && (
-          <div className="mt-3 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
-            <div className="flex items-baseline justify-between">
-              <span className="text-sm font-medium text-gray-700">
-                התקדמות במשימות
-              </span>
-              <span className="text-sm text-gray-500">
-                {taskProgress.completed} מתוך {taskProgress.total} (
-                {taskProgress.percent.toFixed(0)}%)
-              </span>
-            </div>
-            <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-100">
-              <div
-                className="h-full bg-brand-terracotta"
-                style={{ width: `${Math.min(taskProgress.percent, 100)}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        {savingsProgress && (
-          <div className="mt-3 rounded-2xl border border-brand-terracotta/30 bg-white p-4 shadow-sm shadow-brand-teal/5">
-            <div className="flex items-baseline justify-between">
-              <span className="text-sm font-medium text-gray-700">
-                יעד החיסכון שלנו
-              </span>
-              <span className="text-sm text-gray-500">
-                {savingsProgress.achieved.toFixed(0)} מתוך{" "}
-                {savingsProgress.target.toFixed(0)} ₪ (
-                {savingsProgress.percent.toFixed(0)}%)
-              </span>
-            </div>
-            <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-100">
-              <div
-                className="h-full bg-brand-terracotta"
-                style={{ width: `${Math.min(savingsProgress.percent, 100)}%` }}
-              />
-            </div>
-          </div>
-        )}
-
-        {latestMeeting?.nextFocus && (
-          <div className="mt-4 rounded-2xl bg-brand-teal p-4 text-white shadow-sm">
-            <p className="text-xs font-medium text-brand-terracotta">
-              על מה נתמקד בפגישה הבאה
-            </p>
-            <p className="mt-1 text-sm leading-relaxed">{latestMeeting.nextFocus}</p>
-          </div>
-        )}
 
         {summary.length === 0 ? (
           <p className="mt-6 text-center text-sm text-gray-400">
@@ -316,14 +282,6 @@ export default async function DashboardPage() {
               </div>
             )}
 
-            <ExpenseTools
-              categories={summary.map((c) => ({
-                id: c.id,
-                name: c.name,
-                type: c.type,
-                remaining: c.remaining,
-              }))}
-            />
           </>
         )}
 
@@ -349,8 +307,14 @@ export default async function DashboardPage() {
                 <div key={c.id} className="rounded-lg border border-gray-200 bg-white p-3">
                   <div className="flex items-baseline justify-between">
                     <span className="text-sm font-medium text-gray-900">{c.name}</span>
-                    <span className="text-xs text-gray-500">
-                      {c.received.toFixed(0)} / {c.plannedAmount.toFixed(0)} ₪
+                    <span className="flex items-center gap-1.5 text-xs text-gray-500">
+                      {c.received.toFixed(0)} /
+                      <PlannedAmountEditor
+                        kind="income"
+                        categoryId={c.id}
+                        displayAmount={c.plannedAmount}
+                        baseAmount={c.plannedAmount}
+                      />
                     </span>
                   </div>
                   <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-100">
@@ -376,9 +340,56 @@ export default async function DashboardPage() {
                 </div>
               ))}
             </div>
-            <IncomeTools
-              categories={incomeSummary.map((c) => ({ id: c.id, name: c.name }))}
-            />
+          </div>
+        )}
+
+        {taskProgress.total > 0 && (
+          <div className="mt-6 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm font-medium text-gray-700">
+                התקדמות במשימות
+              </span>
+              <span className="text-sm text-gray-500">
+                {taskProgress.completed} מתוך {taskProgress.total} (
+                {taskProgress.percent.toFixed(0)}%)
+              </span>
+            </div>
+            <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-100">
+              <div
+                className="h-full bg-brand-terracotta"
+                style={{ width: `${Math.min(taskProgress.percent, 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {savingsProgress && (
+          <div className="mt-3 rounded-2xl border border-brand-terracotta/30 bg-white p-4 shadow-sm shadow-brand-teal/5">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm font-medium text-gray-700">
+                יעד החיסכון שלנו
+              </span>
+              <span className="text-sm text-gray-500">
+                {savingsProgress.achieved.toFixed(0)} מתוך{" "}
+                {savingsProgress.target.toFixed(0)} ₪ (
+                {savingsProgress.percent.toFixed(0)}%)
+              </span>
+            </div>
+            <div className="mt-2 h-3 w-full overflow-hidden rounded-full bg-gray-100">
+              <div
+                className="h-full bg-brand-terracotta"
+                style={{ width: `${Math.min(savingsProgress.percent, 100)}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {latestMeeting?.nextFocus && (
+          <div className="mt-4 rounded-2xl bg-brand-teal p-4 text-white shadow-sm">
+            <p className="text-xs font-medium text-brand-terracotta">
+              על מה נתמקד בפגישה הבאה
+            </p>
+            <p className="mt-1 text-sm leading-relaxed">{latestMeeting.nextFocus}</p>
           </div>
         )}
 

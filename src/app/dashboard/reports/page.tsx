@@ -26,7 +26,7 @@ export default async function ReportsPage() {
   const thisMonth = trend[trend.length - 1];
 
   return (
-    <main className="min-h-screen bg-brand-cream px-4 py-8">
+    <main className="min-h-screen bg-brand-cream px-4 pb-28 pt-8">
       <div className="mx-auto max-w-md">
         <h1 className="text-xl font-semibold text-brand-teal">דוחות</h1>
         <p className="text-sm text-gray-500">מגמות והתפלגות לפי קטגוריה</p>

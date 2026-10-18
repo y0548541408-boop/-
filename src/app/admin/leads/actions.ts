@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAdvisor } from "@/lib/advisor";
+import { ensureDefaultCategories } from "@/lib/defaultCategories";
 
 async function assertLeadOwnedByAdvisor(leadId: string) {
   const advisor = await getCurrentAdvisor();
@@ -87,6 +88,8 @@ export async function convertLeadToFamily(formData: FormData): Promise<void> {
       onboardingToken: randomUUID(),
     },
   });
+
+  await ensureDefaultCategories(family.id);
 
   await prisma.lead.update({
     where: { id: leadId },

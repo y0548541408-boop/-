@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { getFamilyBudgetSummary } from "@/lib/budget";
+import { parseEntryDate } from "@/lib/month";
 import { createAdminClient, DOCUMENTS_BUCKET } from "@/lib/supabase/admin";
 
 type SimpleActionResult = { error: string } | { ok: true };
@@ -66,6 +67,7 @@ export async function addExpense(input: {
   newCategoryName?: string;
   amount: number;
   note?: string;
+  date?: string;
 }): Promise<ActionResult> {
   const member = await getCurrentFamilyMember();
   if (!member) return { error: "יש להתחבר מחדש." };
@@ -83,6 +85,7 @@ export async function addExpense(input: {
   );
   if ("error" in resolved) return { error: resolved.error };
   const categoryId = resolved.id;
+  const occurredAt = parseEntryDate(input.date);
 
   await prisma.expense.create({
     data: {
@@ -91,14 +94,14 @@ export async function addExpense(input: {
       amount: input.amount,
       note: input.note?.trim() || null,
       source: "dashboard",
-      occurredAt: new Date(),
+      occurredAt,
       createdById: member.id,
     },
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard", "layout");
 
-  const summary = await getFamilyBudgetSummary(member.familyId);
+  const summary = await getFamilyBudgetSummary(member.familyId, occurredAt);
   const updated = summary.find((c) => c.id === categoryId);
 
   if (updated && updated.remaining < 0) {
@@ -232,6 +235,7 @@ export async function addIncome(input: {
   newCategoryName?: string;
   amount: number;
   note?: string;
+  date?: string;
 }): Promise<SimpleActionResult> {
   const member = await getCurrentFamilyMember();
   if (!member) return { error: "יש להתחבר מחדש." };
@@ -254,12 +258,52 @@ export async function addIncome(input: {
       categoryId: resolved.id,
       amount: input.amount,
       note: input.note?.trim() || null,
-      occurredAt: new Date(),
+      occurredAt: parseEntryDate(input.date),
       createdById: member.id,
     },
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard", "layout");
+  return { ok: true };
+}
+
+export async function updateExpenseCategoryPlanned(input: {
+  categoryId: string;
+  amount: number;
+}): Promise<SimpleActionResult> {
+  const member = await getCurrentFamilyMember();
+  if (!member) return { error: "יש להתחבר מחדש." };
+  if (!Number.isFinite(input.amount) || input.amount < 0) {
+    return { error: "יש להזין סכום תקין." };
+  }
+
+  const result = await prisma.budgetCategory.updateMany({
+    where: { id: input.categoryId, familyId: member.familyId },
+    data: { plannedAmount: input.amount },
+  });
+  if (result.count === 0) return { error: "קטגוריה לא נמצאה." };
+
+  revalidatePath("/dashboard", "layout");
+  return { ok: true };
+}
+
+export async function updateIncomeCategoryPlanned(input: {
+  categoryId: string;
+  amount: number;
+}): Promise<SimpleActionResult> {
+  const member = await getCurrentFamilyMember();
+  if (!member) return { error: "יש להתחבר מחדש." };
+  if (!Number.isFinite(input.amount) || input.amount < 0) {
+    return { error: "יש להזין סכום תקין." };
+  }
+
+  const result = await prisma.incomeCategory.updateMany({
+    where: { id: input.categoryId, familyId: member.familyId },
+    data: { plannedAmount: input.amount },
+  });
+  if (result.count === 0) return { error: "קטגוריה לא נמצאה." };
+
+  revalidatePath("/dashboard", "layout");
   return { ok: true };
 }
 

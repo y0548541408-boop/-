@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // /api/cron routes authenticate themselves via CRON_SECRET (checked
 // inside each route), not via the cookie-based session - they're
 // server-to-server calls with no browser session to check here.
-const PUBLIC_PATHS = ["/login", "/auth", "/onboarding", "/api/cron"];
+const PUBLIC_PATHS = ["/login", "/auth", "/onboarding", "/api/cron", "/manifest.webmanifest"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });

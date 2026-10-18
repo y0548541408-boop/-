@@ -22,7 +22,7 @@ export default async function MaaserPage() {
   const monthLabel = new Date().toLocaleDateString("he-IL", { month: "long", year: "numeric" });
 
   return (
-    <main className="min-h-screen bg-brand-cream px-4 py-8">
+    <main className="min-h-screen bg-brand-cream px-4 pb-28 pt-8">
       <div className="mx-auto max-w-md">
         <h1 className="text-xl font-semibold text-brand-teal">מעשרות</h1>
         <p className="text-sm text-gray-500">מעקב אחר חובת מעשר לפי הכנסה — {monthLabel}</p>
