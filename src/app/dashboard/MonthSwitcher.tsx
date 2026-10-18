@@ -14,18 +14,18 @@ export default function MonthSwitcher({
   const label = month.toLocaleDateString("he-IL", { month: "long", year: "numeric" });
 
   return (
-    <div className="mt-3 flex items-center justify-between rounded-xl border border-brand-teal/10 bg-white px-2 py-1.5 shadow-sm">
+    <div className="mt-5 flex items-center justify-between">
       <Link
         href={`${basePath}?month=${formatMonthParam(prev)}`}
         aria-label="חודש קודם"
-        className="rounded-lg px-3 py-1.5 text-lg text-brand-teal hover:bg-gray-50"
+        className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl text-ru-blue shadow-[0_1px_6px_rgba(46,46,46,0.08)]"
       >
         ›
       </Link>
       <div className="text-center">
-        <p className="text-sm font-semibold text-brand-teal">{label}</p>
+        <p className="text-xl font-bold text-ru-ink">{label}</p>
         {!atCurrent && (
-          <Link href={basePath} className="text-xs text-gray-400 underline">
+          <Link href={basePath} className="text-xs font-medium text-ru-blue">
             חזרה לחודש הנוכחי
           </Link>
         )}
@@ -34,8 +34,8 @@ export default function MonthSwitcher({
         href={`${basePath}?month=${formatMonthParam(next)}`}
         aria-label="חודש הבא"
         aria-disabled={atCurrent}
-        className={`rounded-lg px-3 py-1.5 text-lg ${
-          atCurrent ? "pointer-events-none text-gray-200" : "text-brand-teal hover:bg-gray-50"
+        className={`flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl shadow-[0_1px_6px_rgba(46,46,46,0.08)] ${
+          atCurrent ? "pointer-events-none opacity-30" : "text-ru-blue"
         }`}
       >
         ‹

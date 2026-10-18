@@ -12,6 +12,8 @@ export default function InstallHint() {
       const standalone =
         window.matchMedia("(display-mode: standalone)").matches ||
         (navigator as Navigator & { standalone?: boolean }).standalone === true;
+      // Browser-only state (display mode, localStorage): can only be read after mount.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       if (!standalone && localStorage.getItem(STORAGE_KEY) !== "1") setVisible(true);
     } catch {
       // storage unavailable: just don't show the hint
@@ -30,10 +32,10 @@ export default function InstallHint() {
   }
 
   return (
-    <div className="mt-3 rounded-xl border border-brand-terracotta/30 bg-white p-3 text-xs leading-relaxed text-gray-600 shadow-sm">
+    <div className="mt-4 rounded-3xl bg-white p-4 text-xs leading-relaxed text-ru-ink/70 shadow-[0_2px_14px_rgba(46,46,46,0.07)]">
       <div className="flex items-start justify-between gap-3">
         <p>
-          <span className="font-semibold text-brand-teal">התקציב על מסך הבית.</span> באנדרואיד:
+          <span className="font-bold text-ru-blue">התקציב על מסך הבית.</span> באנדרואיד:
           תפריט הדפדפן ← &quot;התקנת אפליקציה&quot;. באייפון: כפתור השיתוף ← &quot;הוסף למסך
           הבית&quot;. מאותו רגע זה נפתח כמו אפליקציה, בלי להקליד כתובת.
         </p>

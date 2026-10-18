@@ -8,6 +8,16 @@
   --brand-teal-dark: #123930;
   --brand-terracotta: #c97b4a;
   --brand-cream: #f4f1ea;
+  /* Budget-app look modeled on RiseUp: warm cream, indigo expenses, green income, pink overspend */
+  --ru-bg: #faf6ea;
+  --ru-ink: #2e2e2e;
+  --ru-muted: #8a8a8a;
+  --ru-blue: #5b7bff;
+  --ru-blue-soft: #dfe5ff;
+  --ru-green: #00bf6f;
+  --ru-green-soft: #cdf1e1;
+  --ru-pink: #ec4f8a;
+  --ru-pink-soft: #f9d8e5;
 }
 
 @theme inline {
@@ -17,6 +27,15 @@
   --color-brand-teal-dark: var(--brand-teal-dark);
   --color-brand-terracotta: var(--brand-terracotta);
   --color-brand-cream: var(--brand-cream);
+  --color-ru-bg: var(--ru-bg);
+  --color-ru-ink: var(--ru-ink);
+  --color-ru-muted: var(--ru-muted);
+  --color-ru-blue: var(--ru-blue);
+  --color-ru-blue-soft: var(--ru-blue-soft);
+  --color-ru-green: var(--ru-green);
+  --color-ru-green-soft: var(--ru-green-soft);
+  --color-ru-pink: var(--ru-pink);
+  --color-ru-pink-soft: var(--ru-pink-soft);
   --font-sans: var(--font-heebo);
   --font-wordmark: var(--font-wordmark);
 }

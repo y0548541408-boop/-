@@ -48,10 +48,11 @@ export default function PlannedAmountEditor({
           setValue(String(baseAmount));
           setEditing(true);
         }}
-        className="rounded-md border border-dashed border-gray-300 px-1.5 py-0.5 text-xs text-gray-600 hover:border-brand-teal hover:text-brand-teal"
+        className="flex items-baseline gap-1.5 text-lg text-ru-ink hover:text-ru-blue"
         aria-label="עריכת תקציב"
       >
-        {displayAmount.toFixed(0)} ₪ ✎
+        ₪{displayAmount.toLocaleString("he-IL", { maximumFractionDigits: 0 })}
+        <span className="text-xs text-ru-muted">✎</span>
       </button>
     );
   }
@@ -66,12 +67,12 @@ export default function PlannedAmountEditor({
         autoFocus
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="w-20 rounded-md border border-gray-300 px-1.5 py-0.5 text-xs"
+        className="w-24 rounded-xl border border-ru-blue-soft bg-white px-2 py-1 text-sm"
       />
       <button
         type="submit"
         disabled={isPending}
-        className="rounded-md bg-brand-teal px-2 py-0.5 text-xs text-white disabled:opacity-50"
+        className="rounded-full bg-ru-blue px-3 py-1 text-xs font-medium text-white disabled:opacity-50"
       >
         {isPending ? "..." : "שמור"}
       </button>
