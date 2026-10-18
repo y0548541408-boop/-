@@ -48,13 +48,13 @@ export default async function AddTransactionPage({
         <p className="text-sm text-ru-muted">הכנסה או הוצאה — מתעדכן מיד בתקציב</p>
 
         <AddTabs
-          expenseCategories={expenseSummary.map((c) => ({
+          expenseCategories={expenseSummary.filter((c) => c.isActive).map((c) => ({
             id: c.id,
             name: c.name,
             type: c.type,
             remaining: c.remaining,
           }))}
-          incomeCategories={incomeSummary.map((c) => ({ id: c.id, name: c.name }))}
+          incomeCategories={incomeSummary.filter((c) => c.isActive).map((c) => ({ id: c.id, name: c.name }))}
           defaultDate={defaultEntryDate(month)}
         />
       </div>

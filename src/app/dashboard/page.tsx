@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
@@ -283,6 +284,13 @@ export default async function DashboardPage({
             </div>
           </div>
         )}
+
+        <Link
+          href="/dashboard/categories"
+          className="mt-8 block rounded-full bg-white px-5 py-4 text-center text-base font-bold text-ru-blue shadow-[0_2px_14px_rgba(46,46,46,0.07)]"
+        >
+          ניהול הקטגוריות שלי
+        </Link>
       </div>
     </main>
   );

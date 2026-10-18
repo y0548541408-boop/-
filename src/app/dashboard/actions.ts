@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { createClient } from "@/lib/supabase/server";
+import { getCurrentFamilyMember } from "@/lib/currentMember";
 import { getFamilyBudgetSummary } from "@/lib/budget";
 import { parseEntryDate } from "@/lib/month";
 import { createAdminClient, DOCUMENTS_BUCKET } from "@/lib/supabase/admin";
@@ -16,19 +16,6 @@ type ActionResult =
       id?: string;
       overBudget?: { categoryId: string; categoryName: string; overageAmount: number };
     };
-
-async function getCurrentFamilyMember() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  return prisma.familyMember.findUnique({
-    where: { authUserId: user.id },
-    include: { family: true },
-  });
-}
 
 async function resolveBudgetCategoryId(
   familyId: string,

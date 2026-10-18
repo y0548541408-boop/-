@@ -13,6 +13,8 @@ export default function AuthConfirmPage() {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
 
+  // The URL fragment never reaches the server, so it can only be read after mount.
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     const hash = window.location.hash.slice(1);
     const params = new URLSearchParams(hash);
@@ -41,6 +43,7 @@ export default function AuthConfirmPage() {
         router.replace("/dashboard");
       });
   }, [router]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-brand-cream px-4 text-center">

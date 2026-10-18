@@ -22,8 +22,8 @@ export async function getFamilyAnnualBudget(familyId: string, year: number): Pro
   const yearEnd = new Date(year + 1, 0, 1);
 
   const [expenseCategories, incomeCategories, expenses, incomes] = await Promise.all([
-    prisma.budgetCategory.findMany({ where: { familyId, isActive: true }, orderBy: { name: "asc" } }),
-    prisma.incomeCategory.findMany({ where: { familyId, isActive: true }, orderBy: { name: "asc" } }),
+    prisma.budgetCategory.findMany({ where: { familyId }, orderBy: { name: "asc" } }),
+    prisma.incomeCategory.findMany({ where: { familyId }, orderBy: { name: "asc" } }),
     prisma.expense.findMany({
       where: { familyId, occurredAt: { gte: yearStart, lt: yearEnd } },
       select: { categoryId: true, amount: true, occurredAt: true },
@@ -34,11 +34,15 @@ export async function getFamilyAnnualBudget(familyId: string, year: number): Pro
     }),
   ]);
 
+  // Hidden categories stay in the table for years in which they have entries.
   function buildRows(
-    categories: { id: string; name: string; plannedAmount: unknown }[],
+    categories: { id: string; name: string; plannedAmount: unknown; isActive: boolean }[],
     entries: { categoryId: string; amount: unknown; occurredAt: Date }[]
   ): AnnualCategoryRow[] {
-    return categories.map((cat) => {
+    const withEntries = new Set(entries.map((e) => e.categoryId));
+    return categories
+      .filter((cat) => cat.isActive || withEntries.has(cat.id))
+      .map((cat) => {
       const actualByMonth = new Array(12).fill(0);
       for (const e of entries) {
         if (e.categoryId === cat.id) {

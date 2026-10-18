@@ -6,6 +6,7 @@ export type IncomeCategorySummary = {
   plannedAmount: number;
   received: number;
   remaining: number;
+  isActive: boolean;
 };
 
 function monthRange(date: Date) {
@@ -21,8 +22,9 @@ export async function getFamilyIncomeSummary(
   const { start, end } = monthRange(month);
 
   const [categories, incomes] = await Promise.all([
+    // Hidden categories only appear in months where they have activity.
     prisma.incomeCategory.findMany({
-      where: { familyId, isActive: true },
+      where: { familyId },
       orderBy: { createdAt: "asc" },
     }),
     prisma.income.findMany({
@@ -37,17 +39,20 @@ export async function getFamilyIncomeSummary(
     receivedByCategory.set(income.categoryId, current + Number(income.amount));
   }
 
-  return categories.map((category) => {
-    const plannedAmount = Number(category.plannedAmount);
-    const received = receivedByCategory.get(category.id) ?? 0;
-    return {
-      id: category.id,
-      name: category.name,
-      plannedAmount,
-      received,
-      remaining: plannedAmount - received,
-    };
-  });
+  return categories
+    .filter((category) => category.isActive || (receivedByCategory.get(category.id) ?? 0) > 0)
+    .map((category) => {
+      const plannedAmount = Number(category.plannedAmount);
+      const received = receivedByCategory.get(category.id) ?? 0;
+      return {
+        id: category.id,
+        name: category.name,
+        plannedAmount,
+        received,
+        remaining: plannedAmount - received,
+        isActive: category.isActive,
+      };
+    });
 }
 
 export async function getFamilyMonthlyNet(

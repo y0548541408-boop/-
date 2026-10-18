@@ -10,6 +10,7 @@ export type CategorySummary = {
   recurringSpent: number;
   remaining: number;
   percentUsed: number;
+  isActive: boolean;
 };
 
 function monthRange(date: Date) {
@@ -25,8 +26,10 @@ export async function getFamilyBudgetSummary(
   const { start, end } = monthRange(month);
 
   const [categories, expenses, reallocations, recurringExpenses] = await Promise.all([
+    // Hidden categories stay in the data: they only show up in months
+    // where they actually have activity, so history never silently drops.
     prisma.budgetCategory.findMany({
-      where: { familyId, isActive: true },
+      where: { familyId },
       orderBy: { name: "asc" },
     }),
     prisma.expense.findMany({
@@ -76,7 +79,14 @@ export async function getFamilyBudgetSummary(
     );
   }
 
-  return categories.map((category) => {
+  return categories
+    .filter(
+      (category) =>
+        category.isActive ||
+        (spentByCategory.get(category.id) ?? 0) > 0 ||
+        (reallocationDelta.get(category.id) ?? 0) !== 0
+    )
+    .map((category) => {
     const plannedAmount = Number(category.plannedAmount);
     const effectivePlanned =
       plannedAmount + (reallocationDelta.get(category.id) ?? 0);
@@ -95,6 +105,7 @@ export async function getFamilyBudgetSummary(
       recurringSpent: recurringSpentByCategory.get(category.id) ?? 0,
       remaining,
       percentUsed,
+      isActive: category.isActive,
     };
   });
 }
