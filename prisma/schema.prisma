@@ -108,9 +108,10 @@ model Family {
   portalActive   Boolean      @default(false) @map("portal_active")
   hasDebt        Boolean      @default(false) @map("has_debt")
   maaserRatePercent Int       @default(10) @map("maaser_rate_percent") // 10 = מעשר, 20 = חומש
+  welcomedAt     DateTime?    @map("welcomed_at") // null until the client finished (or skipped) the welcome setup
   createdAt      DateTime     @default(now()) @map("created_at")
 
-  members             FamilyMember[]
+  members            FamilyMember[]
   questionnaires       OnboardingQuestionnaire[]
   documents            Document[]
   budgetCategories     BudgetCategory[]

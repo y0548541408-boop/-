@@ -99,6 +99,9 @@ export default async function DashboardPage({
     );
   }
 
+  // First visit: walk the client through setting up their budget.
+  if (!member.family.welcomedAt) redirect("/dashboard/welcome");
+
   // A brand-new client has no categories yet: start from Israel's Excel template.
   if (await familyHasNoCategories(member.familyId)) {
     await ensureDefaultCategories(member.familyId);
