@@ -8,8 +8,9 @@ import { completeTask } from "../actions";
 import DocumentRow from "../DocumentRow";
 import DashboardNav from "../DashboardNav";
 import RiseCard, { formatShekel } from "../RiseCard";
+import SubTabs, { TASKS_REPORTS_TABS } from "../SubTabs";
 
-export default async function CoachingPage() {
+export default async function TasksPage() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -40,10 +41,11 @@ export default async function CoachingPage() {
   return (
     <main className="min-h-screen bg-ru-bg px-4 pb-32 pt-6 text-ru-ink">
       <div className="mx-auto max-w-md">
-        <h1 className="text-2xl font-bold">פגישות ומשימות</h1>
+        <h1 className="text-2xl font-bold">משימות ודוחות</h1>
         <p className="text-sm text-ru-muted">מה סיכמנו, ומה הצעד הבא</p>
 
         <DashboardNav />
+        <SubTabs items={TASKS_REPORTS_TABS} active="/dashboard/tasks" />
 
         {isEmpty && (
           <p className="mt-10 text-center text-sm text-ru-muted">
@@ -78,7 +80,7 @@ export default async function CoachingPage() {
             )}
             {savingsProgress && (
               <RiseCard
-                title="יעד החיסכון שלנו"
+                title="חיסכון שנתי מהמשימות"
                 actualLabel="הושג"
                 actual={savingsProgress.achieved}
                 expectedLabel="יעד"

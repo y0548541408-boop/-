@@ -5,6 +5,7 @@ import { getFamilyTransactionLog } from "@/lib/transactions";
 import { parseMonthParam, shiftMonth } from "@/lib/month";
 import DashboardNav from "../DashboardNav";
 import MonthSwitcher from "../MonthSwitcher";
+import SubTabs, { BUDGET_TABS } from "../SubTabs";
 import TransactionRow from "./TransactionRow";
 
 export default async function TransactionsPage({
@@ -39,6 +40,7 @@ export default async function TransactionsPage({
         <h1 className="text-2xl font-bold">יומן תנועות</h1>
         <p className="text-sm text-ru-muted">כל ההכנסות וההוצאות של החודש, מהחדש לישן</p>
         <DashboardNav />
+        <SubTabs items={BUDGET_TABS} active="/dashboard/transactions" month={monthParam} />
         <MonthSwitcher month={month} basePath="/dashboard/transactions" />
 
         <div className="mt-4 space-y-2">

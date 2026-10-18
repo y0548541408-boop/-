@@ -124,8 +124,59 @@ model Family {
   invoices             Invoice[]
   incomeCategories     IncomeCategory[]
   incomes              Income[]
+  netWorthItems        NetWorthItem[]
+  netWorthSnapshots    NetWorthSnapshot[]
+  goals                Goal[]
 
   @@map("families")
+}
+
+enum NetWorthKind {
+  asset
+  liability
+}
+
+// One thing the family owns (savings, investments, pension, property...)
+// or owes (mortgage, loans...). Values are entered by hand, like the rest.
+model NetWorthItem {
+  id        String       @id @default(uuid())
+  familyId  String       @map("family_id")
+  family    Family       @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  kind      NetWorthKind
+  group     String
+  name      String
+  value     Decimal      @db.Decimal(14, 2)
+  createdAt DateTime     @default(now()) @map("created_at")
+  updatedAt DateTime     @updatedAt @map("updated_at")
+
+  @@map("net_worth_items")
+}
+
+// Month-end totals, written whenever an item changes, so the trend line
+// can be drawn without keeping every past edit.
+model NetWorthSnapshot {
+  id          String   @id @default(uuid())
+  familyId    String   @map("family_id")
+  family      Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  month       DateTime
+  assets      Decimal  @db.Decimal(14, 2)
+  liabilities Decimal  @db.Decimal(14, 2)
+
+  @@unique([familyId, month])
+  @@map("net_worth_snapshots")
+}
+
+model Goal {
+  id            String    @id @default(uuid())
+  familyId      String    @map("family_id")
+  family        Family    @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  title         String
+  targetAmount  Decimal   @map("target_amount") @db.Decimal(14, 2)
+  currentAmount Decimal   @default(0) @map("current_amount") @db.Decimal(14, 2)
+  targetDate    DateTime? @map("target_date")
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("goals")
 }
 
 model FamilyMember {
