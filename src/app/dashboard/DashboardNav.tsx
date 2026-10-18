@@ -9,6 +9,7 @@ const ITEMS = [
   { href: "/dashboard/reports", label: "דוחות", keepsMonth: false },
   { href: "/dashboard/annual", label: "תקציב שנתי", keepsMonth: false },
   { href: "/dashboard/maaser", label: "מעשרות", keepsMonth: false },
+  { href: "/dashboard/coaching", label: "פגישות ומשימות", keepsMonth: false },
 ];
 
 export default function DashboardNav() {

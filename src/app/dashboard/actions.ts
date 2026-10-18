@@ -146,7 +146,7 @@ export async function addRecurringExpense(input: {
     },
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard", "layout");
 
   const summary = await getFamilyBudgetSummary(member.familyId);
   const updated = summary.find((c) => c.id === input.categoryId);
@@ -177,7 +177,7 @@ export async function removeRecurringExpense(formData: FormData) {
     data: { isActive: false },
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard", "layout");
 }
 
 export async function completeTask(formData: FormData): Promise<void> {
@@ -192,7 +192,7 @@ export async function completeTask(formData: FormData): Promise<void> {
     data: { status: "done", completedAt: new Date() },
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard", "layout");
 }
 
 async function resolveIncomeCategoryId(
@@ -344,7 +344,7 @@ export async function deleteTransaction(input: {
     if (result.count === 0) return { error: "התנועה לא נמצאה." };
   }
 
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard", "layout");
   revalidatePath("/dashboard/transactions");
   revalidatePath("/dashboard/reports");
   revalidatePath("/dashboard/annual");
@@ -381,7 +381,7 @@ export async function updateTransaction(input: {
     if (result.count === 0) return { error: "התנועה לא נמצאה." };
   }
 
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard", "layout");
   revalidatePath("/dashboard/transactions");
   revalidatePath("/dashboard/reports");
   revalidatePath("/dashboard/annual");
@@ -435,7 +435,7 @@ export async function recordTithePayment(input: { amount: number; note?: string 
     },
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard", "layout");
   revalidatePath("/dashboard/maaser");
   return { ok: true };
 }
@@ -472,6 +472,6 @@ export async function reallocateBudget(input: {
     },
   });
 
-  revalidatePath("/dashboard");
+  revalidatePath("/dashboard", "layout");
   return { ok: true };
 }
