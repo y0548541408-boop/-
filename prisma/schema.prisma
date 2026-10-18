@@ -120,6 +120,7 @@ model Family {
   recurringExpenses    RecurringExpense[]
   reallocations        BudgetReallocation[]
   meetingSummaries     MeetingSummary[]
+  recordings           MeetingRecording[]
   tasks                Task[]
   whatsappMessages     WhatsappInboundMessage[]
   notifications        NotificationLog[]
@@ -288,6 +289,36 @@ model Income {
   createdAt   DateTime       @default(now()) @map("created_at")
 
   @@map("incomes")
+}
+
+enum RecordingStatus {
+  processing
+  ready
+  failed
+  published
+  discarded
+}
+
+// An uploaded meeting recording and the AI draft (summary + tasks) made from it.
+// The draft stays private to the advisor until he reviews and publishes it.
+model MeetingRecording {
+  id           String          @id @default(uuid())
+  familyId     String          @map("family_id")
+  family       Family          @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  storagePath  String          @map("storage_path")
+  filename     String
+  mimeType     String          @map("mime_type")
+  meetingDate  DateTime        @map("meeting_date")
+  status       RecordingStatus @default(processing)
+  errorMessage String?         @map("error_message")
+  draftTitle   String?         @map("draft_title")
+  draftSummary String?         @map("draft_summary")
+  draftNextFocus String?       @map("draft_next_focus")
+  draftTasks   Json?           @map("draft_tasks")
+  createdAt    DateTime        @default(now()) @map("created_at")
+  updatedAt    DateTime        @updatedAt @map("updated_at")
+
+  @@map("meeting_recordings")
 }
 
 model MeetingSummary {

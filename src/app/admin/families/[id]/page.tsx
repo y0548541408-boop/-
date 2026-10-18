@@ -13,6 +13,54 @@ import {
   addTask,
 } from "./actions";
 import DocumentRow from "./DocumentRow";
+import RecordingSection, { type RecordingView } from "./RecordingSection";
+
+// Recording analysis runs in the background after the upload; give it room.
+export const maxDuration = 300;
+
+const STUCK_AFTER_MS = 12 * 60 * 1000;
+
+const isoDay = (date: Date) => date.toISOString().slice(0, 10);
+
+function addDays(from: string, days: number): string {
+  const date = new Date(`${from}T12:00:00`);
+  date.setDate(date.getDate() + days);
+  return isoDay(date);
+}
+
+function toRecordingView(
+  r: {
+    id: string;
+    filename: string;
+    meetingDate: Date;
+    status: string;
+    errorMessage: string | null;
+    draftTitle: string | null;
+    draftSummary: string | null;
+    draftNextFocus: string | null;
+    draftTasks: unknown;
+    updatedAt: Date;
+  },
+  today: string
+): RecordingView {
+  const rawTasks = Array.isArray(r.draftTasks) ? (r.draftTasks as Record<string, unknown>[]) : [];
+  return {
+    id: r.id,
+    filename: r.filename,
+    meetingDate: isoDay(r.meetingDate),
+    status: r.status as RecordingView["status"],
+    stuck: r.status === "processing" && Date.now() - r.updatedAt.getTime() > STUCK_AFTER_MS,
+    errorMessage: r.errorMessage,
+    draftTitle: r.draftTitle ?? "",
+    draftSummary: r.draftSummary ?? "",
+    draftNextFocus: r.draftNextFocus ?? "",
+    draftTasks: rawTasks.map((t) => ({
+      title: String(t.title ?? ""),
+      description: String(t.description ?? ""),
+      deadline: addDays(today, Number(t.deadlineDays) || 7),
+    })),
+  };
+}
 
 const TASK_TYPE_LABEL: Record<string, string> = {
   savings: "חיסכון",
@@ -34,6 +82,7 @@ export default async function AdminFamilyPage({
       documents: { orderBy: { createdAt: "desc" } },
       meetingSummaries: { orderBy: { meetingDate: "desc" } },
       members: { orderBy: { createdAt: "asc" } },
+      recordings: { where: { status: { not: "discarded" } }, orderBy: { createdAt: "desc" } },
     },
   });
 
@@ -45,6 +94,8 @@ export default async function AdminFamilyPage({
   const loginUrl = `${proto}://${host}/login`;
 
   const tasks = await getFamilyTasks(family.id);
+  const today = isoDay(new Date());
+  const recordings = family.recordings.map((r) => toRecordingView(r, today));
   const showOnboardingLink =
     family.onboardingToken &&
     (family.status === "lead" || family.status === "onboarding");
@@ -135,6 +186,8 @@ export default async function AdminFamilyPage({
             </p>
           </div>
         )}
+
+        <RecordingSection familyId={family.id} today={today} recordings={recordings} />
 
         <div className="mt-5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
           <h2 className="text-sm font-semibold text-brand-teal">מסמכים והקלטות</h2>
