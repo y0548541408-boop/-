@@ -4,6 +4,7 @@ import { getCurrentAdvisor } from "@/lib/advisor";
 import { prisma } from "@/lib/prisma";
 import { parseResponses } from "@/lib/mortgageQuestionnaire";
 import MortgageReport from "./MortgageReport";
+import FinanceReport from "./FinanceReport";
 
 export default async function MortgageReportPage({ params }: { params: Promise<{ id: string }> }) {
   const advisor = await getCurrentAdvisor();
@@ -25,5 +26,6 @@ export default async function MortgageReportPage({ params }: { params: Promise<{
     );
   }
 
+  if (item.kind === "finance") return <FinanceReport clientName={item.clientName} submittedAt={item.submittedAt} r={r} />;
   return <MortgageReport clientName={item.clientName} submittedAt={item.submittedAt} r={r} />;
 }

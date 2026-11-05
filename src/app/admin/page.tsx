@@ -40,7 +40,7 @@ export default async function AdminPage() {
                 לידים
               </Link>
               <Link href="/admin/mortgage" className="text-gray-400 hover:text-brand-teal">
-                שאלוני משכנתא
+                שאלונים
               </Link>
             </nav>
           </div>

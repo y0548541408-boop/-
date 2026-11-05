@@ -484,14 +484,16 @@ enum MortgageQuestionnaireStatus {
   submitted
 }
 
-// Pre-consultation mortgage questionnaire. The advisor creates a link per
-// client; the client fills it without logging in (access by token), and the
-// advisor reads the answers as a report in /admin/mortgage/[id].
+// A client questionnaire (pre-mortgage or pre-coaching, by `kind`). The
+// advisor creates a link per client; the client fills it without logging in
+// (access by token at /q/[token]), and the advisor reads the answers as a
+// report in /admin/mortgage/[id]. The table name predates the second kind.
 model MortgageQuestionnaire {
   id          String                      @id @default(uuid())
   advisorId   String                      @map("advisor_id")
   advisor     Advisor                     @relation(fields: [advisorId], references: [id])
   token       String                      @unique
+  kind        String                      @default("mortgage") // "mortgage" | "finance", see src/lib/questionnaires.ts
   clientName  String                      @map("client_name")
   clientPhone String?                     @map("client_phone")
   status      MortgageQuestionnaireStatus @default(sent)

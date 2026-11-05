@@ -8,10 +8,8 @@ function whatsappPhone(phone: string | null): string {
   return digits.startsWith("0") ? `972${digits.slice(1)}` : digits;
 }
 
-export default function ShareLink({ url, clientName, phone }: { url: string; clientName: string; phone: string | null }) {
+export default function ShareLink({ url, message, phone }: { url: string; message: string; phone: string | null }) {
   const [copied, setCopied] = useState(false);
-  const firstName = clientName.split(" ")[0];
-  const message = `שלום ${firstName}, לפני שנתחיל בתהליך המשכנתא, אשמח שתמלאו את השאלון הזה. הוא מרכז את כל הנתונים שצריך, במקום אחד ובצורה מסודרת. אפשר לעצור באמצע ולהמשיך אחר כך:\n${url}`;
   const wa = `https://wa.me/${whatsappPhone(phone)}?text=${encodeURIComponent(message)}`;
 
   async function copy() {

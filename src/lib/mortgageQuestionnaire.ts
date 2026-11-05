@@ -1,72 +1,20 @@
 // The pre-mortgage questionnaire ("שאלון לפני לקיחת משכנתא"), as data.
-// Shared by the client form (/mortgage/[token]) and the advisor report
-// (/admin/mortgage/[id]) so both always agree on questions and labels.
-//
-// Answers are stored as:
-//   values: flat map. Per-borrower fields are keyed "b1.<key>" / "b2.<key>",
-//           a yes/no field's free-text detail is "<key>__detail".
-//   tables: repeating rows (assets, liabilities, payment schedule, banks).
+// Storage format and shared helpers live in ./questionnaire/core.
 
-export type Values = Record<string, string>;
-export type Row = Record<string, string>;
-export type Tables = Record<string, Row[]>;
+import {
+  YES,
+  NO,
+  filledRows,
+  formatMoney,
+  toNumber,
+  type Insight,
+  type QuestionnaireResponses,
+  type Section,
+} from "./questionnaire/core";
 
-export type MortgageResponses = {
-  version: 1;
-  borrowers: 1 | 2;
-  values: Values;
-  tables: Tables;
-};
-
-export type FieldType = "text" | "number" | "money" | "date" | "tel" | "email" | "id" | "textarea" | "choice" | "yesno" | "percent";
-
-export type Field = {
-  key: string;
-  label: string;
-  type: FieldType;
-  options?: string[];
-  hint?: string;
-  placeholder?: string;
-  /** For yes/no: ask for details when the answer is "כן". */
-  detailLabel?: string;
-  /** Show the field only when this returns true. */
-  showIf?: (values: Values) => boolean;
-  /** Field is asked once per borrower (side by side). */
-  perBorrower?: boolean;
-  required?: boolean;
-  wide?: boolean;
-};
-
-export type TableColumn = {
-  key: string;
-  label: string;
-  type: "text" | "money" | "date" | "percent" | "choice" | "yesno";
-  options?: string[];
-};
-
-export type TableConfig = {
-  key: string;
-  title: string;
-  hint?: string;
-  addLabel: string;
-  columns: TableColumn[];
-  showIf?: (values: Values) => boolean;
-};
-
-export type Section = {
-  id: string;
-  letter: string;
-  title: string;
-  intro: string;
-  fields: Field[];
-  tables?: TableConfig[];
-  /** Extra fields shown after the tables. */
-  fieldsAfter?: Field[];
-  note?: string;
-};
-
-export const YES = "כן";
-export const NO = "לא";
+// Re-exported so existing imports from this module keep working.
+export * from "./questionnaire/core";
+export type MortgageResponses = QuestionnaireResponses;
 
 export const PURPOSE = { live: "מגורים", invest: "השקעה", other: "אחר" };
 export const FROM_CONTRACTOR = "מקבלן";
@@ -396,49 +344,9 @@ export const SECTIONS: Section[] = [
   },
 ];
 
-export function fieldKey(field: Field, borrower?: 1 | 2): string {
-  return field.perBorrower ? `b${borrower ?? 1}.${field.key}` : field.key;
-}
-
-export function isVisible(field: { showIf?: (v: Values) => boolean }, values: Values): boolean {
-  return field.showIf ? field.showIf(values) : true;
-}
-
-export function toNumber(raw: string | undefined): number {
-  if (!raw) return 0;
-  const n = Number(String(raw).replace(/[^\d.-]/g, ""));
-  return Number.isFinite(n) ? n : 0;
-}
-
-export function formatMoney(n: number): string {
-  return `₪${Math.round(n).toLocaleString("he-IL")}`;
-}
-
-export function formatDate(raw: string | undefined): string {
-  if (!raw) return "";
-  const d = new Date(raw);
-  if (Number.isNaN(d.getTime())) return raw;
-  return d.toLocaleDateString("he-IL");
-}
-
-export function displayValue(type: FieldType | TableColumn["type"], raw: string | undefined): string {
-  if (raw === undefined || raw === "") return "";
-  if (type === "money") return formatMoney(toNumber(raw));
-  if (type === "date") return formatDate(raw);
-  if (type === "percent") return `${raw}%`;
-  return raw;
-}
-
-/** Rows that have at least one filled cell. */
-export function filledRows(rows: Row[] | undefined): Row[] {
-  return (rows ?? []).filter((r) => Object.values(r).some((v) => v && v.trim() !== ""));
-}
-
 // ---------------------------------------------------------------------------
 // Report calculations
 // ---------------------------------------------------------------------------
-
-export type Insight = { tone: "attention" | "good" | "info"; text: string };
 
 export type MortgageSummary = {
   netIncome: number;
@@ -580,17 +488,5 @@ export function summarize(r: MortgageResponses): MortgageSummary {
     startRepayment,
     repaymentRatio,
     insights,
-  };
-}
-
-export function parseResponses(raw: unknown): MortgageResponses | null {
-  if (!raw || typeof raw !== "object") return null;
-  const r = raw as Partial<MortgageResponses>;
-  if (r.version !== 1 || typeof r.values !== "object") return null;
-  return {
-    version: 1,
-    borrowers: r.borrowers === 2 ? 2 : 1,
-    values: (r.values ?? {}) as Values,
-    tables: (r.tables ?? {}) as Tables,
   };
 }
