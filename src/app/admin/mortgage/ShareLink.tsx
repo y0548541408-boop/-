@@ -11,7 +11,7 @@ function whatsappPhone(phone: string | null): string {
 export default function ShareLink({ url, clientName, phone }: { url: string; clientName: string; phone: string | null }) {
   const [copied, setCopied] = useState(false);
   const firstName = clientName.split(" ")[0];
-  const message = `שלום ${firstName}, לקראת הפגישה שלנו הכנתי שאלון קצר (כ-10 דקות). ככה נגיע לפגישה מוכנים ונוכל להתמקד במה שחשוב: ${url}`;
+  const message = `שלום ${firstName}, לפני שנתחיל בתהליך המשכנתא, אשמח שתמלאו את השאלון הזה. הוא מרכז את כל הנתונים שצריך, במקום אחד ובצורה מסודרת. אפשר לעצור באמצע ולהמשיך אחר כך:\n${url}`;
   const wa = `https://wa.me/${whatsappPhone(phone)}?text=${encodeURIComponent(message)}`;
 
   async function copy() {
@@ -20,7 +20,7 @@ export default function ShareLink({ url, clientName, phone }: { url: string; cli
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      window.prompt("העתיקו את הקישור:", url);
+      window.prompt("אפשר להעתיק את הקישור מכאן:", url);
     }
   }
 
@@ -29,7 +29,7 @@ export default function ShareLink({ url, clientName, phone }: { url: string; cli
       <button
         type="button"
         onClick={copy}
-        className="rounded-lg border border-sh-green/25 bg-white px-3 py-1.5 text-xs font-medium text-sh-green hover:bg-sh-mint/50"
+        className="rounded-lg border border-sh-green/25 bg-white px-3 py-1.5 text-sm font-medium text-sh-green hover:bg-sh-mint/50"
       >
         {copied ? "הועתק ✓" : "העתקת קישור"}
       </button>
@@ -37,7 +37,7 @@ export default function ShareLink({ url, clientName, phone }: { url: string; cli
         href={wa}
         target="_blank"
         rel="noreferrer"
-        className="rounded-lg bg-sh-green px-3 py-1.5 text-xs font-medium text-white hover:bg-sh-green-dark"
+        className="rounded-lg bg-sh-green px-3 py-1.5 text-sm font-medium text-white hover:bg-sh-green-dark"
       >
         שליחה בוואטסאפ
       </a>

@@ -1,4 +1,4 @@
-// The pre-consultation mortgage questionnaire ("שאלון לפני ייעוץ"), as data.
+// The pre-mortgage questionnaire ("שאלון לפני לקיחת משכנתא"), as data.
 // Shared by the client form (/mortgage/[token]) and the advisor report
 // (/admin/mortgage/[id]) so both always agree on questions and labels.
 //
@@ -69,22 +69,25 @@ export const YES = "כן";
 export const NO = "לא";
 
 export const PURPOSE = { live: "מגורים", invest: "השקעה", other: "אחר" };
-export const PURCHASE_TYPES = ["יד שנייה", "קבלן", "בנייה עצמית", "אחר"];
+export const FROM_CONTRACTOR = "מקבלן";
+export const PURCHASE_TYPES = ["יד שנייה", FROM_CONTRACTOR, "בנייה עצמית", "אחר"];
 export const APARTMENT_STATUS = {
   first: "דירה ראשונה ויחידה",
-  upgrade: "דירה שנייה, אבל מוכרים את הראשונה תוך שנתיים",
-  second: "דירה שנייה ומעלה",
+  upgrade: "דירה נוספת, אבל הדירה הקיימת תימכר תוך שנתיים",
+  second: "דירה נוספת (שנייה ומעלה)",
 };
+export const INCOME_DROP = "צפויה לרדת";
+export const BALANCE_NEGATIVE = "בדרך כלל במינוס";
 
 export const SECTIONS: Section[] = [
   {
     id: "personal",
     letter: "א",
     title: "פרטים אישיים",
-    intro: "נתחיל בהיכרות. אם יש לווה נוסף, ממלאים את הפרטים של שניכם זה לצד זה.",
+    intro: "נתחיל בפרטים הבסיסיים. אם יש לווה נוסף, ממלאים את הפרטים של שניכם, זה לצד זה.",
     fields: [
       { key: "fullName", label: "שם מלא", type: "text", perBorrower: true, required: true },
-      { key: "idNumber", label: "מספר ת.ז", type: "id", perBorrower: true },
+      { key: "idNumber", label: "מספר תעודת זהות", type: "id", perBorrower: true },
       { key: "birthDate", label: "תאריך לידה", type: "date", perBorrower: true },
       {
         key: "maritalStatus",
@@ -96,25 +99,26 @@ export const SECTIONS: Section[] = [
       { key: "mobile", label: "טלפון נייד", type: "tel", perBorrower: true, required: true },
       { key: "homePhone", label: "טלפון בבית", type: "tel", perBorrower: true },
       { key: "email", label: "כתובת מייל", type: "email", perBorrower: true },
-      { key: "citizenship", label: "האם יש אזרחות נוספת?", type: "yesno", detailLabel: "איזו?", perBorrower: true },
+      { key: "citizenship", label: "יש אזרחות נוספת?", type: "yesno", detailLabel: "איזו אזרחות?", perBorrower: true },
       {
         key: "medical",
-        label: "האם קיימת מגבלה רפואית שתמנע ביטוח חיים?",
+        label: "יש מגבלה רפואית שעלולה להקשות על ביטוח חיים?",
+        hint: "ביטוח חיים הוא תנאי לקבלת משכנתא. כדאי לדעת על כך מראש.",
         type: "yesno",
         detailLabel: "פרטו בקצרה",
         perBorrower: true,
       },
       {
         key: "relativeAtBank",
-        label: "האם קרוב משפחה שלכם עובד בבנק?",
+        label: "יש קרוב משפחה שעובד בבנק?",
         type: "yesno",
         detailLabel: "באיזה בנק?",
         perBorrower: true,
       },
-      { key: "kidsUnder18", label: "מספר ילדים מתחת לגיל 18", type: "number" },
+      { key: "kidsUnder18", label: "כמה ילדים מתחת לגיל 18 יש לכם?", type: "number", placeholder: "0" },
       {
         key: "kidsAges",
-        label: "גילאי הילדים",
+        label: "בני כמה הילדים?",
         type: "text",
         placeholder: "לדוגמה: 2, 5, 9",
         showIf: (v) => Number(v.kidsUnder18 || 0) > 0,
@@ -124,8 +128,8 @@ export const SECTIONS: Section[] = [
   {
     id: "employment",
     letter: "ב",
-    title: "השכלה ותעסוקה",
-    intro: "ההכנסה היא הבסיס לכל משכנתא טובה. כאן מספרים על העבודה וההכנסה של כל לווה.",
+    title: "עבודה והכנסה",
+    intro: "ההכנסה היא הבסיס לכל משכנתא. כאן מספרים על העבודה ועל ההכנסה של כל לווה.",
     fields: [
       {
         key: "education",
@@ -139,98 +143,99 @@ export const SECTIONS: Section[] = [
         key: "employmentType",
         label: "סוג העסקה",
         type: "choice",
-        options: ["שכיר/ה", "עצמאי/ת", "שכיר/ה + עצמאי/ת", "לא עובד/ת"],
+        options: ["שכיר/ה", "עצמאי/ת", "שכיר/ה וגם עצמאי/ת", "לא עובד/ת כרגע"],
         perBorrower: true,
       },
       { key: "employer", label: "שם מקום העבודה", type: "text", perBorrower: true },
-      { key: "seniority", label: "ותק במקום העבודה", type: "text", placeholder: "לדוגמה: 3 שנים", perBorrower: true },
-      { key: "tenure", label: "האם יש קביעות במקום העבודה?", type: "yesno", perBorrower: true },
-      { key: "grossIncome", label: "הכנסה ברוטו (חודשית)", type: "money", perBorrower: true },
-      { key: "netIncome", label: "הכנסה נטו (חודשית)", type: "money", perBorrower: true, required: true },
+      { key: "seniority", label: "כמה זמן עובדים שם?", type: "text", placeholder: "לדוגמה: 3 שנים", perBorrower: true },
+      { key: "tenure", label: "יש קביעות בעבודה?", type: "yesno", perBorrower: true },
+      { key: "grossIncome", label: "הכנסה חודשית ברוטו", hint: "לפני מסים וניכויים", type: "money", perBorrower: true },
+      { key: "netIncome", label: "הכנסה חודשית נטו", hint: "הסכום שנכנס לחשבון", type: "money", perBorrower: true, required: true },
       {
         key: "deductions",
-        label: "האם יורדות הלוואות או רכב מהשכר?",
+        label: "יורדים מהמשכורת החזרי הלוואות או רכב?",
         type: "yesno",
-        detailLabel: "מה יורד וכמה בחודש?",
+        detailLabel: "מה יורד, וכמה בחודש?",
         perBorrower: true,
       },
       {
         key: "incomeTrend",
-        label: "האם ההכנסה צפויה לעלות או לרדת?",
+        label: "איך צפויה ההכנסה להשתנות?",
         type: "choice",
-        options: ["צפויה לעלות", "יציבה", "צפויה לרדת"],
+        options: ["צפויה לעלות", "תישאר יציבה", INCOME_DROP],
         perBorrower: true,
       },
       {
         key: "careerChange",
-        label: "האם יש תוכניות לשינוי תעסוקתי?",
+        label: "מתוכנן שינוי בעבודה?",
         type: "yesno",
         detailLabel: "מה מתוכנן?",
         perBorrower: true,
       },
       {
         key: "extraIncome",
-        label: "האם יש מקורות הכנסה קבועים נוספים?",
+        label: "יש עוד הכנסה קבועה?",
+        hint: "לדוגמה: שכר דירה, קצבה או עבודה נוספת",
         type: "yesno",
-        detailLabel: "מה המקור וכמה בחודש?",
+        detailLabel: "מאיפה מגיעה ההכנסה?",
         perBorrower: true,
       },
       {
         key: "extraIncomeAmount",
-        label: "סכום ההכנסה הנוספת בחודש",
+        label: "כמה מגיע מההכנסה הנוספת בחודש?",
         type: "money",
         perBorrower: true,
         showIf: (v) => v["b1.extraIncome"] === YES || v["b2.extraIncome"] === YES,
       },
       {
         key: "monthlyExpenses",
-        label: "כמה כסף אתם מוציאים בכל חודש? (כל משק הבית)",
+        label: "כמה מוציא משק הבית בחודש?",
         type: "money",
-        hint: "הערכה כללית מספיקה, בלי החזרי הלוואות.",
+        hint: "הערכה כללית מספיקה. בלי החזרי הלוואות.",
       },
     ],
   },
   {
     id: "finance",
     letter: "ג",
-    title: "פיננסים",
-    intro: "כמה שאלות על חשבון הבנק. זה נשאר ביננו, ועוזר לנו לדעת מראש מה הבנק יראה.",
+    title: "חשבון הבנק",
+    intro: "כמה שאלות על חשבון הבנק. חשוב לענות בכנות: כך נדע מראש מה הבנק יראה, ונוכל להתכונן.",
     fields: [
-      { key: "bankBranch", label: "שם הבנק ומספר הסניף", type: "text", placeholder: "לדוגמה: לאומי, סניף 902" },
+      { key: "bankBranch", label: "באיזה בנק החשבון, ומה מספר הסניף?", type: "text", placeholder: "לדוגמה: לאומי, סניף 902" },
       {
         key: "balance",
-        label: "מה מצב היתרה בדרך כלל?",
+        label: "מה מצב החשבון בדרך כלל?",
         type: "choice",
-        options: ["בדרך כלל בפלוס", "משתנה, לפעמים במינוס", "בדרך כלל במינוס"],
+        options: ["בדרך כלל בפלוס", "משתנה, לפעמים במינוס", BALANCE_NEGATIVE],
       },
-      { key: "overdraft", label: "האם חרגתם ממסגרת האשראי ב-3 החודשים האחרונים?", type: "yesno" },
-      { key: "returnedChecks", label: "האם חזרו לכם צ'קים בעבר?", type: "yesno", detailLabel: "מתי ובאיזה הקשר?" },
-      { key: "restrictedPast", label: "האם החשבון שלכם הוגבל בעבר?", type: "yesno", detailLabel: "מתי?" },
-      { key: "restrictedNow", label: "האם החשבון שלכם מוגבל כרגע?", type: "yesno" },
+      { key: "overdraft", label: "חרגתם ממסגרת האשראי בשלושת החודשים האחרונים?", type: "yesno" },
+      { key: "returnedChecks", label: "חזרו לכם פעם צ'קים?", type: "yesno", detailLabel: "מתי, ומה קרה?" },
+      { key: "restrictedPast", label: "החשבון הוגבל בעבר?", type: "yesno", detailLabel: "מתי?" },
+      { key: "restrictedNow", label: "החשבון מוגבל כרגע?", type: "yesno" },
       {
         key: "switchBank",
-        label: "האם תהיו מוכנים לעבור בנק כדי להוזיל את עלויות המשכנתא?",
+        label: "תהיו מוכנים לעבור בנק, אם זה יוזיל את המשכנתא?",
         type: "choice",
-        options: ["כן", "לא", "אולי, תלוי בהצעה"],
+        options: [YES, NO, "אולי, תלוי בהצעה"],
       },
     ],
   },
   {
     id: "assets",
     letter: "ד",
-    title: "נכסים פיננסיים",
-    intro: "כסף שצברתם יכול לשמש כהון עצמי או כרזרבה. רשמו כל חיסכון שיש לכם.",
+    title: "חסכונות",
+    intro: "כסף שחסכתם יכול לשמש כהון עצמי, או כרזרבה לשעת הצורך. רשמו כל חיסכון שיש לכם.",
     fields: [],
     tables: [
       {
         key: "assets",
-        title: "הנכסים הפיננסיים שלכם",
-        hint: "קופות גמל, קרנות השתלמות, תוכניות חיסכון, פיקדונות, ני\"ע וכדומה.",
-        addLabel: "הוספת נכס",
+        title: "החסכונות שלכם",
+        hint: "לדוגמה: קרן השתלמות, קופת גמל, תוכנית חיסכון, פיקדון או ניירות ערך.",
+        addLabel: "הוספת חיסכון",
         columns: [
-          { key: "type", label: "סוג הנכס", type: "text" },
+          { key: "type", label: "סוג החיסכון", type: "text" },
           { key: "amount", label: "סכום", type: "money" },
-          { key: "liquidDate", label: "מתי הכסף נזיל", type: "text" },
+          { key: "liquidDate", label: "מתי אפשר למשוך?", type: "text" },
         ],
       },
     ],
@@ -238,48 +243,49 @@ export const SECTIONS: Section[] = [
   {
     id: "liabilities",
     letter: "ה",
-    title: "התחייבויות פיננסיות",
+    title: "הלוואות והחזר חודשי",
     intro: "הלוואות קיימות משפיעות על גובה ההחזר שהבנק יאשר. רשמו כל הלוואה פעילה.",
     fields: [],
     tables: [
       {
         key: "liabilities",
-        title: "הלוואות והתחייבויות קיימות",
-        hint: "הלוואות בנקאיות, רכב, כרטיסי אשראי, גמ\"חים, הלוואות ממשפחה.",
+        title: "ההלוואות שלכם כיום",
+        hint: "לדוגמה: הלוואה מהבנק, הלוואת רכב, הלוואה בכרטיס אשראי, גמ\"ח או הלוואה מהמשפחה.",
         addLabel: "הוספת הלוואה",
         columns: [
-          { key: "lender", label: "למי", type: "text" },
-          { key: "amount", label: "יתרה", type: "money" },
-          { key: "monthly", label: "תשלום חודשי", type: "money" },
-          { key: "rate", label: "% ריבית", type: "percent" },
-          { key: "endDate", label: "תאריך סיום", type: "date" },
-          { key: "bankDoc", label: "יש אסמכתא מהבנק?", type: "yesno" },
+          { key: "lender", label: "ממי ההלוואה?", type: "text" },
+          { key: "amount", label: "יתרה לתשלום", type: "money" },
+          { key: "monthly", label: "החזר חודשי", type: "money" },
+          { key: "rate", label: "ריבית (%)", type: "percent" },
+          { key: "endDate", label: "מתי מסתיימת?", type: "date" },
+          { key: "bankDoc", label: "יש אישור מהבנק?", type: "yesno" },
         ],
       },
     ],
     fieldsAfter: [
-      { key: "maxRepayment", label: "מה ההחזר החודשי המקסימלי שתוכלו לעמוד בו?", type: "money", required: true },
-      { key: "startRepayment", label: "מה התשלום החודשי שבו תרצו להתחיל?", type: "money" },
+      { key: "maxRepayment", label: "מה ההחזר החודשי הגבוה ביותר שתוכלו לעמוד בו בנוחות?", type: "money", required: true },
+      { key: "startRepayment", label: "באיזה החזר חודשי הייתם רוצים להתחיל?", type: "money" },
       {
         key: "futureInflow",
-        label: "האם אתם צופים כניסה של כסף לטובת המשכנתא בחמש השנים הקרובות?",
+        label: "צפוי שייכנס לכם כסף בחמש השנים הקרובות, שאפשר יהיה להקטין איתו את המשכנתא?",
+        hint: "לדוגמה: ירושה, מכירת נכס או שחרור של חיסכון",
         type: "yesno",
-        detailLabel: "מאיפה ומתי, בערך?",
+        detailLabel: "מאיפה, ובערך מתי?",
       },
       {
         key: "futureInflowAmount",
-        label: "כמה בערך?",
+        label: "כמה, בערך?",
         type: "money",
         showIf: (v) => v.futureInflow === YES,
       },
     ],
-    note: "ככל שההחזר החודשי גבוה יותר, כך אפשר לבנות משכנתא טובה וזולה יותר.",
+    note: "ככל שההחזר החודשי גבוה יותר, אפשר לבנות משכנתא טובה וזולה יותר.",
   },
   {
     id: "deal",
     letter: "ו",
-    title: "העסקה",
-    intro: "ועכשיו לדירה עצמה. כמה שיותר פרטים, כך נוכל לתכנן את המימון בדיוק.",
+    title: "הדירה והעסקה",
+    intro: "ועכשיו לדירה עצמה. ככל שתמלאו יותר פרטים, נוכל לתכנן את המימון בדיוק רב יותר.",
     fields: [
       {
         key: "purpose",
@@ -291,83 +297,84 @@ export const SECTIONS: Section[] = [
       { key: "purchaseType", label: "סוג הרכישה", type: "choice", options: PURCHASE_TYPES, required: true },
       {
         key: "apartmentStatus",
-        label: "האם זו:",
+        label: "איזו דירה זו?",
         type: "choice",
         options: [APARTMENT_STATUS.first, APARTMENT_STATUS.second, APARTMENT_STATUS.upgrade],
         required: true,
       },
       {
         key: "keyDate",
-        label: "מה מועד מסירת המפתח?",
+        label: "מתי מקבלים את המפתח?",
         type: "date",
-        showIf: (v) => v.purchaseType === "קבלן",
+        showIf: (v) => v.purchaseType === FROM_CONTRACTOR,
       },
       {
         key: "expectedRent",
-        label: "מה שכר הדירה שניתן לקבל על הנכס?",
+        label: "כמה שכר דירה אפשר לקבל על הדירה?",
         type: "money",
         showIf: (v) => v.purpose === PURPOSE.invest,
       },
-      { key: "currentHome", label: "איפה אתם גרים כיום?", type: "text", placeholder: "כתובת" },
-      { key: "currentRent", label: "שכר דירה נוכחי (אם אתם בשכירות)", type: "money" },
-      { key: "contractDate", label: "תאריך חתימת הסכם המכר", type: "date" },
-      { key: "propertyValue", label: "מה שווי הנכס?", type: "money", required: true },
-      { key: "equity", label: "כמה הון עצמי יש לכם?", type: "money", required: true },
+      { key: "currentHome", label: "איפה אתם גרים היום?", type: "text", placeholder: "כתובת" },
+      { key: "currentRent", label: "כמה שכר דירה אתם משלמים היום?", hint: "רק אם אתם גרים בשכירות", type: "money" },
+      { key: "contractDate", label: "מתי נחתם חוזה הרכישה?", hint: "אם עוד לא נחתם, רשמו את התאריך המתוכנן", type: "date" },
+      { key: "propertyValue", label: "מה שווי הדירה?", hint: "בדרך כלל, מחיר הקנייה", type: "money", required: true },
+      { key: "equity", label: "כמה הון עצמי יש לכם?", hint: "הכסף שלכם שישמש לקנייה, בלי המשכנתא", type: "money", required: true },
       { key: "mortgageNeeded", label: "כמה משכנתא אתם צריכים?", type: "money", required: true },
     ],
     tables: [
       {
         key: "payments",
-        title: "סדר התשלומים למוכר",
-        hint: "לפי ההסכם: מתי משלמים, כמה, ומאיפה מגיע הכסף.",
+        title: "לוח התשלומים למוכר",
+        hint: "לפי החוזה: מתי משלמים, כמה, ומאיפה מגיע הכסף.",
         addLabel: "הוספת תשלום",
         columns: [
           { key: "date", label: "תאריך", type: "date" },
           { key: "amount", label: "סכום", type: "money" },
-          { key: "source", label: "מקור", type: "choice", options: ["הון עצמי", "משכנתא"] },
+          { key: "source", label: "מקור הכסף", type: "choice", options: ["הון עצמי", "משכנתא"] },
         ],
       },
     ],
     fieldsAfter: [
-      { key: "trust", label: "האם צריך להעביר כסף בנאמנות?", type: "yesno" },
-      { key: "trustAmount", label: "סכום הכסף בנאמנות", type: "money", showIf: (v) => v.trust === YES },
+      { key: "trust", label: "צריך להפקיד כסף בנאמנות?", hint: "בנאמנות אצל עורך הדין, עד שהבעלות עוברת אליכם", type: "yesno" },
+      { key: "trustAmount", label: "כמה כסף צריך להפקיד בנאמנות?", type: "money", showIf: (v) => v.trust === YES },
       {
         key: "existingMortgage",
-        label: "האם יש משכנתא על הנכס?",
+        label: "רשומה כרגע משכנתא על הדירה?",
+        hint: "למשל, משכנתא של המוכרים",
         type: "yesno",
-        detailLabel: "כמה ובאיזה בנק?",
+        detailLabel: "כמה, ובאיזה בנק?",
       },
-      { key: "purchaseGroup", label: "האם הנכס נרכש מקבוצת רכישה?", type: "yesno" },
+      { key: "purchaseGroup", label: "הדירה נקנית דרך קבוצת רכישה?", type: "yesno" },
       {
         key: "registry",
-        label: "היכן רשום הנכס?",
+        label: "איפה רשומה הדירה?",
         type: "choice",
-        options: ["טאבו", "מנהל (רמ\"י)", "חברה משכנת", "אחר", "לא יודעים"],
+        options: ["בטאבו", "ברמ\"י (מנהל מקרקעי ישראל)", "בחברה משכנת", "אחר", "לא יודעים"],
       },
-      { key: "rightsApproval", label: "האם יש לכם אישור זכויות?", type: "yesno" },
-      { key: "condoPlan", label: "האם יש לכם תשריט בית משותף?", type: "yesno" },
+      { key: "rightsApproval", label: "יש לכם אישור זכויות?", type: "yesno" },
+      { key: "condoPlan", label: "יש לכם תשריט בית משותף?", hint: "לא בטוחים? אין בעיה, נבדוק יחד.", type: "yesno" },
     ],
   },
   {
     id: "contacts",
     letter: "ז",
     title: "עורכי דין ובנקים",
-    intro: "כמעט סיימנו. מי עוד מעורב בעסקה, והאם כבר הייתם בבנקים.",
+    intro: "כמעט סיימנו. מי עוד מלווה את העסקה, והאם כבר פניתם לבנקים.",
     fields: [
       { key: "lawyer", label: "עורך הדין שלכם: שם וטלפון", type: "text" },
       { key: "sellerLawyer", label: "עורך הדין של המוכרים: שם וטלפון", type: "text" },
-      { key: "visitedBanks", label: "האם כבר הייתם בבנקים?", type: "yesno" },
+      { key: "visitedBanks", label: "כבר פניתם לבנקים?", type: "yesno" },
     ],
     tables: [
       {
         key: "banks",
-        title: "הבנקים שכבר ביקרתם בהם",
+        title: "הבנקים שפניתם אליהם",
         addLabel: "הוספת בנק",
         showIf: (v) => v.visitedBanks === YES,
         columns: [
           { key: "bank", label: "בנק", type: "text" },
           { key: "branch", label: "סניף", type: "text" },
-          { key: "approval", label: "יש אישור עקרוני?", type: "yesno" },
+          { key: "approval", label: "קיבלתם אישור עקרוני?", type: "yesno" },
         ],
       },
     ],
@@ -375,12 +382,12 @@ export const SECTIONS: Section[] = [
   {
     id: "expectations",
     letter: "ח",
-    title: "תיאום ציפיות",
-    intro: "השאלה הכי חשובה: מה חשוב לכם בתהליך?",
+    title: "מה חשוב לכם",
+    intro: "ולסיום, נשמח לשמוע מה חשוב לכם בתהליך.",
     fields: [
       {
         key: "expectations",
-        label: "מה הציפיות שלכם מתהליך הייעוץ?",
+        label: "מה אתם מצפים לקבל מתהליך הייעוץ?",
         type: "textarea",
         placeholder: "כל מה שחשוב לכם שנדע: חששות, מטרות, לוחות זמנים...",
         wide: true,
@@ -455,9 +462,10 @@ export type MortgageSummary = {
 };
 
 export function ltvLimitFor(status: string | undefined): number {
-  if (status === APARTMENT_STATUS.first) return 75;
-  if (status === APARTMENT_STATUS.upgrade) return 70;
-  if (status === APARTMENT_STATUS.second) return 50;
+  if (!status || status === APARTMENT_STATUS.first) return 75;
+  // Older answers used slightly different wording; match by meaning.
+  if (status === APARTMENT_STATUS.upgrade || status.includes("למכור") || status.includes("תימכר")) return 70;
+  if (status === APARTMENT_STATUS.second || status.includes("שנייה ומעלה")) return 50;
   return 75;
 }
 
@@ -494,10 +502,10 @@ export function summarize(r: MortgageResponses): MortgageSummary {
     if (ltv > ltvLimit) {
       insights.push({
         tone: "attention",
-        text: `אחוז המימון ${ltv.toFixed(1)}% גבוה מהמקסימום המותר (${ltvLimit}%) ל"${v.apartmentStatus || "דירה ראשונה"}". חסר הון עצמי של כ-${formatMoney(mortgageNeeded - (propertyValue * ltvLimit) / 100)}.`,
+        text: `אחוז המימון (${ltv.toFixed(1)}%) גבוה מהמקסימום המותר (${ltvLimit}%) עבור "${v.apartmentStatus || APARTMENT_STATUS.first}". חסר הון עצמי של כ-${formatMoney(mortgageNeeded - (propertyValue * ltvLimit) / 100)}.`,
       });
     } else {
-      insights.push({ tone: "good", text: `אחוז המימון ${ltv.toFixed(1)}%, בתוך המגבלה (${ltvLimit}%).` });
+      insights.push({ tone: "good", text: `אחוז המימון (${ltv.toFixed(1)}%) בתוך המגבלה (${ltvLimit}%).` });
     }
   }
   if (propertyValue > 0 && equity + mortgageNeeded > 0) {
@@ -507,8 +515,8 @@ export function summarize(r: MortgageResponses): MortgageSummary {
         tone: "attention",
         text:
           gap > 0
-            ? `הון עצמי + משכנתא קטנים משווי הנכס ב-${formatMoney(gap)}. כדאי לברר איך יושלם הפער (ולזכור מס רכישה ועלויות נלוות).`
-            : `הון עצמי + משכנתא גדולים משווי הנכס ב-${formatMoney(-gap)}. אולי אפשר להקטין את המשכנתא.`,
+            ? `ההון העצמי והמשכנתא יחד קטנים משווי הדירה ב-${formatMoney(gap)}. כדאי לברר איך יושלם הפער, ולזכור גם מס רכישה ועלויות נלוות.`
+            : `ההון העצמי והמשכנתא יחד גדולים משווי הדירה ב-${formatMoney(-gap)}. ייתכן שאפשר להקטין את המשכנתא.`,
       });
     }
   }
@@ -516,41 +524,41 @@ export function summarize(r: MortgageResponses): MortgageSummary {
     if (repaymentRatio > 40) {
       insights.push({
         tone: "attention",
-        text: `ההחזר המבוקש יחד עם ההלוואות הקיימות הוא ${repaymentRatio.toFixed(0)}% מההכנסה. מעל 40% הבנקים מחמירים.`,
+        text: `ההחזר המבוקש, יחד עם ההלוואות הקיימות, הוא ${repaymentRatio.toFixed(0)}% מההכנסה. מעל 40% הבנקים מחמירים.`,
       });
     } else if (repaymentRatio > 33) {
-      insights.push({ tone: "info", text: `יחס החזר להכנסה ${repaymentRatio.toFixed(0)}%. סביר, אבל קרוב לגבול שהבנקים בודקים.` });
+      insights.push({ tone: "info", text: `יחס ההחזר להכנסה הוא ${repaymentRatio.toFixed(0)}%: סביר, אבל קרוב לגבול שהבנקים בודקים.` });
     } else {
-      insights.push({ tone: "good", text: `יחס החזר להכנסה ${repaymentRatio.toFixed(0)}%, נוח מאוד מבחינת הבנק.` });
+      insights.push({ tone: "good", text: `יחס ההחזר להכנסה הוא ${repaymentRatio.toFixed(0)}%: נוח מאוד מבחינת הבנק.` });
     }
   }
   if (disposable < maxRepayment && maxRepayment > 0 && totalIncome > 0) {
     insights.push({
       tone: "attention",
-      text: `אחרי הוצאות והלוואות נשארים ${formatMoney(disposable)} בחודש, פחות מההחזר המקסימלי שציינו (${formatMoney(maxRepayment)}). שווה לעבור יחד על התקציב.`,
+      text: `אחרי ההוצאות וההלוואות נשארים ${formatMoney(disposable)} בחודש, פחות מההחזר המקסימלי שציינו (${formatMoney(maxRepayment)}). כדאי לעבור יחד על התקציב.`,
     });
   }
-  if (v.restrictedNow === YES) insights.push({ tone: "attention", text: "החשבון מוגבל כרגע. צריך לטפל בזה לפני פנייה לבנקים." });
+  if (v.restrictedNow === YES) insights.push({ tone: "attention", text: "החשבון מוגבל כרגע. צריך לטפל בזה לפני הפנייה לבנקים." });
   if (v.restrictedPast === YES) insights.push({ tone: "attention", text: `החשבון הוגבל בעבר${v.restrictedPast__detail ? ` (${v.restrictedPast__detail})` : ""}.` });
   if (v.returnedChecks === YES) insights.push({ tone: "attention", text: `חזרו צ'קים בעבר${v.returnedChecks__detail ? ` (${v.returnedChecks__detail})` : ""}.` });
-  if (v.overdraft === YES) insights.push({ tone: "attention", text: "הייתה חריגה ממסגרת האשראי ב-3 החודשים האחרונים. הבנק יראה את זה בדפי החשבון." });
-  if (v.balance === "בדרך כלל במינוס") insights.push({ tone: "attention", text: "החשבון בדרך כלל במינוס." });
-  if (anyBorrower("medical")) insights.push({ tone: "attention", text: `מגבלה רפואית לביטוח חיים: ${whoSaid("medical", YES)}. כדאי לבדוק ביטוח מראש.` });
-  if (anyBorrower("citizenship")) insights.push({ tone: "info", text: `אזרחות נוספת: ${whoSaid("citizenship", YES)} (טפסי FATCA/CRS).` });
+  if (v.overdraft === YES) insights.push({ tone: "attention", text: "הייתה חריגה ממסגרת האשראי בשלושת החודשים האחרונים. הבנק יראה את זה בדפי החשבון." });
+  if (v.balance === BALANCE_NEGATIVE) insights.push({ tone: "attention", text: "החשבון בדרך כלל במינוס." });
+  if (anyBorrower("medical")) insights.push({ tone: "attention", text: `מגבלה רפואית שעלולה להשפיע על ביטוח החיים: ${whoSaid("medical", YES)}. כדאי לבדוק את הביטוח מראש.` });
+  if (anyBorrower("citizenship")) insights.push({ tone: "info", text: `אזרחות נוספת: ${whoSaid("citizenship", YES)} (יידרשו טפסי FATCA/CRS).` });
   if (anyBorrower("relativeAtBank")) insights.push({ tone: "info", text: `קרוב משפחה עובד בבנק: ${whoSaid("relativeAtBank", YES)}.` });
-  if (borrowers.some((b) => v[`b${b}.incomeTrend`] === "צפויה לרדת"))
-    insights.push({ tone: "attention", text: `הכנסה צפויה לרדת: ${whoSaid("incomeTrend", "צפויה לרדת")}.` });
+  if (borrowers.some((b) => v[`b${b}.incomeTrend`] === INCOME_DROP))
+    insights.push({ tone: "attention", text: `ההכנסה צפויה לרדת: ${whoSaid("incomeTrend", INCOME_DROP)}.` });
   if (anyBorrower("careerChange")) insights.push({ tone: "info", text: `תוכניות לשינוי תעסוקתי: ${whoSaid("careerChange", YES)}.` });
-  if (anyBorrower("deductions")) insights.push({ tone: "info", text: `יורדות הלוואות/רכב מהשכר: ${whoSaid("deductions", YES)}.` });
+  if (anyBorrower("deductions")) insights.push({ tone: "info", text: `יורדים מהשכר החזרי הלוואות או רכב: ${whoSaid("deductions", YES)}.` });
   if (borrowers.some((b) => v[`b${b}.tenure`] === NO)) insights.push({ tone: "info", text: `אין קביעות: ${whoSaid("tenure", NO)}.` });
-  if (v.existingMortgage === YES) insights.push({ tone: "info", text: `יש משכנתא קיימת על הנכס${v.existingMortgage__detail ? `: ${v.existingMortgage__detail}` : ""}.` });
-  if (v.purchaseGroup === YES) insights.push({ tone: "info", text: "הנכס נרכש מקבוצת רכישה. לא כל הבנקים מממנים, צריך לבדוק מראש." });
+  if (v.existingMortgage === YES) insights.push({ tone: "info", text: `רשומה משכנתא על הדירה${v.existingMortgage__detail ? `: ${v.existingMortgage__detail}` : ""}.` });
+  if (v.purchaseGroup === YES) insights.push({ tone: "info", text: "הדירה נקנית דרך קבוצת רכישה. לא כל הבנקים מממנים עסקה כזו, וצריך לבדוק מראש." });
   if (v.futureInflow === YES)
     insights.push({
       tone: "good",
       text: `צפויה כניסת כסף בחמש השנים הקרובות${v.futureInflowAmount ? ` (כ-${formatMoney(toNumber(v.futureInflowAmount))})` : ""}. כדאי לשלב מסלול שמאפשר פירעון מוקדם בלי קנס.`,
     });
-  if (v.switchBank === YES) insights.push({ tone: "good", text: "מוכנים לעבור בנק. זה מרחב משא ומתן טוב." });
+  if (v.switchBank === YES) insights.push({ tone: "good", text: "מוכנים לעבור בנק, וזה נותן מרחב טוב למשא ומתן." });
   if (filledRows(r.tables.banks).some((b) => b.approval === YES)) insights.push({ tone: "good", text: "יש כבר אישור עקרוני מבנק." });
 
   return {

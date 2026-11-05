@@ -3,6 +3,7 @@ import { ShermanLogo } from "@/components/ShermanLogo";
 import {
   SECTIONS,
   YES,
+  INCOME_DROP,
   displayValue,
   fieldKey,
   filledRows,
@@ -18,9 +19,9 @@ import PrintButton from "./PrintButton";
 function Kpi({ label, value, sub, accent = false }: { label: string; value: string; sub?: string; accent?: boolean }) {
   return (
     <div className="rounded-2xl bg-white p-4 shadow-sm">
-      <div className="text-xs text-sh-ink/55">{label}</div>
-      <div className={`mt-1 text-xl font-bold tabular-nums sm:text-2xl ${accent ? "text-sh-accent" : "text-sh-green"}`}>{value}</div>
-      {sub && <div className="mt-0.5 text-xs text-sh-ink/50">{sub}</div>}
+      <div className="text-sm text-sh-ink/75">{label}</div>
+      <div className={`mt-1 text-xl font-bold tabular-nums sm:text-2xl ${accent ? "text-sh-accent-ink" : "text-sh-green"}`}>{value}</div>
+      {sub && <div className="mt-0.5 text-sm text-sh-ink/75">{sub}</div>}
     </div>
   );
 }
@@ -33,13 +34,13 @@ function Meter({ value, limit, label, max = 100 }: { value: number; limit: numbe
     <div>
       <div className="flex items-baseline justify-between text-sm">
         <span className="text-sh-ink/70">{label}</span>
-        <span className={`font-bold tabular-nums ${over ? "text-sh-accent" : "text-sh-green"}`}>{value.toFixed(1)}%</span>
+        <span className={`font-bold tabular-nums ${over ? "text-sh-accent-ink" : "text-sh-green"}`}>{value.toFixed(1)}%</span>
       </div>
       <div className="relative mt-2 h-3 rounded-full bg-sh-cream-dark">
         <div className={`h-full rounded-full ${over ? "bg-sh-accent" : "bg-sh-green"}`} style={{ width: `${pct}%` }} />
         <div className="absolute -top-1 h-5 w-0.5 bg-sh-ink/60" style={{ right: `${limitPct}%` }} title={`גבול ${limit}%`} />
       </div>
-      <div className="mt-1 text-xs text-sh-ink/50">קו הגבול: {limit}%</div>
+      <div className="mt-1 text-sm text-sh-ink/75">קו הגבול: {limit}%</div>
     </div>
   );
 }
@@ -54,7 +55,7 @@ function StackBar({ parts }: { parts: { label: string; value: number; className:
           p.value > 0 ? <div key={p.label} className={p.className} style={{ width: `${(p.value / total) * 100}%` }} title={p.label} /> : null
         )}
       </div>
-      <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 text-xs">
+      <div className="mt-2.5 flex flex-wrap gap-x-4 gap-y-1.5 text-sm">
         {parts.map((p) => (
           <span key={p.label} className="inline-flex items-center gap-1.5 text-sh-ink/75">
             <span className={`h-2.5 w-2.5 rounded-sm ${p.className}`} />
@@ -111,12 +112,12 @@ function SectionDetail({ index, r }: { index: number; r: MortgageResponses }) {
             <tbody>
               {per.map((f) => (
                 <tr key={f.key} className="border-b border-sh-cream-dark/70 last:border-0">
-                  <td className="w-2/5 px-3 py-2 text-sh-ink/65">{f.label}</td>
+                  <td className="w-2/5 px-3 py-2 text-sh-ink/75">{f.label}</td>
                   {borrowers.map((b) => {
                     const k = fieldKey(f, b);
-                    const flagged = (f.type === "yesno" && r.values[k] === YES && ["medical", "citizenship"].includes(f.key)) || r.values[k] === "צפויה לרדת";
+                    const flagged = (f.type === "yesno" && r.values[k] === YES && ["medical", "citizenship"].includes(f.key)) || r.values[k] === INCOME_DROP;
                     return (
-                      <td key={b} className={`px-3 py-2 font-medium ${flagged ? "text-sh-accent" : "text-sh-ink"}`}>
+                      <td key={b} className={`px-3 py-2 font-medium ${flagged ? "text-sh-accent-ink" : "text-sh-ink"}`}>
                         {answer(f, r, k)}
                       </td>
                     );
@@ -132,7 +133,7 @@ function SectionDetail({ index, r }: { index: number; r: MortgageResponses }) {
         <dl className="mt-4 grid gap-x-6 gap-y-2.5 sm:grid-cols-2">
           {shared.map((f) => (
             <div key={f.key} className={`border-b border-sh-cream-dark/70 pb-2 ${f.wide ? "sm:col-span-2" : ""}`}>
-              <dt className="text-xs text-sh-ink/55">{f.label}</dt>
+              <dt className="text-sm text-sh-ink/75">{f.label}</dt>
               <dd className="mt-0.5 whitespace-pre-line font-medium">{answer(f, r, f.key)}</dd>
             </div>
           ))}
@@ -145,7 +146,7 @@ function SectionDetail({ index, r }: { index: number; r: MortgageResponses }) {
           <div key={t.key} className="mt-5">
             <div className="text-sm font-semibold text-sh-ink/80">{t.title}</div>
             {rows.length === 0 ? (
-              <p className="mt-1 text-sm text-sh-ink/45">לא מולא.</p>
+              <p className="mt-1 text-sm text-sh-ink/75">לא מולאו פרטים.</p>
             ) : (
               <div className="mt-2 overflow-x-auto">
                 <table className="w-full min-w-[420px] text-sm">
@@ -194,7 +195,7 @@ export default function MortgageReport({ clientName, submittedAt, r }: { clientN
     <main className="min-h-screen bg-sh-cream px-4 py-8 text-sh-ink print:bg-white print:py-0">
       <div className="mx-auto max-w-4xl space-y-5">
         <div className="no-print flex items-center justify-between">
-          <Link href="/admin/mortgage" className="text-xs text-sh-ink/50 underline">
+          <Link href="/admin/mortgage" className="text-sm text-sh-ink/75 underline">
             ← כל השאלונים
           </Link>
           <PrintButton />
@@ -203,9 +204,9 @@ export default function MortgageReport({ clientName, submittedAt, r }: { clientN
         {/* Header */}
         <header className="flex flex-col gap-4 rounded-3xl bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="text-sm font-medium text-sh-accent">דוח שאלון לפני ייעוץ משכנתא</div>
+            <div className="text-sm font-medium text-sh-accent-ink">שאלון לפני לקיחת משכנתא · דוח מפורט</div>
             <h1 className="mt-1 text-2xl font-semibold text-sh-green sm:text-3xl">{names || clientName}</h1>
-            <div className="mt-1 text-sm text-sh-ink/60">
+            <div className="mt-1 text-sm text-sh-ink/75">
               {submittedAt && `מולא ב-${submittedAt.toLocaleDateString("he-IL")}`}
               {v.purpose && ` · ${v.purpose}`}
               {v.purchaseType && ` · ${v.purchaseType}`}
@@ -219,7 +220,7 @@ export default function MortgageReport({ clientName, submittedAt, r }: { clientN
         <div>
           <h2 className="mb-2.5 px-1 text-sm font-semibold text-sh-ink/70">העסקה במספרים</h2>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            <Kpi label="שווי הנכס" value={s.propertyValue ? formatMoney(s.propertyValue) : "—"} />
+            <Kpi label="שווי הדירה" value={s.propertyValue ? formatMoney(s.propertyValue) : "—"} />
             <Kpi label="הון עצמי" value={s.equity ? formatMoney(s.equity) : "—"} sub={s.propertyValue ? `${((s.equity / s.propertyValue) * 100).toFixed(0)}% מהשווי` : undefined} />
             <Kpi label="משכנתא מבוקשת" value={s.mortgageNeeded ? formatMoney(s.mortgageNeeded) : "—"} />
             <Kpi
@@ -246,11 +247,11 @@ export default function MortgageReport({ clientName, submittedAt, r }: { clientN
         <div className="grid gap-3 md:grid-cols-2">
           <div className="space-y-5 rounded-2xl bg-white p-5 shadow-sm">
             <h3 className="font-semibold text-sh-green">מדדי הבנק</h3>
-            {s.ltv !== null ? <Meter label="אחוז מימון" value={s.ltv} limit={s.ltvLimit} /> : <p className="text-sm text-sh-ink/50">חסר שווי נכס.</p>}
+            {s.ltv !== null ? <Meter label="אחוז מימון" value={s.ltv} limit={s.ltvLimit} /> : <p className="text-sm text-sh-ink/75">חסר שווי הדירה.</p>}
             {s.repaymentRatio !== null ? (
               <Meter label="יחס החזר להכנסה (כולל הלוואות)" value={s.repaymentRatio} limit={40} />
             ) : (
-              <p className="text-sm text-sh-ink/50">חסרים נתוני הכנסה או החזר.</p>
+              <p className="text-sm text-sh-ink/75">חסרים נתוני הכנסה או החזר.</p>
             )}
           </div>
           <div className="space-y-5 rounded-2xl bg-white p-5 shadow-sm">
@@ -274,7 +275,7 @@ export default function MortgageReport({ clientName, submittedAt, r }: { clientN
         </div>
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <Kpi label="נכסים פיננסיים" value={formatMoney(s.assetsTotal)} sub={`${filledRows(r.tables.assets).length} נכסים`} />
+          <Kpi label="חסכונות" value={formatMoney(s.assetsTotal)} sub={`${filledRows(r.tables.assets).length} חסכונות`} />
           <Kpi label="נשאר בחודש אחרי הכל" value={formatMoney(remaining)} accent={remaining < 0} sub="הכנסה פחות הוצאות, הלוואות ומשכנתא" />
           <Kpi label="ילדים מתחת ל-18" value={v.kidsUnder18 || "0"} sub={v.kidsAges ? `גילאים: ${v.kidsAges}` : undefined} />
         </div>
@@ -283,9 +284,9 @@ export default function MortgageReport({ clientName, submittedAt, r }: { clientN
         {s.insights.length > 0 && (
           <div className="grid gap-3 md:grid-cols-2">
             <div className="rounded-2xl border-r-4 border-sh-accent bg-white p-5 shadow-sm">
-              <h3 className="font-semibold text-sh-accent">נקודות לתשומת לב ({attention.length})</h3>
+              <h3 className="font-semibold text-sh-accent-ink">נקודות לתשומת לב ({attention.length})</h3>
               {attention.length === 0 ? (
-                <p className="mt-2 text-sm text-sh-ink/60">לא עלו נקודות מיוחדות. תיק נקי.</p>
+                <p className="mt-2 text-sm text-sh-ink/75">לא עלו נקודות מיוחדות. תיק נקי.</p>
               ) : (
                 <ul className="mt-3 space-y-2.5">
                   {attention.map((i, idx) => (
@@ -319,12 +320,12 @@ export default function MortgageReport({ clientName, submittedAt, r }: { clientN
         )}
 
         {/* Full answers */}
-        <h2 className="print-break px-1 pt-3 text-lg font-semibold text-sh-green">כל התשובות</h2>
+        <h2 className="print-break px-1 pt-3 text-xl font-semibold text-sh-green">כל התשובות</h2>
         <div className="space-y-4">
           {SECTIONS.map((sec, i) => (sec.id === "expectations" ? null : <SectionDetail key={sec.id} index={i} r={r} />))}
         </div>
 
-        <p className="pb-4 text-center font-wordmark text-sh-accent">חותמים בראש שקט.</p>
+        <p className="pb-4 text-center font-wordmark text-sh-accent-ink">חותמים בראש שקט.</p>
       </div>
     </main>
   );

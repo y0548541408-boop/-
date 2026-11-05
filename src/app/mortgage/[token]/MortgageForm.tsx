@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
 import {
   SECTIONS,
   YES,
@@ -17,8 +17,13 @@ import {
 } from "@/lib/mortgageQuestionnaire";
 import { submitMortgageQuestionnaire } from "./actions";
 
+// Accessibility notes: 16px+ text everywhere (also stops iOS zoom on focus),
+// 48px touch targets, real radio inputs for every choice (keyboard + screen
+// readers), labels tied to inputs, errors announced, focus moved to the new
+// step's heading, text colors that pass WCAG AA on white and cream.
+
 const inputClass =
-  "w-full rounded-xl border border-sh-cream-dark bg-white px-3.5 py-2.5 text-[15px] text-sh-ink placeholder:text-sh-ink/35 transition focus:border-sh-green focus:outline-none focus:ring-2 focus:ring-sh-green/15";
+  "block min-h-12 w-full rounded-xl border-2 border-sh-cream-dark bg-white px-4 py-3 text-base text-sh-ink placeholder:text-sh-ink/50 motion-safe:transition focus:border-sh-green focus:outline-none focus:ring-4 focus:ring-sh-green/15 aria-[invalid=true]:border-sh-accent-ink";
 
 type Draft = { step: number; borrowers: 1 | 2; values: Values; tables: Tables };
 
@@ -31,7 +36,23 @@ function formatThousands(raw: string): string {
   return digits ? Number(digits).toLocaleString("he-IL") : "";
 }
 
-function Pills({
+function domId(key: string) {
+  return `q-${key.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
+}
+
+function RequiredMark() {
+  return (
+    <>
+      <span aria-hidden="true" className="text-sh-accent-ink">
+        {" "}
+        *
+      </span>
+      <span className="sr-only"> (שדה חובה)</span>
+    </>
+  );
+}
+
+function Choices({
   options,
   value,
   onChange,
@@ -43,79 +64,88 @@ function Pills({
   name: string;
 }) {
   return (
-    <div className="flex flex-wrap gap-2" role="radiogroup" aria-label={name}>
-      {options.map((option) => {
-        const active = value === option;
-        return (
-          <button
-            key={option}
-            type="button"
-            role="radio"
-            aria-checked={active}
-            onClick={() => onChange(active ? "" : option)}
-            className={`rounded-full border px-4 py-2 text-sm transition ${
-              active
-                ? "border-sh-green bg-sh-green text-white shadow-sm"
-                : "border-sh-cream-dark bg-white text-sh-ink hover:border-sh-green/40"
-            }`}
-          >
+    <div className="flex flex-wrap gap-2.5">
+      {options.map((option) => (
+        <label key={option} className="relative cursor-pointer">
+          <input
+            type="radio"
+            name={name}
+            value={option}
+            checked={value === option}
+            onChange={() => onChange(option)}
+            className="peer sr-only"
+          />
+          <span className="flex min-h-12 items-center gap-2 rounded-full border-2 border-sh-cream-dark bg-white px-5 py-2.5 text-base text-sh-ink motion-safe:transition hover:border-sh-green/50 peer-checked:border-sh-green peer-checked:bg-sh-green peer-checked:text-white peer-focus-visible:ring-4 peer-focus-visible:ring-sh-green/30">
+            {value === option && (
+              <svg aria-hidden="true" viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor">
+                <path d="M7.7 13.3 4.4 10l-1.2 1.2 4.5 4.5 9.1-9.1-1.2-1.2z" />
+              </svg>
+            )}
             {option}
-          </button>
-        );
-      })}
+          </span>
+        </label>
+      ))}
     </div>
   );
 }
 
-function Input({
+function TextInput({
+  id,
   type,
   value,
   onChange,
   placeholder,
-  label,
+  describedBy,
+  invalid,
+  ariaLabel,
 }: {
+  id: string;
   type: Field["type"];
   value: string | undefined;
   onChange: (v: string) => void;
   placeholder?: string;
-  label: string;
+  describedBy?: string;
+  invalid?: boolean;
+  ariaLabel?: string;
 }) {
   const v = value ?? "";
+  const common = {
+    id,
+    "aria-describedby": describedBy,
+    "aria-invalid": invalid || undefined,
+    "aria-label": ariaLabel,
+  };
   if (type === "money") {
     return (
       <div className="relative">
-        <span className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-sm text-sh-ink/45">₪</span>
+        <span aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-base text-sh-ink/70">
+          ₪
+        </span>
         <input
-          aria-label={label}
+          {...common}
           inputMode="numeric"
           dir="ltr"
+          autoComplete="off"
           value={formatThousands(v)}
           onChange={(e) => onChange(e.target.value.replace(/[^\d]/g, ""))}
           placeholder={placeholder ?? "0"}
-          className={`${inputClass} pl-8 text-right`}
+          className={`${inputClass} pl-10 text-right`}
         />
       </div>
     );
   }
   if (type === "textarea") {
-    return (
-      <textarea
-        aria-label={label}
-        rows={5}
-        value={v}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={inputClass}
-      />
-    );
+    return <textarea {...common} rows={5} value={v} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} className={inputClass} />;
   }
   const htmlType = type === "date" ? "date" : type === "email" ? "email" : type === "tel" ? "tel" : "text";
   const ltr = type === "tel" || type === "email" || type === "id" || type === "number" || type === "percent";
+  const autoComplete = type === "email" ? "email" : type === "tel" ? "tel" : undefined;
   return (
     <input
-      aria-label={label}
+      {...common}
       type={htmlType}
       inputMode={type === "number" || type === "id" ? "numeric" : type === "percent" ? "decimal" : undefined}
+      autoComplete={autoComplete}
       dir={ltr ? "ltr" : undefined}
       value={v}
       onChange={(e) => onChange(e.target.value)}
@@ -125,39 +155,70 @@ function Input({
   );
 }
 
-function SingleControl({
+/** One answer control for one key (a single borrower, or a shared question). */
+function Control({
   field,
   k,
   values,
   set,
   label,
+  describedBy,
+  invalid,
+  showLabel,
 }: {
   field: Field;
   k: string;
   values: Values;
   set: (key: string, v: string) => void;
   label: string;
+  describedBy?: string;
+  invalid: boolean;
+  showLabel?: string;
 }) {
-  if (field.type === "choice") {
-    return <Pills name={label} options={field.options ?? []} value={values[k]} onChange={(v) => set(k, v)} />;
-  }
-  if (field.type === "yesno") {
+  const id = domId(k);
+  const isChoice = field.type === "choice" || field.type === "yesno";
+
+  if (isChoice) {
     return (
-      <div className="space-y-2">
-        <Pills name={label} options={[YES, NO]} value={values[k]} onChange={(v) => set(k, v)} />
-        {field.detailLabel && values[k] === YES && (
-          <input
-            aria-label={field.detailLabel}
-            value={values[`${k}__detail`] ?? ""}
-            onChange={(e) => set(`${k}__detail`, e.target.value)}
-            placeholder={field.detailLabel}
-            className={inputClass}
-          />
+      <fieldset aria-describedby={describedBy}>
+        <legend className={showLabel ? "mb-2 text-sm font-semibold text-sh-green" : "sr-only"}>{showLabel ?? label}</legend>
+        <Choices
+          name={id}
+          options={field.type === "yesno" ? [YES, NO] : (field.options ?? [])}
+          value={values[k]}
+          onChange={(v) => set(k, v)}
+        />
+        {field.type === "yesno" && field.detailLabel && values[k] === YES && (
+          <div className="mt-3">
+            <label htmlFor={`${id}-detail`} className="mb-1.5 block text-sm font-medium text-sh-ink/80">
+              {field.detailLabel}
+            </label>
+            <TextInput id={`${id}-detail`} type="text" value={values[`${k}__detail`]} onChange={(v) => set(`${k}__detail`, v)} />
+          </div>
         )}
-      </div>
+      </fieldset>
     );
   }
-  return <Input type={field.type} value={values[k]} onChange={(v) => set(k, v)} placeholder={field.placeholder} label={label} />;
+
+  return (
+    <div>
+      {showLabel && (
+        <label htmlFor={id} className="mb-2 block text-sm font-semibold text-sh-green">
+          {showLabel}
+        </label>
+      )}
+      <TextInput
+        id={id}
+        type={field.type}
+        value={values[k]}
+        onChange={(v) => set(k, v)}
+        placeholder={field.placeholder}
+        describedBy={describedBy}
+        invalid={invalid}
+        ariaLabel={showLabel ? `${label} – ${showLabel}` : undefined}
+      />
+    </div>
+  );
 }
 
 function FieldBlock({
@@ -175,101 +236,144 @@ function FieldBlock({
   names: [string, string];
   missing: Set<string>;
 }) {
+  const uid = useId();
+  const both = field.perBorrower && borrowers === 2;
   const keys = field.perBorrower ? (borrowers === 2 ? [1, 2] : [1]).map((b) => fieldKey(field, b as 1 | 2)) : [field.key];
   const isMissing = keys.some((k) => missing.has(k));
+  const hintId = field.hint ? `${uid}-hint` : undefined;
+  const errorId = isMissing ? `${uid}-error` : undefined;
+  const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
+  const isChoice = field.type === "choice" || field.type === "yesno";
+  // A single text input gets a real <label>; choices and side-by-side pairs get a heading.
+  const titleId = `${uid}-title`;
+
+  const title = (
+    <>
+      {field.label}
+      {field.required && <RequiredMark />}
+    </>
+  );
 
   return (
     <div
-      className={`rounded-2xl border bg-white p-4 transition sm:p-5 ${
-        isMissing ? "border-sh-accent/70 ring-2 ring-sh-accent/15" : "border-sh-cream-dark"
+      role={both ? "group" : undefined}
+      aria-labelledby={both ? titleId : undefined}
+      className={`rounded-2xl border-2 bg-white p-5 shadow-[0_1px_2px_rgba(27,43,42,0.04)] sm:p-6 ${
+        isMissing ? "border-sh-accent-ink" : "border-transparent"
       }`}
     >
-      <label className="block text-[15px] font-medium text-sh-ink">
-        {field.label}
-        {field.required && <span className="text-sh-accent"> *</span>}
-      </label>
-      {field.hint && <p className="mt-0.5 text-xs text-sh-ink/55">{field.hint}</p>}
-
-      {field.perBorrower && borrowers === 2 ? (
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {([1, 2] as const).map((b) => (
-            <div key={b}>
-              <div className="mb-1.5 text-xs font-medium text-sh-green">{names[b - 1]}</div>
-              <SingleControl field={field} k={fieldKey(field, b)} values={values} set={set} label={`${field.label} – ${names[b - 1]}`} />
-            </div>
-          ))}
+      {both || isChoice ? (
+        <div id={titleId} aria-hidden={both ? undefined : true} className="text-lg font-semibold leading-snug text-sh-ink">
+          {title}
         </div>
       ) : (
-        <div className="mt-3">
-          <SingleControl field={field} k={keys[0]} values={values} set={set} label={field.label} />
-        </div>
+        <label htmlFor={domId(keys[0])} className="block text-lg font-semibold leading-snug text-sh-ink">
+          {title}
+        </label>
       )}
-      {isMissing && <p className="mt-2 text-xs font-medium text-sh-accent">נשמח שתמלאו את השדה הזה</p>}
+      {field.hint && (
+        <p id={hintId} className="mt-1 text-base text-sh-ink/75">
+          {field.hint}
+        </p>
+      )}
+
+      <div className={`mt-4 ${both ? "grid gap-5 sm:grid-cols-2" : ""}`}>
+        {both
+          ? ([1, 2] as const).map((b) => (
+              <Control
+                key={b}
+                field={field}
+                k={fieldKey(field, b)}
+                values={values}
+                set={set}
+                label={field.label}
+                describedBy={describedBy}
+                invalid={missing.has(fieldKey(field, b))}
+                showLabel={names[b - 1]}
+              />
+            ))
+          : (
+            <Control field={field} k={keys[0]} values={values} set={set} label={field.label} describedBy={describedBy} invalid={isMissing} />
+          )}
+      </div>
+      {isMissing && (
+        <p id={errorId} className="mt-3 flex items-center gap-1.5 text-base font-medium text-sh-accent-ink">
+          <svg aria-hidden="true" viewBox="0 0 20 20" className="h-5 w-5 shrink-0" fill="currentColor">
+            <path d="M10 2a8 8 0 1 0 0 16 8 8 0 0 0 0-16Zm-.9 4h1.8v5.2H9.1V6Zm0 6.6h1.8v1.8H9.1v-1.8Z" />
+          </svg>
+          צריך למלא את השדה הזה כדי להמשיך
+        </p>
+      )}
     </div>
   );
 }
 
-function TableBlock({
-  table,
-  rows,
-  setRows,
-}: {
-  table: TableConfig;
-  rows: Row[];
-  setRows: (rows: Row[]) => void;
-}) {
+function TableBlock({ table, rows, setRows }: { table: TableConfig; rows: Row[]; setRows: (rows: Row[]) => void }) {
+  const uid = useId();
   const list = rows.length ? rows : [{}];
 
   function update(i: number, key: string, value: string) {
-    const next = list.map((r, idx) => (idx === i ? { ...r, [key]: value } : r));
-    setRows(next);
+    setRows(list.map((r, idx) => (idx === i ? { ...r, [key]: value } : r)));
   }
 
   return (
-    <div className="rounded-2xl border border-sh-cream-dark bg-white p-4 sm:p-5">
-      <div className="text-[15px] font-medium text-sh-ink">{table.title}</div>
-      {table.hint && <p className="mt-0.5 text-xs text-sh-ink/55">{table.hint}</p>}
-      <div className="mt-3 space-y-3">
+    <div role="group" aria-labelledby={`${uid}-title`} className="rounded-2xl bg-white p-5 shadow-[0_1px_2px_rgba(27,43,42,0.04)] sm:p-6">
+      <div id={`${uid}-title`} className="text-lg font-semibold text-sh-ink">
+        {table.title}
+      </div>
+      {table.hint && <p className="mt-1 text-base text-sh-ink/75">{table.hint}</p>}
+      <ol className="mt-4 space-y-4">
         {list.map((row, i) => (
-          <div key={i} className="rounded-xl bg-sh-cream/70 p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <span className="text-xs font-semibold text-sh-green">{i + 1}</span>
+          <li key={i} className="rounded-xl border-2 border-sh-cream-dark bg-sh-cream/60 p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <span className="text-base font-semibold text-sh-green">
+                {table.addLabel.replace("הוספת ", "")} {i + 1}
+              </span>
               {list.length > 1 && (
                 <button
                   type="button"
                   onClick={() => setRows(list.filter((_, idx) => idx !== i))}
-                  className="text-xs text-sh-ink/50 underline-offset-2 hover:text-sh-accent hover:underline"
+                  className="min-h-11 rounded-lg px-3 text-base text-sh-ink/75 underline underline-offset-4 hover:text-sh-accent-ink focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sh-green/30"
                 >
-                  הסרה
+                  מחיקה<span className="sr-only"> של שורה {i + 1}</span>
                 </button>
               )}
             </div>
-            <div className="grid gap-2.5 sm:grid-cols-3">
-              {table.columns.map((col) => (
-                <div key={col.key}>
-                  <div className="mb-1 text-xs text-sh-ink/60">{col.label}</div>
-                  {col.type === "choice" || col.type === "yesno" ? (
-                    <Pills
-                      name={col.label}
+            <div className="grid gap-4 sm:grid-cols-2">
+              {table.columns.map((col) => {
+                const id = `${uid}-${i}-${col.key}`;
+                return col.type === "choice" || col.type === "yesno" ? (
+                  <fieldset key={col.key}>
+                    <legend className="mb-2 text-base font-medium text-sh-ink/85">{col.label}</legend>
+                    <Choices
+                      name={id}
                       options={col.type === "yesno" ? [YES, NO] : (col.options ?? [])}
                       value={row[col.key]}
                       onChange={(v) => update(i, col.key, v)}
                     />
-                  ) : (
-                    <Input type={col.type} value={row[col.key]} onChange={(v) => update(i, col.key, v)} label={col.label} />
-                  )}
-                </div>
-              ))}
+                  </fieldset>
+                ) : (
+                  <div key={col.key}>
+                    <label htmlFor={id} className="mb-2 block text-base font-medium text-sh-ink/85">
+                      {col.label}
+                    </label>
+                    <TextInput id={id} type={col.type} value={row[col.key]} onChange={(v) => update(i, col.key, v)} />
+                  </div>
+                );
+              })}
             </div>
-          </div>
+          </li>
         ))}
-      </div>
+      </ol>
       <button
         type="button"
         onClick={() => setRows([...list, {}])}
-        className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-dashed border-sh-green/40 px-4 py-2 text-sm font-medium text-sh-green transition hover:bg-sh-mint/50"
+        className="mt-4 inline-flex min-h-12 items-center gap-2 rounded-full border-2 border-dashed border-sh-green/50 px-5 text-base font-semibold text-sh-green motion-safe:transition hover:bg-sh-mint/60 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sh-green/30"
       >
-        <span className="text-base leading-none">+</span> {table.addLabel}
+        <span aria-hidden="true" className="text-xl leading-none">
+          +
+        </span>
+        {table.addLabel}
       </button>
     </div>
   );
@@ -284,28 +388,28 @@ function FinancingCard({ values }: { values: Values }) {
   const limit = ltvLimitFor(values.apartmentStatus);
   const over = ltv > limit;
   return (
-    <div className="rounded-2xl bg-sh-mint p-4 sm:p-5">
-      <div className="text-sm font-medium text-sh-green">חישוב אוטומטי</div>
-      <div className="mt-2 grid grid-cols-3 gap-3 text-center">
-        <div>
-          <div className="text-xs text-sh-ink/60">אחוז מימון</div>
-          <div className={`mt-0.5 text-xl font-bold ${over ? "text-sh-accent" : "text-sh-green"}`}>{ltv.toFixed(1)}%</div>
+    <section aria-label="חישוב אחוז המימון" aria-live="polite" className="rounded-2xl bg-sh-mint p-5 sm:p-6">
+      <div className="text-base font-semibold text-sh-green">חישוב אוטומטי לפי מה שמילאתם</div>
+      <dl className="mt-3 grid grid-cols-3 gap-3 text-center">
+        <div className="rounded-xl bg-white/70 p-3">
+          <dt className="text-sm text-sh-ink/80">אחוז מימון</dt>
+          <dd className={`mt-1 text-2xl font-bold tabular-nums ${over ? "text-sh-accent-ink" : "text-sh-green"}`}>{ltv.toFixed(1)}%</dd>
         </div>
-        <div>
-          <div className="text-xs text-sh-ink/60">מקסימום מותר</div>
-          <div className="mt-0.5 text-xl font-bold text-sh-green">{limit}%</div>
+        <div className="rounded-xl bg-white/70 p-3">
+          <dt className="text-sm text-sh-ink/80">המקסימום המותר</dt>
+          <dd className="mt-1 text-2xl font-bold tabular-nums text-sh-green">{limit}%</dd>
         </div>
-        <div>
-          <div className="text-xs text-sh-ink/60">הון עצמי</div>
-          <div className="mt-0.5 text-xl font-bold text-sh-green">{((equity / value) * 100).toFixed(0)}%</div>
+        <div className="rounded-xl bg-white/70 p-3">
+          <dt className="text-sm text-sh-ink/80">הון עצמי</dt>
+          <dd className="mt-1 text-2xl font-bold tabular-nums text-sh-green">{((equity / value) * 100).toFixed(0)}%</dd>
         </div>
-      </div>
+      </dl>
       {over && (
-        <p className="mt-3 text-xs text-sh-ink/70">
-          אחוז המימון גבוה מהמותר. לא נורא, בגלל זה נפגשים. נבנה יחד פתרון.
+        <p className="mt-3 text-base text-sh-ink/85">
+          אחוז המימון גבוה מהמותר. זה בדיוק מה שנבדוק יחד בפגישה, ונמצא פתרון.
         </p>
       )}
-    </div>
+    </section>
   );
 }
 
@@ -318,10 +422,13 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState(false);
   const [restored, setRestored] = useState(false);
+  // Don't write the draft back until it has been read, or the empty initial state would overwrite it.
+  const [hydrated, setHydrated] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const topRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const movedStep = useRef(false);
 
-  // Restore a saved draft (per-device convenience only; never required).
+  // Restore a saved draft (a per-device convenience only; never required).
   useEffect(() => {
     try {
       const raw = localStorage.getItem(storageKey(token));
@@ -336,23 +443,34 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
         /* eslint-enable react-hooks/set-state-in-effect */
       }
     } catch {
-      // storage unavailable — start fresh
+      // storage unavailable: start fresh
     }
+    setHydrated(true);
   }, [token]);
 
   useEffect(() => {
+    if (!hydrated) return;
     try {
       localStorage.setItem(storageKey(token), JSON.stringify({ step, borrowers, values, tables } satisfies Draft));
     } catch {
       // ignore
     }
-  }, [token, step, borrowers, values, tables]);
+  }, [hydrated, token, step, borrowers, values, tables]);
+
+  // After moving between steps, bring the new heading into view and give it focus,
+  // so keyboard and screen-reader users start at the top of the new step.
+  useEffect(() => {
+    if (!movedStep.current) return;
+    movedStep.current = false;
+    headingRef.current?.focus({ preventScroll: true });
+    headingRef.current?.scrollIntoView({ block: "start", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+  }, [step, done]);
 
   const totalSteps = SECTIONS.length + 2; // welcome + sections + review
   const isWelcome = step === 0;
   const isReview = step === totalSteps - 1;
   const section = !isWelcome && !isReview ? SECTIONS[step - 1] : null;
-  const names: [string, string] = [values["b1.fullName"] || "לווה 1", values["b2.fullName"] || "לווה 2"];
+  const names: [string, string] = [values["b1.fullName"] || "לווה ראשון", values["b2.fullName"] || "לווה שני"];
   const progress = Math.round((step / (totalSteps - 1)) * 100);
 
   const set = (key: string, v: string) => {
@@ -365,9 +483,9 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
     });
   };
 
-  const visibleFields = useMemo(
+  const visible = useMemo(
     () => ({
-      // The name was already asked on the welcome screen.
+      // The name is already asked on the opening screen.
       before: section ? section.fields.filter((f) => f.key !== "fullName" && isVisible(f, values)) : [],
       after: section?.fieldsAfter ? section.fieldsAfter.filter((f) => isVisible(f, values)) : [],
       tables: section?.tables ? section.tables.filter((t) => isVisible(t, values)) : [],
@@ -375,29 +493,27 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
     [section, values]
   );
 
-  function scrollTop() {
-    topRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  function goTo(nextStep: number) {
+    movedStep.current = true;
+    setStep(nextStep);
   }
 
   function validate(): boolean {
-    if (isWelcome) {
-      if (!values["b1.fullName"]?.trim()) {
-        setMissing(new Set(["b1.fullName"]));
-        setError("נשמח לדעת איך קוראים לכם.");
-        return false;
-      }
-      return true;
-    }
-    if (!section) return true;
     const miss = new Set<string>();
-    for (const f of [...visibleFields.before, ...visibleFields.after]) {
+    const fields = isWelcome
+      ? [{ key: "fullName", label: "", type: "text", perBorrower: true, required: true } as Field]
+      : [...visible.before, ...visible.after];
+    for (const f of fields) {
       if (!f.required) continue;
       const keys = f.perBorrower ? (borrowers === 2 ? [1, 2] : [1]).map((b) => fieldKey(f, b as 1 | 2)) : [f.key];
       for (const k of keys) if (!values[k]?.trim()) miss.add(k);
     }
     setMissing(miss);
     if (miss.size) {
-      setError("חסרים כמה פרטים שמסומנים בכוכבית.");
+      setError(miss.size === 1 ? "חסר פרט אחד שמסומן בכוכבית." : `חסרים ${miss.size} פרטים שמסומנים בכוכבית.`);
+      // Take the user straight to the first missing field.
+      const first = document.getElementById(domId([...miss][0])) ?? document.querySelector<HTMLElement>(`[name="${domId([...miss][0])}"]`);
+      first?.focus();
       return false;
     }
     return true;
@@ -407,15 +523,13 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
     if (!validate()) return;
     setError(null);
     setRestored(false);
-    setStep((s) => Math.min(s + 1, totalSteps - 1));
-    scrollTop();
+    goTo(Math.min(step + 1, totalSteps - 1));
   }
 
   function back() {
     setError(null);
     setMissing(new Set());
-    setStep((s) => Math.max(s - 1, 0));
-    scrollTop();
+    goTo(Math.max(step - 1, 0));
   }
 
   function submit() {
@@ -431,107 +545,124 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
       } catch {
         // ignore
       }
+      movedStep.current = true;
       setDone(true);
-      scrollTop();
     });
   }
 
   if (done) {
     return (
-      <div ref={topRef} className="rounded-3xl bg-white p-8 text-center shadow-sm sm:p-10">
-        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-sh-mint">
+      <div className="rounded-3xl bg-white p-8 text-center shadow-sm sm:p-10">
+        <div aria-hidden="true" className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-sh-mint">
           <svg className="h-8 w-8 text-sh-green" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h1 className="text-2xl font-semibold text-sh-green">תודה רבה, {values["b1.fullName"]?.split(" ")[0]}!</h1>
-        <p className="mx-auto mt-3 max-w-md leading-relaxed text-sh-ink/75">
-          השאלון התקבל. ישראל יעבור על הפרטים לפני הפגישה, כדי שנגיע אליה מוכנים ונוכל להתמקד במה שחשוב באמת.
+        <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-bold text-sh-green focus:outline-none sm:text-3xl">
+          תודה רבה, {values["b1.fullName"]?.split(" ")[0]}!
+        </h1>
+        <p className="mx-auto mt-3 max-w-md text-lg leading-relaxed text-sh-ink/85">
+          השאלון התקבל. ישראל יעבור על כל הנתונים ויחזור אליכם כדי להמשיך יחד בתהליך.
         </p>
-        <p className="mt-6 font-wordmark text-lg text-sh-accent">חותמים בראש שקט.</p>
+        <p className="mt-6 font-wordmark text-xl text-sh-accent-ink">חותמים בראש שקט.</p>
       </div>
     );
   }
 
+  const stepLabel = isWelcome ? "פתיחה" : isReview ? "סיכום ושליחה" : `${section!.title}`;
+
   return (
-    <div ref={topRef} className="scroll-mt-4">
+    <div>
       {/* Progress */}
-      <div className="mb-5 rounded-2xl bg-white/70 p-4 shadow-sm backdrop-blur">
-        <div className="flex items-center justify-between text-xs text-sh-ink/60">
-          <span>{isWelcome ? "פתיחה" : isReview ? "סיכום ושליחה" : `חלק ${section!.letter}' · ${section!.title}`}</span>
-          <span>{progress}%</span>
+      <div className="mb-6 rounded-2xl bg-white p-4 shadow-sm sm:p-5">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-base font-semibold text-sh-green">{stepLabel}</span>
+          <span className="text-sm text-sh-ink/75">
+            שלב {step + 1} מתוך {totalSteps}
+          </span>
         </div>
-        <div className="mt-2 h-2 overflow-hidden rounded-full bg-sh-cream-dark">
-          <div className="h-full rounded-full bg-sh-green transition-all duration-500" style={{ width: `${progress}%` }} />
+        <div
+          role="progressbar"
+          aria-label="התקדמות במילוי השאלון"
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-valuenow={progress}
+          aria-valuetext={`${progress}%`}
+          className="mt-3 h-2.5 overflow-hidden rounded-full bg-sh-cream-dark"
+        >
+          <div className="h-full rounded-full bg-sh-green motion-safe:transition-all motion-safe:duration-500" style={{ width: `${Math.max(progress, 3)}%` }} />
         </div>
-        <div className="mt-3 hidden justify-between sm:flex">
+        <ol className="mt-4 hidden justify-between sm:flex" aria-label="שלבי השאלון">
           {SECTIONS.map((s, i) => {
             const idx = i + 1;
             const state = idx < step ? "done" : idx === step ? "current" : "todo";
             return (
-              <div key={s.id} className="flex flex-col items-center gap-1">
+              <li key={s.id} className="flex w-16 flex-col items-center gap-1.5 text-center" aria-current={state === "current" ? "step" : undefined}>
                 <span
-                  className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${
-                    state === "done"
-                      ? "bg-sh-accent text-white"
-                      : state === "current"
-                        ? "bg-sh-green text-white"
-                        : "bg-sh-cream-dark text-sh-ink/50"
+                  aria-hidden="true"
+                  className={`flex h-8 w-8 items-center justify-center rounded-full text-sm font-bold ${
+                    state === "done" ? "bg-sh-mint text-sh-green" : state === "current" ? "bg-sh-green text-white" : "bg-sh-cream-dark text-sh-ink/70"
                   }`}
                 >
-                  {s.letter}
+                  {state === "done" ? "✓" : s.letter}
                 </span>
-                <span className={`text-[10px] ${state === "current" ? "text-sh-green" : "text-sh-ink/45"}`}>{s.title}</span>
-              </div>
+                <span className={`text-xs leading-tight ${state === "current" ? "font-semibold text-sh-green" : "text-sh-ink/75"}`}>
+                  {s.title}
+                  {state === "done" && <span className="sr-only"> (הושלם)</span>}
+                </span>
+              </li>
             );
           })}
-        </div>
+        </ol>
       </div>
 
       {restored && (
-        <div className="mb-4 rounded-xl bg-sh-mint px-4 py-2.5 text-sm text-sh-green">שמרנו את מה שמילאתם. אפשר להמשיך מאיפה שעצרתם.</div>
+        <div role="status" className="mb-5 rounded-xl bg-sh-mint px-4 py-3 text-base text-sh-green">
+          שמרנו את מה שמילאתם. אפשר להמשיך מהמקום שבו עצרתם.
+        </div>
       )}
 
       {/* Welcome */}
       {isWelcome && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="rounded-3xl bg-sh-green p-6 text-white shadow-sm sm:p-8">
-            <h1 className="text-2xl font-semibold">שאלון לפני ייעוץ משכנתא</h1>
-            <p className="mt-2 leading-relaxed text-white/85">
-              כמה דקות של מילוי עכשיו חוסכות הרבה זמן בפגישה. ככה נגיע אליה עם תמונה מלאה ונבנה לכם משכנתא שמתאימה בדיוק.
+            <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-bold leading-tight focus:outline-none sm:text-3xl">
+              שאלון לפני לקיחת משכנתא
+            </h1>
+            <p className="mt-3 text-lg leading-relaxed text-white/95">
+              כדי לבנות לכם משכנתא שמתאימה בדיוק, צריך את כל הנתונים במקום אחד ובצורה מסודרת. השאלון עובר על הכול, שלב אחרי שלב.
             </p>
-            <div className="mt-4 flex flex-wrap gap-2 text-xs">
-              <span className="rounded-full bg-white/15 px-3 py-1">כ-10 דקות</span>
-              <span className="rounded-full bg-white/15 px-3 py-1">8 חלקים קצרים</span>
-              <span className="rounded-full bg-white/15 px-3 py-1">נשמר אוטומטית במכשיר</span>
-            </div>
+            <ul className="mt-5 flex flex-wrap gap-2 text-sm">
+              <li className="rounded-full bg-white/15 px-3.5 py-1.5">8 שלבים</li>
+              <li className="rounded-full bg-white/15 px-3.5 py-1.5">אפשר לעצור ולהמשיך אחר כך</li>
+              <li className="rounded-full bg-white/15 px-3.5 py-1.5">רק שדות עם כוכבית הם חובה</li>
+            </ul>
           </div>
-          <div className="rounded-2xl border border-sh-cream-dark bg-white p-4 sm:p-5">
-            <label className="block text-[15px] font-medium">
+
+          <fieldset className="rounded-2xl bg-white p-5 shadow-[0_1px_2px_rgba(27,43,42,0.04)] sm:p-6">
+            <legend className="sr-only">כמה לווים יהיו במשכנתא?</legend>
+            <div aria-hidden="true" className="text-lg font-semibold text-sh-ink">
               כמה לווים יהיו במשכנתא?
-            </label>
-            <p className="mt-0.5 text-xs text-sh-ink/55">בדרך כלל בני זוג לווים יחד.</p>
-            <div className="mt-3 grid grid-cols-2 gap-2">
+            </div>
+            <p className="mt-1 text-base text-sh-ink/75">בדרך כלל בני זוג לווים יחד.</p>
+            <div className="mt-4 grid grid-cols-2 gap-3">
               {([1, 2] as const).map((n) => (
-                <button
-                  key={n}
-                  type="button"
-                  onClick={() => setBorrowers(n)}
-                  className={`rounded-xl border px-4 py-3 text-sm font-medium transition ${
-                    borrowers === n ? "border-sh-green bg-sh-green text-white" : "border-sh-cream-dark bg-white hover:border-sh-green/40"
-                  }`}
-                >
-                  {n === 1 ? "לווה אחד" : "שני לווים"}
-                </button>
+                <label key={n} className="relative cursor-pointer">
+                  <input type="radio" name="borrowers" checked={borrowers === n} onChange={() => setBorrowers(n)} className="peer sr-only" />
+                  <span className="flex min-h-14 items-center justify-center rounded-xl border-2 border-sh-cream-dark bg-white px-4 text-base font-semibold text-sh-ink motion-safe:transition hover:border-sh-green/50 peer-checked:border-sh-green peer-checked:bg-sh-green peer-checked:text-white peer-focus-visible:ring-4 peer-focus-visible:ring-sh-green/30">
+                    {n === 1 ? "לווה אחד" : "שני לווים"}
+                  </span>
+                </label>
               ))}
             </div>
-          </div>
+          </fieldset>
+
           <FieldBlock
-            field={{ key: "fullName", label: "שם מלא", type: "text", perBorrower: true, required: true }}
+            field={{ key: "fullName", label: borrowers === 2 ? "השמות המלאים שלכם" : "השם המלא שלכם", type: "text", perBorrower: true, required: true }}
             values={values}
             set={set}
             borrowers={borrowers}
-            names={["לווה 1", "לווה 2"]}
+            names={["לווה ראשון", "לווה שני"]}
             missing={missing}
           />
         </div>
@@ -539,63 +670,72 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
 
       {/* Section */}
       {section && (
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="px-1">
-            <div className="text-sm font-medium text-sh-accent">חלק {section.letter}&apos;</div>
-            <h2 className="text-2xl font-semibold text-sh-green">{section.title}</h2>
-            <p className="mt-1 text-sh-ink/70">{section.intro}</p>
+            <div className="text-base font-semibold text-sh-accent-ink">חלק {section.letter}&apos;</div>
+            <h1 ref={headingRef} tabIndex={-1} className="mt-0.5 text-2xl font-bold text-sh-green focus:outline-none sm:text-3xl">
+              {section.title}
+            </h1>
+            <p className="mt-2 text-lg leading-relaxed text-sh-ink/85">{section.intro}</p>
           </div>
-          {visibleFields.before.map((f) => (
+          {visible.before.map((f) => (
             <FieldBlock key={f.key} field={f} values={values} set={set} borrowers={borrowers} names={names} missing={missing} />
           ))}
           {section.id === "deal" && <FinancingCard values={values} />}
-          {visibleFields.tables.map((t) => (
+          {visible.tables.map((t) => (
             <TableBlock key={t.key} table={t} rows={tables[t.key] ?? []} setRows={(rows) => setTables((prev) => ({ ...prev, [t.key]: rows }))} />
           ))}
           {section.note && (
-            <div className="rounded-2xl border-r-4 border-sh-accent bg-sh-cream-dark/60 px-4 py-3 text-[15px] font-medium text-sh-green">
-              {section.note}
-            </div>
+            <p className="rounded-2xl border-r-4 border-sh-accent bg-white px-5 py-4 text-lg font-semibold text-sh-green">{section.note}</p>
           )}
-          {visibleFields.after.map((f) => (
+          {visible.after.map((f) => (
             <FieldBlock key={f.key} field={f} values={values} set={set} borrowers={borrowers} names={names} missing={missing} />
           ))}
         </div>
       )}
 
       {/* Review */}
-      {isReview && <Review borrowers={borrowers} values={values} tables={tables} onEdit={(i) => setStep(i + 1)} />}
+      {isReview && (
+        <Review borrowers={borrowers} values={values} tables={tables} headingRef={headingRef} onEdit={(i) => goTo(i + 1)} />
+      )}
 
-      {error && <p className="mt-4 rounded-xl bg-sh-cream-dark px-4 py-2.5 text-sm font-medium text-sh-accent">{error}</p>}
+      <div role="alert" aria-live="assertive" className="empty:hidden">
+        {error && (
+          <p className="mt-5 rounded-xl border-2 border-sh-accent-ink/30 bg-white px-4 py-3 text-base font-semibold text-sh-accent-ink">{error}</p>
+        )}
+      </div>
 
-      <div className="sticky bottom-3 mt-6 flex gap-2 rounded-2xl bg-sh-cream/90 p-1 backdrop-blur">
-        {step > 0 && (
-          <button
-            type="button"
-            onClick={back}
-            className="rounded-xl border border-sh-green/25 bg-white px-5 py-3 text-sm font-medium text-sh-green transition hover:bg-sh-mint/40"
-          >
-            הקודם
-          </button>
-        )}
-        {!isReview ? (
-          <button
-            type="button"
-            onClick={next}
-            className="flex-1 rounded-xl bg-sh-green px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-sh-green-dark"
-          >
-            {isWelcome ? "בואו נתחיל" : step === totalSteps - 2 ? "לסיכום" : "המשך"}
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={submit}
-            disabled={isPending}
-            className="flex-1 rounded-xl bg-sh-accent px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 disabled:opacity-60"
-          >
-            {isPending ? "שולח..." : "שליחת השאלון"}
-          </button>
-        )}
+      <div className="sticky bottom-0 -mx-4 mt-6 border-t border-sh-cream-dark bg-sh-cream/95 px-4 py-3 backdrop-blur sm:static sm:mx-0 sm:border-0 sm:bg-transparent sm:p-0">
+        <div className="flex gap-3">
+          {step > 0 && (
+            <button
+              type="button"
+              onClick={back}
+              className="min-h-12 rounded-xl border-2 border-sh-green/30 bg-white px-5 text-base font-semibold text-sh-green motion-safe:transition hover:bg-sh-mint/50 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sh-green/30"
+            >
+              <span aria-hidden="true">→ </span>חזרה
+            </button>
+          )}
+          {!isReview ? (
+            <button
+              type="button"
+              onClick={next}
+              className="min-h-12 flex-1 rounded-xl bg-sh-green px-5 text-base font-bold text-white shadow-sm motion-safe:transition hover:bg-sh-green-dark focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sh-green/40"
+            >
+              {isWelcome ? "מתחילים" : step === totalSteps - 2 ? "לסיכום" : "המשך"}
+              <span aria-hidden="true"> ←</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={submit}
+              disabled={isPending}
+              className="min-h-12 flex-1 rounded-xl bg-sh-green px-5 text-base font-bold text-white shadow-sm motion-safe:transition hover:bg-sh-green-dark focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sh-green/40 disabled:opacity-70"
+            >
+              {isPending ? "שולחים..." : "שליחת השאלון"}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -605,51 +745,62 @@ function Review({
   borrowers,
   values,
   tables,
+  headingRef,
   onEdit,
 }: {
   borrowers: 1 | 2;
   values: Values;
   tables: Tables;
+  headingRef: React.RefObject<HTMLHeadingElement | null>;
   onEdit: (sectionIndex: number) => void;
 }) {
   return (
     <div className="space-y-4">
       <div className="px-1">
-        <h2 className="text-2xl font-semibold text-sh-green">כמעט סיימנו</h2>
-        <p className="mt-1 text-sh-ink/70">עברו רגע על הפרטים. אפשר לחזור לכל חלק ולתקן לפני השליחה.</p>
+        <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-bold text-sh-green focus:outline-none sm:text-3xl">
+          כמעט סיימנו
+        </h1>
+        <p className="mt-2 text-lg leading-relaxed text-sh-ink/85">
+          עברו רגע על השלבים. אפשר לחזור לכל שלב ולתקן לפני השליחה. שדות שלא מילאתם נשאיר לשיחה.
+        </p>
       </div>
-      {SECTIONS.map((s, i) => {
-        const fields = [...s.fields, ...(s.fieldsAfter ?? [])].filter((f) => isVisible(f, values));
-        let filled = 0;
-        let total = 0;
-        for (const f of fields) {
-          const keys = f.perBorrower ? (borrowers === 2 ? [1, 2] : [1]).map((b) => fieldKey(f, b as 1 | 2)) : [f.key];
-          for (const k of keys) {
-            total++;
-            if (values[k]) filled++;
+      <ul className="space-y-3">
+        {SECTIONS.map((s, i) => {
+          const fields = [...s.fields, ...(s.fieldsAfter ?? [])].filter((f) => isVisible(f, values));
+          let filled = 0;
+          let total = 0;
+          for (const f of fields) {
+            const keys = f.perBorrower ? (borrowers === 2 ? [1, 2] : [1]).map((b) => fieldKey(f, b as 1 | 2)) : [f.key];
+            for (const k of keys) {
+              total++;
+              if (values[k]) filled++;
+            }
           }
-        }
-        const rows = (s.tables ?? []).reduce((a, t) => a + (tables[t.key]?.filter((r) => Object.values(r).some(Boolean)).length ?? 0), 0);
-        return (
-          <div key={s.id} className="flex items-center justify-between rounded-2xl border border-sh-cream-dark bg-white p-4">
-            <div className="flex items-center gap-3">
-              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-sh-mint text-sm font-semibold text-sh-green">{s.letter}</span>
-              <div>
-                <div className="font-medium">{s.title}</div>
-                <div className="text-xs text-sh-ink/55">
-                  {total > 0 && `${filled} מתוך ${total} שדות`}
-                  {total > 0 && s.tables?.length ? " · " : ""}
-                  {s.tables?.length ? `${rows} שורות בטבלה` : ""}
+          const rows = (s.tables ?? []).reduce((a, t) => a + (tables[t.key]?.filter((r) => Object.values(r).some(Boolean)).length ?? 0), 0);
+          const parts = [total > 0 ? `מולאו ${filled} מתוך ${total}` : "", s.tables?.length ? (rows ? `${rows} שורות בטבלה` : "הטבלה ריקה") : ""].filter(Boolean);
+          return (
+            <li key={s.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white p-4 shadow-[0_1px_2px_rgba(27,43,42,0.04)] sm:p-5">
+              <div className="flex items-center gap-3">
+                <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-sh-mint text-base font-bold text-sh-green">
+                  {s.letter}
+                </span>
+                <div>
+                  <div className="text-lg font-semibold text-sh-ink">{s.title}</div>
+                  <div className="text-base text-sh-ink/75">{parts.join(" · ")}</div>
                 </div>
               </div>
-            </div>
-            <button type="button" onClick={() => onEdit(i)} className="text-sm font-medium text-sh-green underline-offset-2 hover:underline">
-              עריכה
-            </button>
-          </div>
-        );
-      })}
-      <p className="px-1 text-xs text-sh-ink/55">הפרטים נשלחים ישירות ליועץ ונשמרים בצורה מאובטחת.</p>
+              <button
+                type="button"
+                onClick={() => onEdit(i)}
+                className="min-h-11 shrink-0 rounded-lg px-3 text-base font-semibold text-sh-green underline underline-offset-4 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-sh-green/30"
+              >
+                עריכה<span className="sr-only"> של {s.title}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="px-1 text-base text-sh-ink/75">הפרטים נשלחים ישירות לישראל שרמן ונשמרים במערכת מאובטחת.</p>
     </div>
   );
 }
