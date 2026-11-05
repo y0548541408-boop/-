@@ -94,6 +94,7 @@ model Advisor {
   taskTemplates TaskTemplate[]
   landingPages  LandingPage[]
   leads         Lead[]
+  mortgageQuestionnaires MortgageQuestionnaire[]
 
   @@map("advisors")
 }
@@ -476,4 +477,27 @@ model Invoice {
   issuedAt           DateTime      @default(now()) @map("issued_at")
 
   @@map("invoices")
+}
+
+enum MortgageQuestionnaireStatus {
+  sent
+  submitted
+}
+
+// Pre-consultation mortgage questionnaire. The advisor creates a link per
+// client; the client fills it without logging in (access by token), and the
+// advisor reads the answers as a report in /admin/mortgage/[id].
+model MortgageQuestionnaire {
+  id          String                      @id @default(uuid())
+  advisorId   String                      @map("advisor_id")
+  advisor     Advisor                     @relation(fields: [advisorId], references: [id])
+  token       String                      @unique
+  clientName  String                      @map("client_name")
+  clientPhone String?                     @map("client_phone")
+  status      MortgageQuestionnaireStatus @default(sent)
+  responses   Json?
+  submittedAt DateTime?                   @map("submitted_at")
+  createdAt   DateTime                    @default(now()) @map("created_at")
+
+  @@map("mortgage_questionnaires")
 }

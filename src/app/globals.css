@@ -18,6 +18,15 @@
   --ru-green-soft: #cdf1e1;
   --ru-pink: #ec4f8a;
   --ru-pink-soft: #f9d8e5;
+  /* Brand guide "שרמן משכנתאות וכלכלת המשפחה" (Google Drive, 2026-11-04):
+     classic and quiet, no red, no bright colors. */
+  --sh-green: #1f5f5b;
+  --sh-green-dark: #174a47;
+  --sh-accent: #c8734a;
+  --sh-cream: #f7f2e8;
+  --sh-cream-dark: #efe7d6;
+  --sh-mint: #dcebe7;
+  --sh-ink: #1b2b2a;
 }
 
 @theme inline {
@@ -36,6 +45,13 @@
   --color-ru-green-soft: var(--ru-green-soft);
   --color-ru-pink: var(--ru-pink);
   --color-ru-pink-soft: var(--ru-pink-soft);
+  --color-sh-green: var(--sh-green);
+  --color-sh-green-dark: var(--sh-green-dark);
+  --color-sh-accent: var(--sh-accent);
+  --color-sh-cream: var(--sh-cream);
+  --color-sh-cream-dark: var(--sh-cream-dark);
+  --color-sh-mint: var(--sh-mint);
+  --color-sh-ink: var(--sh-ink);
   --font-sans: var(--font-heebo);
   --font-wordmark: var(--font-wordmark);
 }
@@ -55,4 +71,17 @@ body {
 
 .font-wordmark {
   font-family: var(--font-wordmark), serif;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-break {
+    break-before: page;
+  }
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
