@@ -23,6 +23,8 @@
   --sh-green: #1f5f5b;
   --sh-green-dark: #174a47;
   --sh-accent: #c8734a;
+  /* Darker accent for small text and filled buttons: meets WCAG AA (4.5:1) on white and cream. */
+  --sh-accent-ink: #a35530;
   --sh-cream: #f7f2e8;
   --sh-cream-dark: #efe7d6;
   --sh-mint: #dcebe7;
@@ -48,6 +50,7 @@
   --color-sh-green: var(--sh-green);
   --color-sh-green-dark: var(--sh-green-dark);
   --color-sh-accent: var(--sh-accent);
+  --color-sh-accent-ink: var(--sh-accent-ink);
   --color-sh-cream: var(--sh-cream);
   --color-sh-cream-dark: var(--sh-cream-dark);
   --color-sh-mint: var(--sh-mint);

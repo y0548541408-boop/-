@@ -40,7 +40,7 @@ export async function submitMortgageQuestionnaire(token: string, data: MortgageR
     where: { token },
     include: { advisor: true },
   });
-  if (!questionnaire) return { error: "הקישור אינו תקין. פנו ליועץ שלכם לקבלת קישור חדש." };
+  if (!questionnaire) return { error: "הקישור לא תקין. פנו לישראל שרמן ובקשו קישור חדש." };
 
   const responses: MortgageResponses = {
     version: 1,
@@ -49,7 +49,7 @@ export async function submitMortgageQuestionnaire(token: string, data: MortgageR
     tables: cleanTables(data?.tables),
   };
 
-  if (!responses.values["b1.fullName"]) return { error: "יש להזין את השם המלא של הלווה הראשון." };
+  if (!responses.values["b1.fullName"]) return { error: "צריך למלא את השם המלא של הלווה הראשון." };
 
   await prisma.mortgageQuestionnaire.update({
     where: { id: questionnaire.id },
