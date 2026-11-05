@@ -54,3 +54,38 @@ export async function sendTaskReminderEmail(input: {
   if (error) return { error: error.message };
   return { ok: true };
 }
+
+function escapeHtml(text: string): string {
+  return text.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+}
+
+// Sent to the advisor when a client submits the pre-consultation mortgage
+// questionnaire. Colors follow the brand guide (green #1F5F5B, accent #C8734A).
+export async function sendMortgageSubmittedEmail(input: {
+  to: string;
+  clientName: string;
+  reportLink: string;
+}): Promise<{ ok: true } | { error: string }> {
+  const name = escapeHtml(input.clientName);
+  const html = `
+    <div dir="rtl" style="background:#F7F2E8;padding:24px 8px;">
+      <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;padding:28px;font-family:Arial,sans-serif;color:#1B2B2A;">
+        <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#1F5F5B;">שרמן</div>
+        <div style="font-size:12px;color:#C8734A;margin-bottom:22px;">משכנתאות וכלכלת המשפחה</div>
+        <p style="font-size:16px;margin:0 0 8px;"><strong>${name}</strong> מילא/ה את השאלון לפני ייעוץ המשכנתא.</p>
+        <p style="font-size:14px;color:#1B2B2A;opacity:.75;margin:0 0 22px;">הדוח המפורט מחכה לך: תמונת מצב, נקודות לתשומת לב, וכל התשובות.</p>
+        <a href="${input.reportLink}" style="background:#1F5F5B;color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;display:inline-block;font-size:14px;font-weight:600;">לצפייה בדוח</a>
+        <p style="font-family:Georgia,serif;color:#C8734A;font-size:14px;margin-top:28px;">חותמים בראש שקט.</p>
+      </div>
+    </div>`;
+
+  const { error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: input.to,
+    subject: `שאלון משכנתא חדש: ${input.clientName}`,
+    html,
+  });
+
+  if (error) return { error: error.message };
+  return { ok: true };
+}

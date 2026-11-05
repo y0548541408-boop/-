@@ -39,6 +39,9 @@ export default async function AdminPage() {
               <Link href="/admin/leads" className="text-gray-400 hover:text-brand-teal">
                 לידים
               </Link>
+              <Link href="/admin/mortgage" className="text-gray-400 hover:text-brand-teal">
+                שאלוני משכנתא
+              </Link>
             </nav>
           </div>
           <form action={signOut}>
