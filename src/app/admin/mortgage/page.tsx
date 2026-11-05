@@ -6,6 +6,7 @@ import { prisma } from "@/lib/prisma";
 import { ShermanLogo } from "@/components/ShermanLogo";
 import { createMortgageQuestionnaire, deleteMortgageQuestionnaire } from "./actions";
 import ShareLink from "./ShareLink";
+import { QUESTIONNAIRES, KINDS, getQuestionnaire } from "@/lib/questionnaires";
 
 export default async function AdminMortgagePage() {
   const advisor = await getCurrentAdvisor();
@@ -32,9 +33,9 @@ export default async function AdminMortgagePage() {
         <div className="mt-3 flex items-center justify-between">
           <ShermanLogo markSize={38} />
         </div>
-        <h1 className="mt-5 text-2xl font-semibold text-sh-green">שאלוני משכנתא</h1>
+        <h1 className="mt-5 text-2xl font-semibold text-sh-green">שאלונים ללקוחות</h1>
         <p className="mt-1 text-sm text-sh-ink/75">
-          יוצרים קישור ללקוח ושולחים לו בוואטסאפ. כשהלקוח מסיים, מגיע אליך מייל עם דוח מפורט.
+          בוחרים סוג שאלון, יוצרים קישור ושולחים ללקוח בוואטסאפ. כשהלקוח מסיים, מגיע אליך מייל עם דוח מפורט.
         </p>
 
         <div className="mt-5 grid grid-cols-3 gap-3">
@@ -52,6 +53,19 @@ export default async function AdminMortgagePage() {
 
         <form action={createMortgageQuestionnaire} className="mt-5 rounded-2xl bg-white p-4 shadow-sm sm:p-5">
           <h2 className="text-base font-semibold text-sh-green">שאלון חדש ללקוח</h2>
+          <fieldset className="mt-3">
+            <legend className="sr-only">סוג השאלון</legend>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {KINDS.map((k, i) => (
+                <label key={k} className="relative cursor-pointer">
+                  <input type="radio" name="kind" value={k} defaultChecked={i === 0} className="peer sr-only" />
+                  <span className="flex min-h-12 items-center justify-center rounded-xl border-2 border-sh-cream-dark px-4 text-center text-base font-medium text-sh-ink peer-checked:border-sh-green peer-checked:bg-sh-green peer-checked:text-white peer-focus-visible:ring-4 peer-focus-visible:ring-sh-green/30">
+                    {QUESTIONNAIRES[k].title}
+                  </span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
           <div className="mt-3 grid gap-2 sm:grid-cols-[1fr_1fr_auto]">
             <input
               name="clientName"
@@ -81,6 +95,7 @@ export default async function AdminMortgagePage() {
               <div className="flex items-start justify-between gap-3">
                 <div>
                   <div className="font-semibold text-sh-ink">{item.clientName}</div>
+                  <div className="mt-0.5 text-sm font-medium text-sh-green">{getQuestionnaire(item.kind).title}</div>
                   <div className="mt-0.5 text-sm text-sh-ink/75">
                     נוצר {item.createdAt.toLocaleDateString("he-IL")}
                     {item.submittedAt && ` · מולא ${item.submittedAt.toLocaleDateString("he-IL")}`}
@@ -98,12 +113,16 @@ export default async function AdminMortgagePage() {
                 {item.status === "submitted" ? (
                   <Link
                     href={`/admin/mortgage/${item.id}`}
-                    className="rounded-lg bg-sh-accent px-4 py-1.5 text-sm font-semibold text-white hover:brightness-95"
+                    className="rounded-lg bg-sh-accent-ink px-4 py-1.5 text-sm font-semibold text-white hover:brightness-95"
                   >
                     לדוח המפורט
                   </Link>
                 ) : (
-                  <ShareLink url={`${base}/mortgage/${item.token}`} clientName={item.clientName} phone={item.clientPhone} />
+                  <ShareLink
+                    url={`${base}/q/${item.token}`}
+                    message={getQuestionnaire(item.kind).whatsapp(item.clientName.split(" ")[0], `${base}/q/${item.token}`)}
+                    phone={item.clientPhone}
+                  />
                 )}
                 {item.status !== "submitted" && (
                   <form action={deleteMortgageQuestionnaire}>

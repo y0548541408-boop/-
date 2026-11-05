@@ -1,21 +1,27 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 import {
-  SECTIONS,
   YES,
   NO,
+  OTHER,
   fieldKey,
   isVisible,
+  optionsFor,
+  splitMulti,
   toNumber,
-  ltvLimitFor,
+  withCount,
+  MULTI_SEP,
   type Field,
+  type Section,
   type Row,
   type TableConfig,
   type Tables,
   type Values,
-} from "@/lib/mortgageQuestionnaire";
-import { submitMortgageQuestionnaire } from "./actions";
+} from "@/lib/questionnaire/core";
+import { ltvLimitFor } from "@/lib/mortgageQuestionnaire";
+import { getQuestionnaire, type Kind } from "@/lib/questionnaires";
+import { submitQuestionnaire } from "./actions";
 
 // Accessibility notes: 16px+ text everywhere (also stops iOS zoom on focus),
 // 48px touch targets, real radio inputs for every choice (keyboard + screen
@@ -28,6 +34,7 @@ const inputClass =
 type Draft = { step: number; borrowers: 1 | 2; values: Values; tables: Tables };
 
 function storageKey(token: string) {
+  // Key name kept from the first version so drafts saved before survive.
   return `mortgage-draft:${token}`;
 }
 
@@ -81,6 +88,36 @@ function Choices({
                 <path d="M7.7 13.3 4.4 10l-1.2 1.2 4.5 4.5 9.1-9.1-1.2-1.2z" />
               </svg>
             )}
+            {option}
+          </span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+function MultiChoices({ options, value, onChange, name }: { options: string[]; value: string | undefined; onChange: (v: string) => void; name: string }) {
+  const selected = splitMulti(value);
+  function toggle(option: string) {
+    const next = selected.includes(option) ? selected.filter((o) => o !== option) : [...selected, option];
+    onChange(options.filter((o) => next.includes(o)).join(MULTI_SEP));
+  }
+  return (
+    <div className="flex flex-wrap gap-2.5">
+      {options.map((option) => (
+        <label key={option} className="relative cursor-pointer">
+          <input type="checkbox" name={name} value={option} checked={selected.includes(option)} onChange={() => toggle(option)} className="peer sr-only" />
+          <span className="flex min-h-12 items-center gap-2 rounded-xl border-2 border-sh-cream-dark bg-white px-4 py-2.5 text-base text-sh-ink motion-safe:transition hover:border-sh-green/50 peer-checked:border-sh-green peer-checked:bg-sh-mint peer-checked:text-sh-green peer-focus-visible:ring-4 peer-focus-visible:ring-sh-green/30">
+            <span
+              aria-hidden="true"
+              className={`flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 ${selected.includes(option) ? "border-sh-green bg-sh-green text-white" : "border-sh-ink/40 bg-white"}`}
+            >
+              {selected.includes(option) && (
+                <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" fill="currentColor">
+                  <path d="M7.7 13.3 4.4 10l-1.2 1.2 4.5 4.5 9.1-9.1-1.2-1.2z" />
+                </svg>
+              )}
+            </span>
             {option}
           </span>
         </label>
@@ -176,18 +213,26 @@ function Control({
   showLabel?: string;
 }) {
   const id = domId(k);
-  const isChoice = field.type === "choice" || field.type === "yesno";
+  const isChoice = field.type === "choice" || field.type === "yesno" || field.type === "multi";
+  const otherChosen = field.hasOther && (values[k] === OTHER || splitMulti(values[k]).includes(OTHER));
 
   if (isChoice) {
     return (
       <fieldset aria-describedby={describedBy}>
         <legend className={showLabel ? "mb-2 text-sm font-semibold text-sh-green" : "sr-only"}>{showLabel ?? label}</legend>
-        <Choices
-          name={id}
-          options={field.type === "yesno" ? [YES, NO] : (field.options ?? [])}
-          value={values[k]}
-          onChange={(v) => set(k, v)}
-        />
+        {field.type === "multi" ? (
+          <MultiChoices name={id} options={optionsFor(field)} value={values[k]} onChange={(v) => set(k, v)} />
+        ) : (
+          <Choices name={id} options={optionsFor(field)} value={values[k]} onChange={(v) => set(k, v)} />
+        )}
+        {otherChosen && (
+          <div className="mt-3">
+            <label htmlFor={`${id}-other`} className="mb-1.5 block text-sm font-medium text-sh-ink/80">
+              מה בדיוק?
+            </label>
+            <TextInput id={`${id}-other`} type="text" value={values[`${k}__other`]} onChange={(v) => set(`${k}__other`, v)} />
+          </div>
+        )}
         {field.type === "yesno" && field.detailLabel && values[k] === YES && (
           <div className="mt-3">
             <label htmlFor={`${id}-detail`} className="mb-1.5 block text-sm font-medium text-sh-ink/80">
@@ -243,7 +288,7 @@ function FieldBlock({
   const hintId = field.hint ? `${uid}-hint` : undefined;
   const errorId = isMissing ? `${uid}-error` : undefined;
   const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
-  const isChoice = field.type === "choice" || field.type === "yesno";
+  const isChoice = field.type === "choice" || field.type === "yesno" || field.type === "multi";
   // A single text input gets a real <label>; choices and side-by-side pairs get a heading.
   const titleId = `${uid}-title`;
 
@@ -413,7 +458,9 @@ function FinancingCard({ values }: { values: Values }) {
   );
 }
 
-export default function MortgageForm({ token, clientName }: { token: string; clientName: string }) {
+export default function QuestionnaireForm({ token, clientName, kind }: { token: string; clientName: string; kind: Kind }) {
+  const def = getQuestionnaire(kind);
+  const SECTIONS = def.sections;
   const [step, setStep] = useState(0);
   const [borrowers, setBorrowers] = useState<1 | 2>(1);
   const [values, setValues] = useState<Values>({ "b1.fullName": clientName });
@@ -470,7 +517,7 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
   const isWelcome = step === 0;
   const isReview = step === totalSteps - 1;
   const section = !isWelcome && !isReview ? SECTIONS[step - 1] : null;
-  const names: [string, string] = [values["b1.fullName"] || "לווה ראשון", values["b2.fullName"] || "לווה שני"];
+  const names: [string, string] = [values["b1.fullName"] || def.personLabels[0], values["b2.fullName"] || def.personLabels[1]];
   const progress = Math.round((step / (totalSteps - 1)) * 100);
 
   const set = (key: string, v: string) => {
@@ -483,15 +530,13 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
     });
   };
 
-  const visible = useMemo(
-    () => ({
+  const shown = withCount(values, borrowers);
+  const visible = {
       // The name is already asked on the opening screen.
-      before: section ? section.fields.filter((f) => f.key !== "fullName" && isVisible(f, values)) : [],
-      after: section?.fieldsAfter ? section.fieldsAfter.filter((f) => isVisible(f, values)) : [],
-      tables: section?.tables ? section.tables.filter((t) => isVisible(t, values)) : [],
-    }),
-    [section, values]
-  );
+      before: section ? section.fields.filter((f) => f.key !== "fullName" && isVisible(f, shown)) : [],
+      after: section?.fieldsAfter ? section.fieldsAfter.filter((f) => isVisible(f, shown)) : [],
+      tables: section?.tables ? section.tables.filter((t) => isVisible(t, shown)) : [],
+  };
 
   function goTo(nextStep: number) {
     movedStep.current = true;
@@ -535,7 +580,7 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
   function submit() {
     setError(null);
     startTransition(async () => {
-      const result = await submitMortgageQuestionnaire(token, { version: 1, borrowers, values, tables });
+      const result = await submitQuestionnaire(token, { version: 1, borrowers, values, tables });
       if ("error" in result) {
         setError(result.error);
         return;
@@ -562,7 +607,7 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
           תודה רבה, {values["b1.fullName"]?.split(" ")[0]}!
         </h1>
         <p className="mx-auto mt-3 max-w-md text-lg leading-relaxed text-sh-ink/85">
-          השאלון התקבל. ישראל יעבור על כל הנתונים ויחזור אליכם כדי להמשיך יחד בתהליך.
+          {def.doneText}
         </p>
         <p className="mt-6 font-wordmark text-xl text-sh-accent-ink">חותמים בראש שקט.</p>
       </div>
@@ -627,30 +672,30 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
         <div className="space-y-5">
           <div className="rounded-3xl bg-sh-green p-6 text-white shadow-sm sm:p-8">
             <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-bold leading-tight focus:outline-none sm:text-3xl">
-              שאלון לפני לקיחת משכנתא
+              {def.title}
             </h1>
-            <p className="mt-3 text-lg leading-relaxed text-white/95">
-              כדי לבנות לכם משכנתא שמתאימה בדיוק, צריך את כל הנתונים במקום אחד ובצורה מסודרת. השאלון עובר על הכול, שלב אחרי שלב.
-            </p>
+            <p className="mt-3 text-lg leading-relaxed text-white/95">{def.welcome}</p>
             <ul className="mt-5 flex flex-wrap gap-2 text-sm">
-              <li className="rounded-full bg-white/15 px-3.5 py-1.5">8 שלבים</li>
-              <li className="rounded-full bg-white/15 px-3.5 py-1.5">אפשר לעצור ולהמשיך אחר כך</li>
-              <li className="rounded-full bg-white/15 px-3.5 py-1.5">רק שדות עם כוכבית הם חובה</li>
+              {def.chips.map((chip) => (
+                <li key={chip} className="rounded-full bg-white/15 px-3.5 py-1.5">
+                  {chip}
+                </li>
+              ))}
             </ul>
           </div>
 
           <fieldset className="rounded-2xl bg-white p-5 shadow-[0_1px_2px_rgba(27,43,42,0.04)] sm:p-6">
-            <legend className="sr-only">כמה לווים יהיו במשכנתא?</legend>
+            <legend className="sr-only">{def.countQuestion}</legend>
             <div aria-hidden="true" className="text-lg font-semibold text-sh-ink">
-              כמה לווים יהיו במשכנתא?
+              {def.countQuestion}
             </div>
-            <p className="mt-1 text-base text-sh-ink/75">בדרך כלל בני זוג לווים יחד.</p>
+            <p className="mt-1 text-base text-sh-ink/75">{def.countHint}</p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               {([1, 2] as const).map((n) => (
                 <label key={n} className="relative cursor-pointer">
                   <input type="radio" name="borrowers" checked={borrowers === n} onChange={() => setBorrowers(n)} className="peer sr-only" />
                   <span className="flex min-h-14 items-center justify-center rounded-xl border-2 border-sh-cream-dark bg-white px-4 text-base font-semibold text-sh-ink motion-safe:transition hover:border-sh-green/50 peer-checked:border-sh-green peer-checked:bg-sh-green peer-checked:text-white peer-focus-visible:ring-4 peer-focus-visible:ring-sh-green/30">
-                    {n === 1 ? "לווה אחד" : "שני לווים"}
+                    {def.countOptions[n - 1]}
                   </span>
                 </label>
               ))}
@@ -658,11 +703,11 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
           </fieldset>
 
           <FieldBlock
-            field={{ key: "fullName", label: borrowers === 2 ? "השמות המלאים שלכם" : "השם המלא שלכם", type: "text", perBorrower: true, required: true }}
+            field={{ key: "fullName", label: def.nameLabel[borrowers - 1], type: "text", perBorrower: true, required: true }}
             values={values}
             set={set}
             borrowers={borrowers}
-            names={["לווה ראשון", "לווה שני"]}
+            names={def.personLabels}
             missing={missing}
           />
         </div>
@@ -681,7 +726,7 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
           {visible.before.map((f) => (
             <FieldBlock key={f.key} field={f} values={values} set={set} borrowers={borrowers} names={names} missing={missing} />
           ))}
-          {section.id === "deal" && <FinancingCard values={values} />}
+          {kind === "mortgage" && section.id === "deal" && <FinancingCard values={values} />}
           {visible.tables.map((t) => (
             <TableBlock key={t.key} table={t} rows={tables[t.key] ?? []} setRows={(rows) => setTables((prev) => ({ ...prev, [t.key]: rows }))} />
           ))}
@@ -696,7 +741,7 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
 
       {/* Review */}
       {isReview && (
-        <Review borrowers={borrowers} values={values} tables={tables} headingRef={headingRef} onEdit={(i) => goTo(i + 1)} />
+        <Review sections={SECTIONS} borrowers={borrowers} values={values} tables={tables} headingRef={headingRef} onEdit={(i) => goTo(i + 1)} />
       )}
 
       <div role="alert" aria-live="assertive" className="empty:hidden">
@@ -742,12 +787,14 @@ export default function MortgageForm({ token, clientName }: { token: string; cli
 }
 
 function Review({
+  sections,
   borrowers,
   values,
   tables,
   headingRef,
   onEdit,
 }: {
+  sections: Section[];
   borrowers: 1 | 2;
   values: Values;
   tables: Tables;
@@ -765,8 +812,9 @@ function Review({
         </p>
       </div>
       <ul className="space-y-3">
-        {SECTIONS.map((s, i) => {
-          const fields = [...s.fields, ...(s.fieldsAfter ?? [])].filter((f) => isVisible(f, values));
+        {sections.map((s, i) => {
+          const shown = withCount(values, borrowers);
+          const fields = [...s.fields, ...(s.fieldsAfter ?? [])].filter((f) => isVisible(f, shown));
           let filled = 0;
           let total = 0;
           for (const f of fields) {
@@ -776,7 +824,7 @@ function Review({
               if (values[k]) filled++;
             }
           }
-          const rows = (s.tables ?? []).reduce((a, t) => a + (tables[t.key]?.filter((r) => Object.values(r).some(Boolean)).length ?? 0), 0);
+          const rows = (s.tables ?? []).filter((t) => isVisible(t, shown)).reduce((a, t) => a + (tables[t.key]?.filter((r) => Object.values(r).some(Boolean)).length ?? 0), 0);
           const parts = [total > 0 ? `מולאו ${filled} מתוך ${total}` : "", s.tables?.length ? (rows ? `${rows} שורות בטבלה` : "הטבלה ריקה") : ""].filter(Boolean);
           return (
             <li key={s.id} className="flex items-center justify-between gap-3 rounded-2xl bg-white p-4 shadow-[0_1px_2px_rgba(27,43,42,0.04)] sm:p-5">
