@@ -124,8 +124,8 @@ export function toNumber(raw: string | undefined): number {
 
 export function formatMoney(n: number): string {
   const abs = `₪${Math.abs(Math.round(n)).toLocaleString("he-IL")}`;
-  // The left-to-right mark keeps "−₪700" in this order inside Hebrew text.
-  return n < 0 && Math.round(n) !== 0 ? `\u200E\u2212${abs}` : abs;
+  // Isolated left-to-right run (LRI … PDI) keeps "−₪700" in this order inside Hebrew text.
+  return n < 0 && Math.round(n) !== 0 ? `\u2066\u2212${abs}\u2069` : abs;
 }
 
 export function formatDate(raw: string | undefined): string {

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ShermanLogo } from "@/components/ShermanLogo";
 import { FINANCE_SECTIONS, HOUSING, summarizeFinance } from "@/lib/financeQuestionnaire";
-import { NO, YES, filledRows, formatMoney, splitMulti, toNumber, type QuestionnaireResponses } from "@/lib/questionnaire/core";
+import { NO, YES, answerText, filledRows, formatMoney, toNumber, type QuestionnaireResponses } from "@/lib/questionnaire/core";
 import { QUESTIONNAIRES } from "@/lib/questionnaires";
 import PrintButton from "./PrintButton";
 import { InsightsPanel, Kpi, Meter, Quote, SectionDetail, StackBar } from "./ReportParts";
@@ -95,7 +95,7 @@ export default function FinanceReport({ clientName, submittedAt, r }: { clientNa
                 ["מענק עבודה", v.workGrant],
                 ["הנחה בארנונה", v.arnona],
                 ["חיסכון לכל ילד (הכפלה)", kids > 0 ? v.childSavingsDouble : "אין ילדים"],
-                ["אנשי מקצוע נוספים", splitMulti(v.professionals).join(", ")],
+                ["אנשי מקצוע נוספים", answerText({ key: "professionals", label: "", type: "multi" }, v, "professionals")],
               ].map(([label, value]) => (
                 <li key={label} className="flex justify-between gap-3 border-b border-sh-cream-dark/70 pb-2 last:border-0">
                   <span className="text-sh-ink/75">{label}</span>
