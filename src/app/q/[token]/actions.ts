@@ -2,8 +2,9 @@
 
 import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
-import { sendMortgageSubmittedEmail } from "@/lib/email";
-import type { MortgageResponses, Row, Tables, Values } from "@/lib/mortgageQuestionnaire";
+import { sendQuestionnaireSubmittedEmail } from "@/lib/email";
+import { getQuestionnaire } from "@/lib/questionnaires";
+import type { QuestionnaireResponses, Row, Tables, Values } from "@/lib/questionnaire/core";
 
 type ActionResult = { error: string } | { ok: true };
 
@@ -35,14 +36,14 @@ function cleanTables(input: unknown): Tables {
   return out;
 }
 
-export async function submitMortgageQuestionnaire(token: string, data: MortgageResponses): Promise<ActionResult> {
+export async function submitQuestionnaire(token: string, data: QuestionnaireResponses): Promise<ActionResult> {
   const questionnaire = await prisma.mortgageQuestionnaire.findUnique({
     where: { token },
     include: { advisor: true },
   });
   if (!questionnaire) return { error: "הקישור לא תקין. פנו לישראל שרמן ובקשו קישור חדש." };
 
-  const responses: MortgageResponses = {
+  const responses: QuestionnaireResponses = {
     version: 1,
     borrowers: data?.borrowers === 2 ? 2 : 1,
     values: cleanValues(data?.values),
@@ -62,12 +63,13 @@ export async function submitMortgageQuestionnaire(token: string, data: MortgageR
   const reportLink = `${proto}://${host}/admin/mortgage/${questionnaire.id}`;
 
   // The answers are already saved; a failed notification must not fail the client's submit.
-  const mail = await sendMortgageSubmittedEmail({
+  const mail = await sendQuestionnaireSubmittedEmail({
+    title: getQuestionnaire(questionnaire.kind).title,
     to: questionnaire.advisor.email,
     clientName: responses.values["b1.fullName"] || questionnaire.clientName,
     reportLink,
   }).catch((e: unknown) => ({ error: String(e) }));
-  if ("error" in mail) console.error("submitMortgageQuestionnaire email:", mail.error);
+  if ("error" in mail) console.error("submitQuestionnaire email:", mail.error);
 
   return { ok: true };
 }
