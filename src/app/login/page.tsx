@@ -119,7 +119,7 @@ export default function LoginPage() {
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   className="w-full rounded-xl border border-gray-300 px-3 py-2.5 text-center text-lg tracking-widest focus:border-brand-teal focus:outline-none"
-                  placeholder="123456"
+                  placeholder="12345678"
                   maxLength={10}
                 />
               </div>
