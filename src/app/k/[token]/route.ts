@@ -37,7 +37,7 @@ export async function GET(request: NextRequest, ctx: { params: Promise<{ token: 
   const { data, error } = await admin.auth.admin.generateLink({ type: "magiclink", email: signInEmail });
   const tokenHash = data?.properties?.hashed_token;
   if (error || !tokenHash) {
-    console.error("personal link: generateLink failed");
+    console.error("personal link: generateLink failed:", error?.message ?? "no hashed token", error?.status ?? "");
     return NextResponse.redirect(new URL("/login?link=error", request.url));
   }
 
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest, ctx: { params: Promise<{ token: 
     type: "email",
   });
   if (verifyError || !verified.user) {
-    console.error("personal link: verifyOtp failed");
+    console.error("personal link: verifyOtp failed:", verifyError?.message ?? "no user");
     return NextResponse.redirect(new URL("/login?link=error", request.url));
   }
 
