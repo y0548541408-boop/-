@@ -332,7 +332,7 @@ export default async function AdminFamilyPage({
           </form>
         </div>
 
-        <div className="mt-5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
+        <div id="tasks" className="mt-5 scroll-mt-6 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
           <h2 className="text-sm font-semibold text-brand-teal">משימות</h2>
 
           {tasks.length > 0 && (

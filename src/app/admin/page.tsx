@@ -98,9 +98,14 @@ export default async function AdminPage() {
                         {f.hasDebt ? <span className="rounded-full bg-red-50 px-2.5 py-0.5 text-sm font-bold text-red-600">חוב פתוח</span> : <span className="text-ru-muted">מסודר</span>}
                       </td>
                       <td className="px-5 py-3.5 text-end">
-                        <Link href={`/admin/families/${f.id}/mapping`} className="text-sm font-bold text-brand-teal underline">
-                          תקציב
-                        </Link>
+                        <div className="flex justify-end gap-4">
+                          <Link href={`/admin/families/${f.id}/mapping`} className="text-sm font-bold text-brand-teal underline">
+                            תקציב
+                          </Link>
+                          <Link href={`/admin/families/${f.id}#tasks`} className="text-sm font-bold text-brand-teal underline">
+                            משימות
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   );
