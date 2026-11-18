@@ -41,6 +41,7 @@ export async function sendDueTaskReminders(
 
   for (const tasks of tasksByFamily.values()) {
     const family = tasks[0].family;
+    let familySent = 0;
 
     for (const member of family.members) {
       // Members who joined with a phone number only get no email reminders.
@@ -77,16 +78,20 @@ export async function sendDueTaskReminders(
       }
 
       sent++;
+      familySent++;
     }
 
-    await prisma.notificationLog.createMany({
-      data: tasks.map((task) => ({
-        familyId: task.familyId,
-        channel: "email" as const,
-        type: "task_reminder" as const,
-        relatedTaskId: task.id,
-      })),
-    });
+    // Log only when at least one email really went out, so a failed send is retried next run.
+    if (familySent > 0) {
+      await prisma.notificationLog.createMany({
+        data: tasks.map((task) => ({
+          familyId: task.familyId,
+          channel: "email" as const,
+          type: "task_reminder" as const,
+          relatedTaskId: task.id,
+        })),
+      });
+    }
   }
 
   return { sent, skipped };

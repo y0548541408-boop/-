@@ -20,7 +20,7 @@ export async function sendTaskReminderEmail(input: {
       (task) => `
         <tr>
           <td style="padding:8px 0;border-bottom:1px solid #eee;">
-            <strong>${task.title}</strong><br />
+            <strong>${escapeHtml(task.title)}</strong><br />
             <span style="color:${task.isOverdue ? "#dc2626" : "#6b7280"};font-size:13px;">
               ${task.isOverdue ? "באיחור · " : "עד "}${task.deadline.toLocaleDateString("he-IL")}
             </span>
@@ -32,7 +32,7 @@ export async function sendTaskReminderEmail(input: {
   const html = `
     <div dir="rtl" style="font-family:Georgia,'Times New Roman',serif;max-width:480px;margin:0 auto;padding:8px;">
       <div style="font-size:15px;font-weight:700;color:#1B4D3E;margin-bottom:20px;">כלכלת המשפחה</div>
-      <p style="font-family:Arial,sans-serif;color:#374151;font-size:15px;">שלום ${input.memberName},</p>
+      <p style="font-family:Arial,sans-serif;color:#374151;font-size:15px;">שלום ${escapeHtml(input.memberName)},</p>
       <p style="font-family:Arial,sans-serif;color:#374151;font-size:15px;">רגע לפני שממשיכים ביום — הנה מה שעדיין פתוח אצלכם:</p>
       <table style="width:100%;border-collapse:collapse;font-family:Arial,sans-serif;">${taskRows}</table>
       <p style="margin-top:24px;">
