@@ -118,7 +118,7 @@ async function deleteFile(name: string) {
 // Sends the parts (audio reference or text) to Gemini and turns the JSON answer into a draft.
 async function requestDraft(parts: Record<string, unknown>[]): Promise<MeetingDraft> {
   const key = apiKey();
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
   const res = await fetch(`${API}/v1beta/models/${model}:generateContent`, {
     method: "POST",
@@ -222,7 +222,7 @@ export async function analyzeFamilyDocuments(input: {
   files: { name: string; mimeType: string; data: ArrayBuffer }[];
 }): Promise<InsightDraft[]> {
   const key = apiKey();
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
   if (input.files.length === 0) return [];
 
   const uploaded: { name: string; uri: string; mimeType: string; displayName: string }[] = [];
