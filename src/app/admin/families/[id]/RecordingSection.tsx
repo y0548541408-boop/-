@@ -77,7 +77,7 @@ function UploadForm({ familyId, today }: { familyId: string; today: string }) {
     <form onSubmit={submit} className="mt-3 space-y-2">
       <input
         type="file"
-        accept="audio/*,.m4a,.mp3,.wav,.aac,.ogg,.opus,.flac"
+        accept="audio/*,.m4a,.mp3,.wav,.aac,.ogg,.opus,.flac,.txt,text/plain"
         required
         onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         className="w-full text-sm text-gray-600 file:ml-3 file:rounded-lg file:border-0 file:bg-brand-teal/5 file:px-3 file:py-2 file:text-brand-teal"

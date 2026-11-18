@@ -1,5 +1,6 @@
-// Turns a meeting recording into a client-ready summary and task list using
-// Google's Gemini API (audio goes in directly, no separate transcription step).
+// Turns a meeting recording (or a written transcript) into a client-ready summary
+// and task list using Google's Gemini API. Audio goes in directly, no separate
+// transcription step.
 
 const API = "https://generativelanguage.googleapis.com";
 
@@ -25,6 +26,9 @@ const PROMPT = `אתה עוזר ליועץ כלכלת משפחה חרדי ביר
 - tasks: בין 0 ל-6 משימות קטנות, קונקרטיות וברות ביצוע שהוסכם עליהן בהקלטה (למשל "לפתוח הוראת קבע של 300 ש״ח לקרן חירום"). לכל משימה: title קצר, description של משפט אחד, ו-deadlineDays: בעוד כמה ימים כדאי לבצע אותה (ברירת מחדל 7). אם לא הוסכמו משימות, החזר רשימה ריקה.
 
 כללים: אל תכלול מספרי תעודת זהות, מספרי חשבון בנק או כרטיס אשראי. אם חלק מההקלטה לא ברור, דלג עליו במקום לנחש.`;
+
+// Used when the advisor uploads a written transcript instead of audio.
+const TRANSCRIPT_INTRO = `להלן תמלול הפגישה בין היועץ למשפחה. התייחס לתוכן התמלול כאילו היה הקלטה.`;
 
 const SCHEMA = {
   type: "OBJECT",
@@ -111,59 +115,63 @@ async function deleteFile(name: string) {
   }).catch(() => {});
 }
 
+// Sends the parts (audio reference or text) to Gemini and turns the JSON answer into a draft.
+async function requestDraft(parts: Record<string, unknown>[]): Promise<MeetingDraft> {
+  const key = apiKey();
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
+  const res = await fetch(`${API}/v1beta/models/${model}:generateContent`, {
+    method: "POST",
+    headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ role: "user", parts: [...parts, { text: PROMPT }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        responseSchema: SCHEMA,
+        temperature: 0.3,
+      },
+    }),
+  });
+  if (!res.ok) throw await geminiError(res, "יצירת הסיכום");
+
+  const data = (await res.json()) as {
+    candidates?: { content?: { parts?: { text?: string }[] } }[];
+  };
+  const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("");
+  if (!text) throw new Error("Gemini לא החזיר תשובה (ייתכן שההקלטה ריקה או לא ברורה).");
+
+  const parsed = JSON.parse(text) as Partial<MeetingDraft>;
+  return {
+    title: String(parsed.title ?? "").trim() || "סיכום פגישה",
+    summary: String(parsed.summary ?? "").trim(),
+    nextFocus: String(parsed.nextFocus ?? "").trim(),
+    tasks: (parsed.tasks ?? [])
+      .map((t) => ({
+        title: String(t.title ?? "").trim(),
+        description: String(t.description ?? "").trim(),
+        deadlineDays: Number.isFinite(t.deadlineDays) ? Math.min(Math.max(t.deadlineDays, 1), 90) : 7,
+      }))
+      .filter((t) => t.title),
+  };
+}
+
 export async function analyzeMeetingRecording(input: {
   audio: ArrayBuffer;
   mimeType: string;
   displayName: string;
 }): Promise<MeetingDraft> {
-  const key = apiKey();
-  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
   const file = await uploadAudio(input.audio, input.mimeType, input.displayName);
-
   try {
-    const res = await fetch(`${API}/v1beta/models/${model}:generateContent`, {
-      method: "POST",
-      headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        contents: [
-          {
-            role: "user",
-            parts: [
-              { file_data: { mime_type: input.mimeType, file_uri: file.uri } },
-              { text: PROMPT },
-            ],
-          },
-        ],
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: SCHEMA,
-          temperature: 0.3,
-        },
-      }),
-    });
-    if (!res.ok) throw await geminiError(res, "יצירת הסיכום");
-
-    const data = (await res.json()) as {
-      candidates?: { content?: { parts?: { text?: string }[] } }[];
-    };
-    const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("");
-    if (!text) throw new Error("Gemini לא החזיר תשובה (ייתכן שההקלטה ריקה או לא ברורה).");
-
-    const parsed = JSON.parse(text) as Partial<MeetingDraft>;
-    return {
-      title: String(parsed.title ?? "").trim() || "סיכום פגישה",
-      summary: String(parsed.summary ?? "").trim(),
-      nextFocus: String(parsed.nextFocus ?? "").trim(),
-      tasks: (parsed.tasks ?? [])
-        .map((t) => ({
-          title: String(t.title ?? "").trim(),
-          description: String(t.description ?? "").trim(),
-          deadlineDays: Number.isFinite(t.deadlineDays) ? Math.min(Math.max(t.deadlineDays, 1), 90) : 7,
-        }))
-        .filter((t) => t.title),
-    };
+    return await requestDraft([{ file_data: { mime_type: input.mimeType, file_uri: file.uri } }]);
   } finally {
     // Keep client audio on Google's side only as long as needed.
     await deleteFile(file.name);
   }
+}
+
+// Written transcript (plain text): no upload needed, the text goes in the prompt.
+export async function analyzeMeetingTranscript(input: { text: string }): Promise<MeetingDraft> {
+  const transcript = input.text.trim();
+  if (!transcript) throw new Error("קובץ התמלול ריק.");
+  return requestDraft([{ text: `${TRANSCRIPT_INTRO}\n\n${transcript}` }]);
 }

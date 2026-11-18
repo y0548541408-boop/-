@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { createAdminClient, DOCUMENTS_BUCKET } from "@/lib/supabase/admin";
-import { analyzeMeetingRecording } from "@/lib/gemini";
+import { analyzeMeetingRecording, analyzeMeetingTranscript } from "@/lib/gemini";
 
 // Runs the AI analysis for one recording and stores the draft (or the error).
 // Safe to call again for a failed recording.
@@ -19,11 +19,14 @@ export async function processRecording(recordingId: string): Promise<void> {
       .download(recording.storagePath);
     if (error || !data) throw new Error(`הורדת ההקלטה נכשלה: ${error?.message ?? "קובץ חסר"}`);
 
-    const draft = await analyzeMeetingRecording({
-      audio: await data.arrayBuffer(),
-      mimeType: recording.mimeType,
-      displayName: recording.id,
-    });
+    const draft =
+      recording.mimeType === "text/plain"
+        ? await analyzeMeetingTranscript({ text: await data.text() })
+        : await analyzeMeetingRecording({
+            audio: await data.arrayBuffer(),
+            mimeType: recording.mimeType,
+            displayName: recording.id,
+          });
     if (!draft.summary) throw new Error("לא הצלחתי להפיק סיכום מההקלטה.");
 
     await prisma.meetingRecording.update({

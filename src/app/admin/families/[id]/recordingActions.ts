@@ -10,7 +10,8 @@ import { processRecording } from "@/lib/recordings";
 export type RecordingResult = { error: string } | { ok: true };
 
 // Gemini accepts these audio containers. m4a is AAC inside MP4.
-const AUDIO_TYPES: Record<string, string> = {
+// txt is a written transcript: it is read as text, not sent as audio.
+const UPLOAD_TYPES: Record<string, string> = {
   mp3: "audio/mp3",
   m4a: "audio/mp4",
   mp4: "audio/mp4",
@@ -19,6 +20,7 @@ const AUDIO_TYPES: Record<string, string> = {
   ogg: "audio/ogg",
   opus: "audio/ogg",
   flac: "audio/flac",
+  txt: "text/plain",
 };
 
 async function ownedFamily(familyId: string) {
@@ -39,8 +41,8 @@ export async function prepareRecordingUpload(input: {
   if (!(await ownedFamily(input.familyId))) return { error: "יש להתחבר מחדש." };
 
   const ext = input.filename.split(".").pop()?.toLowerCase() ?? "";
-  const mimeType = AUDIO_TYPES[ext];
-  if (!mimeType) return { error: "סוג הקובץ לא נתמך. אפשר: mp3, m4a, wav, aac, ogg, flac." };
+  const mimeType = UPLOAD_TYPES[ext];
+  if (!mimeType) return { error: "סוג הקובץ לא נתמך. אפשר: mp3, m4a, wav, aac, ogg, flac, או תמלול בקובץ txt." };
 
   const path = `${input.familyId}/recordings/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
   const { data, error } = await createAdminClient()
