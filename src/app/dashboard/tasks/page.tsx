@@ -41,8 +41,8 @@ export default async function TasksPage() {
     !savingsProgress;
 
   return (
-    <main className="min-h-screen bg-ru-bg px-4 pb-32 pt-6 text-ru-ink">
-      <div className="mx-auto max-w-md">
+    <main className="min-h-screen bg-ru-bg px-4 pb-44 pt-6 lg:ps-64 lg:pb-12 text-ru-ink">
+      <div className="mx-auto max-w-md lg:max-w-3xl">
         <h1 className="text-2xl font-bold">משימות ודוחות</h1>
         <p className="text-sm text-ru-muted">מה סיכמנו, ומה הצעד הבא</p>
 
@@ -56,7 +56,7 @@ export default async function TasksPage() {
         )}
 
         {nextFocus && (
-          <div className="mt-5 rounded-3xl bg-ru-blue p-5 text-white shadow-[0_6px_20px_rgba(91,123,255,0.35)]">
+          <div className="mt-5 rounded-3xl bg-ru-blue p-5 text-white shadow-[0_6px_20px_rgba(11,95,88,0.35)]">
             <p className="text-xs font-semibold text-white/80">על מה נתמקד בפגישה הבאה</p>
             <p className="mt-1 text-base font-medium leading-relaxed">{nextFocus}</p>
           </div>
@@ -65,7 +65,7 @@ export default async function TasksPage() {
         {(taskProgress.total > 0 || savingsProgress) && (
           <div className="mt-6 space-y-3">
             {taskProgress.total > 0 && (
-              <div className="rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]">
+              <div className="rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(11,95,88,0.07)]">
                 <div className="flex items-baseline justify-between">
                   <h3 className="text-lg font-bold">התקדמות במשימות</h3>
                   <span className="text-sm font-semibold text-ru-blue">
@@ -101,7 +101,7 @@ export default async function TasksPage() {
               {openTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]"
+                  className="rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(11,95,88,0.07)]"
                 >
                   <div className="flex items-baseline justify-between gap-3">
                     <span className="font-bold">{task.title}</span>
@@ -161,7 +161,7 @@ export default async function TasksPage() {
               {meetingSummaries.map((meeting) => (
                 <div
                   key={meeting.id}
-                  className="rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]"
+                  className="rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(11,95,88,0.07)]"
                 >
                   <div className="flex items-baseline justify-between">
                     <span className="font-bold">{meeting.title}</span>
@@ -177,7 +177,7 @@ export default async function TasksPage() {
         )}
 
         {documents.length > 0 && (
-          <div className="mt-8 rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]">
+          <div className="mt-8 rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(11,95,88,0.07)]">
             <h2 className="text-lg font-bold">המסמכים וההקלטות שלנו</h2>
             <div className="mt-2">
               {documents.map((doc) => (

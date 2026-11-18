@@ -6,7 +6,7 @@ export default async function DashboardLayout({ children }: { children: ReactNod
   const member = await getCurrentFamilyMember();
   return (
     <FamilyModeProvider budgetOnly={member?.family.budgetOnly ?? false}>
-      {children}
+      <div className="client-app">{children}</div>
     </FamilyModeProvider>
   );
 }

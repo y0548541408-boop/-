@@ -21,7 +21,7 @@ function CategoryTable({ title, rows, planned }: { title: string; rows: AnnualCa
   return (
     <div className="mt-4">
       <h2 className="mb-3 text-lg font-bold">{title}</h2>
-      <div className="overflow-x-auto rounded-3xl bg-white shadow-[0_2px_14px_rgba(46,46,46,0.07)]">
+      <div className="overflow-x-auto rounded-3xl bg-white shadow-[0_2px_14px_rgba(11,95,88,0.07)]">
         <table className="w-full min-w-[720px] text-xs">
           <thead>
             <tr className="border-b border-gray-100 text-ru-muted">
@@ -77,7 +77,7 @@ export default async function AnnualPage({
   const table = await getFamilyAnnualBudget(member.familyId, year);
 
   return (
-    <main className="min-h-screen bg-ru-bg px-4 pb-32 pt-6 text-ru-ink">
+    <main className="min-h-screen bg-ru-bg px-4 pb-44 pt-6 lg:ps-64 lg:pb-12 text-ru-ink">
       <div className="mx-auto max-w-4xl">
         <div className="flex items-center justify-between">
           <div>
@@ -85,10 +85,10 @@ export default async function AnnualPage({
             <p className="text-sm text-ru-muted">תכנון מול בפועל, לפי קטגוריה וחודש</p>
           </div>
           <div className="flex gap-2 text-sm">
-            <a href={`/dashboard/annual?year=${year - 1}`} className="rounded-full bg-white px-4 py-2 font-semibold text-ru-blue shadow-[0_1px_6px_rgba(46,46,46,0.08)]">
+            <a href={`/dashboard/annual?year=${year - 1}`} className="rounded-full bg-white px-4 py-2 font-semibold text-ru-blue shadow-[0_1px_6px_rgba(11,95,88,0.08)]">
               {year - 1}
             </a>
-            <a href={`/dashboard/annual?year=${year + 1}`} className="rounded-full bg-white px-4 py-2 font-semibold text-ru-blue shadow-[0_1px_6px_rgba(46,46,46,0.08)]">
+            <a href={`/dashboard/annual?year=${year + 1}`} className="rounded-full bg-white px-4 py-2 font-semibold text-ru-blue shadow-[0_1px_6px_rgba(11,95,88,0.08)]">
               {year + 1}
             </a>
           </div>
@@ -99,7 +99,7 @@ export default async function AnnualPage({
         <CategoryTable title="הכנסות" rows={table.incomeRows} planned="income" />
         <CategoryTable title="הוצאות" rows={table.expenseRows} planned="expense" />
 
-        <div className="mt-4 overflow-x-auto rounded-3xl bg-white p-3 shadow-[0_2px_14px_rgba(46,46,46,0.07)]">
+        <div className="mt-4 overflow-x-auto rounded-3xl bg-white p-3 shadow-[0_2px_14px_rgba(11,95,88,0.07)]">
           <table className="w-full min-w-[720px] text-xs">
             <tbody>
               <tr>

@@ -43,7 +43,7 @@ export default function RiseCard({
   const over = remaining !== undefined && remaining < 0;
 
   return (
-    <div className="rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]">
+    <div className="rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(11,95,88,0.07)]">
       <div className="flex items-start justify-between gap-3">
         <h3 className={`font-bold text-ru-ink ${size === "lg" ? "text-xl" : "text-lg"}`}>{title}</h3>
         {remaining !== undefined && (

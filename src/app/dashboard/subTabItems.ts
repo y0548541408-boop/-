@@ -9,7 +9,7 @@ export const BUDGET_TABS: SubTab[] = [
   { path: "/dashboard/maaser", label: "מעשרות" },
 ];
 
-// Budget-only clients have no tasks area, so reports live next to the budget.
+// Budget-only clients have no personal area, so reports live next to the budget.
 export const BUDGET_ONLY_TABS: SubTab[] = [
   ...BUDGET_TABS,
   { path: "/dashboard/reports", label: "דוחות" },
@@ -17,5 +17,6 @@ export const BUDGET_ONLY_TABS: SubTab[] = [
 
 export const TASKS_REPORTS_TABS: SubTab[] = [
   { path: "/dashboard/tasks", label: "משימות ופגישות" },
+  { path: "/dashboard/networth", label: "יעדים" },
   { path: "/dashboard/reports", label: "דוחות" },
 ];

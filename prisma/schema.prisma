@@ -90,47 +90,52 @@ model Advisor {
   authUserId String?  @unique @map("auth_user_id") // maps to Supabase auth.users.id
   createdAt  DateTime @default(now()) @map("created_at")
 
-  families      Family[]
-  taskTemplates TaskTemplate[]
-  landingPages  LandingPage[]
-  leads         Lead[]
+  families               Family[]
+  taskTemplates          TaskTemplate[]
+  landingPages           LandingPage[]
+  leads                  Lead[]
   mortgageQuestionnaires MortgageQuestionnaire[]
 
   @@map("advisors")
 }
 
 model Family {
-  id             String       @id @default(uuid())
-  advisorId      String       @map("advisor_id")
-  advisor        Advisor      @relation(fields: [advisorId], references: [id])
-  displayName    String       @map("display_name")
-  status         FamilyStatus @default(lead)
-  onboardingToken String?     @unique @map("onboarding_token")
-  portalActive   Boolean      @default(false) @map("portal_active")
-  hasDebt        Boolean      @default(false) @map("has_debt")
-  maaserRatePercent Int       @default(10) @map("maaser_rate_percent") // 10 = מעשר, 20 = חומש
-  welcomedAt     DateTime?    @map("welcomed_at") // null until the client finished (or skipped) the welcome setup
-  budgetOnly     Boolean      @default(false) @map("budget_only") // budget app only: no tasks, meetings, documents, net worth
-  createdAt      DateTime     @default(now()) @map("created_at")
+  id                String       @id @default(uuid())
+  advisorId         String       @map("advisor_id")
+  advisor           Advisor      @relation(fields: [advisorId], references: [id])
+  displayName       String       @map("display_name")
+  status            FamilyStatus @default(lead)
+  onboardingToken   String?      @unique @map("onboarding_token")
+  portalActive      Boolean      @default(false) @map("portal_active")
+  hasDebt           Boolean      @default(false) @map("has_debt")
+  maaserRatePercent Int          @default(10) @map("maaser_rate_percent") // 10 = מעשר, 20 = חומש
+  welcomedAt        DateTime?    @map("welcomed_at") // null until the client finished (or skipped) the welcome setup
+  householdSize     Int?         @map("household_size") // number of people at home, for per-person figures
+  budgetOnly        Boolean      @default(false) @map("budget_only") // budget app only: no tasks, meetings, documents, net worth
+  createdAt         DateTime     @default(now()) @map("created_at")
 
-  members            FamilyMember[]
-  questionnaires       OnboardingQuestionnaire[]
-  documents            Document[]
-  budgetCategories     BudgetCategory[]
-  expenses             Expense[]
-  recurringExpenses    RecurringExpense[]
-  reallocations        BudgetReallocation[]
-  meetingSummaries     MeetingSummary[]
-  recordings           MeetingRecording[]
-  tasks                Task[]
-  whatsappMessages     WhatsappInboundMessage[]
-  notifications        NotificationLog[]
-  invoices             Invoice[]
-  incomeCategories     IncomeCategory[]
-  incomes              Income[]
-  netWorthItems        NetWorthItem[]
-  netWorthSnapshots    NetWorthSnapshot[]
-  goals                Goal[]
+  members             FamilyMember[]
+  questionnaires      OnboardingQuestionnaire[]
+  documents           Document[]
+  budgetCategories    BudgetCategory[]
+  expenses            Expense[]
+  recurringExpenses   RecurringExpense[]
+  reallocations       BudgetReallocation[]
+  meetingSummaries    MeetingSummary[]
+  recordings          MeetingRecording[]
+  tasks               Task[]
+  whatsappMessages    WhatsappInboundMessage[]
+  notifications       NotificationLog[]
+  invoices            Invoice[]
+  incomeCategories    IncomeCategory[]
+  incomes             Income[]
+  netWorthItems       NetWorthItem[]
+  netWorthSnapshots   NetWorthSnapshot[]
+  goals               Goal[]
+  mappingUploads      MappingUpload[]
+  mappingTransactions MappingTransaction[]
+  merchantRules       MerchantRule[]
+  pictureLines        PictureLine[]
 
   @@map("families")
 }
@@ -184,15 +189,16 @@ model Goal {
 }
 
 model FamilyMember {
-  id         String     @id @default(uuid())
-  familyId   String     @map("family_id")
-  family     Family     @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  authUserId String?    @unique @map("auth_user_id") // maps to Supabase auth.users.id
-  fullName   String     @map("full_name")
-  email      String
-  phone      String?
-  role       MemberRole
-  createdAt  DateTime   @default(now()) @map("created_at")
+  id          String     @id @default(uuid())
+  familyId    String     @map("family_id")
+  family      Family     @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  authUserId  String?    @unique @map("auth_user_id") // maps to Supabase auth.users.id
+  fullName    String     @map("full_name")
+  email       String
+  phone       String?
+  role        MemberRole
+  accessToken String?    @unique @map("access_token") // personal login link: /k/<token>
+  createdAt   DateTime   @default(now()) @map("created_at")
 
   uploadedDocuments Document[] @relation("UploadedBy")
   createdExpenses   Expense[]  @relation("CreatedBy")
@@ -213,35 +219,37 @@ model OnboardingQuestionnaire {
 }
 
 model Document {
-  id                 String         @id @default(uuid())
-  familyId           String         @map("family_id")
-  family             Family         @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  uploadedById       String?        @map("uploaded_by")
-  uploadedBy         FamilyMember?  @relation("UploadedBy", fields: [uploadedById], references: [id])
-  filename           String
-  tag                String
-  storagePath        String         @map("storage_path")
-  isPasswordProtected Boolean       @default(false) @map("is_password_protected")
-  status             DocumentStatus @default(pending_review)
-  createdAt          DateTime       @default(now()) @map("created_at")
+  id                  String         @id @default(uuid())
+  familyId            String         @map("family_id")
+  family              Family         @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  uploadedById        String?        @map("uploaded_by")
+  uploadedBy          FamilyMember?  @relation("UploadedBy", fields: [uploadedById], references: [id])
+  filename            String
+  tag                 String
+  storagePath         String         @map("storage_path")
+  isPasswordProtected Boolean        @default(false) @map("is_password_protected")
+  status              DocumentStatus @default(pending_review)
+  createdAt           DateTime       @default(now()) @map("created_at")
 
   @@map("documents")
 }
 
 model BudgetCategory {
-  id             String             @id @default(uuid())
-  familyId       String             @map("family_id")
-  family         Family             @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  name           String
-  type           BudgetCategoryType
-  plannedAmount  Decimal            @map("planned_amount") @db.Decimal(10, 2)
-  isActive       Boolean            @default(true) @map("is_active")
-  createdAt      DateTime           @default(now()) @map("created_at")
+  id            String             @id @default(uuid())
+  familyId      String             @map("family_id")
+  family        Family             @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  name          String
+  type          BudgetCategoryType
+  plannedAmount Decimal            @map("planned_amount") @db.Decimal(10, 2)
+  isActive      Boolean            @default(true) @map("is_active")
+  createdAt     DateTime           @default(now()) @map("created_at")
 
-  expenses           Expense[]
+  expenses            Expense[]
   recurringExpenses   RecurringExpense[]
   reallocationsFrom   BudgetReallocation[] @relation("ReallocationFrom")
   reallocationsTo     BudgetReallocation[] @relation("ReallocationTo")
+  mappingTransactions MappingTransaction[]
+  merchantRules       MerchantRule[]
 
   @@unique([familyId, name])
   @@map("budget_categories")
@@ -270,7 +278,9 @@ model IncomeCategory {
   isActive      Boolean  @default(true) @map("is_active")
   createdAt     DateTime @default(now()) @map("created_at")
 
-  incomes Income[]
+  incomes             Income[]
+  mappingTransactions MappingTransaction[]
+  merchantRules       MerchantRule[]
 
   @@unique([familyId, name])
   @@map("income_categories")
@@ -303,21 +313,21 @@ enum RecordingStatus {
 // An uploaded meeting recording and the AI draft (summary + tasks) made from it.
 // The draft stays private to the advisor until he reviews and publishes it.
 model MeetingRecording {
-  id           String          @id @default(uuid())
-  familyId     String          @map("family_id")
-  family       Family          @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  storagePath  String          @map("storage_path")
-  filename     String
-  mimeType     String          @map("mime_type")
-  meetingDate  DateTime        @map("meeting_date")
-  status       RecordingStatus @default(processing)
-  errorMessage String?         @map("error_message")
-  draftTitle   String?         @map("draft_title")
-  draftSummary String?         @map("draft_summary")
-  draftNextFocus String?       @map("draft_next_focus")
-  draftTasks   Json?           @map("draft_tasks")
-  createdAt    DateTime        @default(now()) @map("created_at")
-  updatedAt    DateTime        @updatedAt @map("updated_at")
+  id             String          @id @default(uuid())
+  familyId       String          @map("family_id")
+  family         Family          @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  storagePath    String          @map("storage_path")
+  filename       String
+  mimeType       String          @map("mime_type")
+  meetingDate    DateTime        @map("meeting_date")
+  status         RecordingStatus @default(processing)
+  errorMessage   String?         @map("error_message")
+  draftTitle     String?         @map("draft_title")
+  draftSummary   String?         @map("draft_summary")
+  draftNextFocus String?         @map("draft_next_focus")
+  draftTasks     Json?           @map("draft_tasks")
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
 
   @@map("meeting_recordings")
 }
@@ -336,18 +346,18 @@ model MeetingSummary {
 }
 
 model Expense {
-  id           String          @id @default(uuid())
-  familyId     String          @map("family_id")
-  family       Family          @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  categoryId   String          @map("category_id")
-  category     BudgetCategory  @relation(fields: [categoryId], references: [id])
-  amount       Decimal         @db.Decimal(10, 2)
-  note         String?
-  source       ExpenseSource   @default(manual)
-  occurredAt   DateTime        @map("occurred_at")
-  createdById  String?         @map("created_by")
-  createdBy    FamilyMember?   @relation("CreatedBy", fields: [createdById], references: [id])
-  createdAt    DateTime        @default(now()) @map("created_at")
+  id          String         @id @default(uuid())
+  familyId    String         @map("family_id")
+  family      Family         @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  categoryId  String         @map("category_id")
+  category    BudgetCategory @relation(fields: [categoryId], references: [id])
+  amount      Decimal        @db.Decimal(10, 2)
+  note        String?
+  source      ExpenseSource  @default(manual)
+  occurredAt  DateTime       @map("occurred_at")
+  createdById String?        @map("created_by")
+  createdBy   FamilyMember?  @relation("CreatedBy", fields: [createdById], references: [id])
+  createdAt   DateTime       @default(now()) @map("created_at")
 
   reallocations BudgetReallocation[]
 
@@ -355,17 +365,17 @@ model Expense {
 }
 
 model BudgetReallocation {
-  id                  String          @id @default(uuid())
-  familyId            String          @map("family_id")
-  family              Family          @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  fromCategoryId      String          @map("from_category_id")
-  fromCategory        BudgetCategory  @relation("ReallocationFrom", fields: [fromCategoryId], references: [id])
-  toCategoryId        String          @map("to_category_id")
-  toCategory          BudgetCategory  @relation("ReallocationTo", fields: [toCategoryId], references: [id])
-  amount              Decimal         @db.Decimal(10, 2)
+  id                   String         @id @default(uuid())
+  familyId             String         @map("family_id")
+  family               Family         @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  fromCategoryId       String         @map("from_category_id")
+  fromCategory         BudgetCategory @relation("ReallocationFrom", fields: [fromCategoryId], references: [id])
+  toCategoryId         String         @map("to_category_id")
+  toCategory           BudgetCategory @relation("ReallocationTo", fields: [toCategoryId], references: [id])
+  amount               Decimal        @db.Decimal(10, 2)
   triggeredByExpenseId String?        @map("triggered_by_expense_id")
-  triggeredByExpense  Expense?        @relation(fields: [triggeredByExpenseId], references: [id])
-  createdAt           DateTime        @default(now()) @map("created_at")
+  triggeredByExpense   Expense?       @relation(fields: [triggeredByExpenseId], references: [id])
+  createdAt            DateTime       @default(now()) @map("created_at")
 
   @@map("budget_reallocations")
 }
@@ -388,21 +398,21 @@ model TaskTemplate {
 }
 
 model Task {
-  id                   String        @id @default(uuid())
-  familyId             String        @map("family_id")
-  family               Family        @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  templateId           String?       @map("template_id")
-  template             TaskTemplate? @relation(fields: [templateId], references: [id])
-  title                String
-  description          String?
-  toolboxLink          String?       @map("toolbox_link")
-  videoUrl             String?       @map("video_url")
-  deadline             DateTime
-  status               TaskStatus    @default(open)
-  completedAt          DateTime?     @map("completed_at")
-  taskType             TaskType      @default(habit) @map("task_type")
-  savingsAmountAnnual  Decimal?      @map("savings_amount_annual") @db.Decimal(10, 2)
-  createdAt            DateTime      @default(now()) @map("created_at")
+  id                  String        @id @default(uuid())
+  familyId            String        @map("family_id")
+  family              Family        @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  templateId          String?       @map("template_id")
+  template            TaskTemplate? @relation(fields: [templateId], references: [id])
+  title               String
+  description         String?
+  toolboxLink         String?       @map("toolbox_link")
+  videoUrl            String?       @map("video_url")
+  deadline            DateTime
+  status              TaskStatus    @default(open)
+  completedAt         DateTime?     @map("completed_at")
+  taskType            TaskType      @default(habit) @map("task_type")
+  savingsAmountAnnual Decimal?      @map("savings_amount_annual") @db.Decimal(10, 2)
+  createdAt           DateTime      @default(now()) @map("created_at")
 
   notifications NotificationLog[]
 
@@ -410,28 +420,28 @@ model Task {
 }
 
 model WhatsappInboundMessage {
-  id               String               @id @default(uuid())
-  familyId         String               @map("family_id")
-  family           Family               @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  id               String              @id @default(uuid())
+  familyId         String              @map("family_id")
+  family           Family              @relation(fields: [familyId], references: [id], onDelete: Cascade)
   phone            String
-  rawText          String               @map("raw_text")
-  parsedAmount     Decimal?             @map("parsed_amount") @db.Decimal(10, 2)
-  parsedCategoryId String?              @map("parsed_category_id")
-  parseStatus      WhatsappParseStatus  @default(needs_review) @map("parse_status")
-  createdAt        DateTime             @default(now()) @map("created_at")
+  rawText          String              @map("raw_text")
+  parsedAmount     Decimal?            @map("parsed_amount") @db.Decimal(10, 2)
+  parsedCategoryId String?             @map("parsed_category_id")
+  parseStatus      WhatsappParseStatus @default(needs_review) @map("parse_status")
+  createdAt        DateTime            @default(now()) @map("created_at")
 
   @@map("whatsapp_inbound_messages")
 }
 
 model NotificationLog {
-  id             String               @id @default(uuid())
-  familyId       String               @map("family_id")
-  family         Family               @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  channel        NotificationChannel
-  type           NotificationType
-  relatedTaskId  String?              @map("related_task_id")
-  relatedTask    Task?                @relation(fields: [relatedTaskId], references: [id])
-  sentAt         DateTime             @default(now()) @map("sent_at")
+  id            String              @id @default(uuid())
+  familyId      String              @map("family_id")
+  family        Family              @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  channel       NotificationChannel
+  type          NotificationType
+  relatedTaskId String?             @map("related_task_id")
+  relatedTask   Task?               @relation(fields: [relatedTaskId], references: [id])
+  sentAt        DateTime            @default(now()) @map("sent_at")
 
   @@map("notifications_log")
 }
@@ -467,14 +477,14 @@ model Lead {
 }
 
 model Invoice {
-  id                 String        @id @default(uuid())
-  familyId           String        @map("family_id")
-  family             Family        @relation(fields: [familyId], references: [id], onDelete: Cascade)
-  amount             Decimal       @db.Decimal(10, 2)
-  externalProvider   String        @map("external_provider") // "yofi"
-  externalInvoiceId  String?       @map("external_invoice_id")
-  status             InvoiceStatus @default(issued)
-  issuedAt           DateTime      @default(now()) @map("issued_at")
+  id                String        @id @default(uuid())
+  familyId          String        @map("family_id")
+  family            Family        @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  amount            Decimal       @db.Decimal(10, 2)
+  externalProvider  String        @map("external_provider") // "yofi"
+  externalInvoiceId String?       @map("external_invoice_id")
+  status            InvoiceStatus @default(issued)
+  issuedAt          DateTime      @default(now()) @map("issued_at")
 
   @@map("invoices")
 }
@@ -502,4 +512,104 @@ model MortgageQuestionnaire {
   createdAt   DateTime                    @default(now()) @map("created_at")
 
   @@map("mortgage_questionnaires")
+}
+
+// ---- Mapping (מיפוי): past bank / credit history, plus cash estimates ----
+
+enum MappingSource {
+  checking // עובר ושב
+  credit // פירוט כרטיס אשראי
+  cash // מזומן (הערכה חודשית)
+}
+
+model MappingUpload {
+  id         String        @id @default(uuid())
+  familyId   String        @map("family_id")
+  family     Family        @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  filename   String
+  source     MappingSource
+  rowCount   Int           @map("row_count")
+  uploadedBy String        @map("uploaded_by") // "advisor" | "client"
+  createdAt  DateTime      @default(now()) @map("created_at")
+
+  transactions MappingTransaction[]
+
+  @@map("mapping_uploads")
+}
+
+model MappingTransaction {
+  id               String          @id @default(uuid())
+  familyId         String          @map("family_id")
+  family           Family          @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  uploadId         String?         @map("upload_id")
+  upload           MappingUpload?  @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  source           MappingSource
+  occurredAt       DateTime        @map("occurred_at")
+  description      String
+  merchantKey      String          @map("merchant_key") // normalized description, for rules and grouping
+  amount           Decimal         @db.Decimal(12, 2) // money in for income, money out for expense; refunds are negative
+  isIncome         Boolean         @default(false) @map("is_income")
+  categoryId       String?         @map("category_id")
+  category         BudgetCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  incomeCategoryId String?         @map("income_category_id")
+  incomeCategory   IncomeCategory? @relation(fields: [incomeCategoryId], references: [id], onDelete: SetNull)
+  excluded         Boolean         @default(false)
+  excludeReason    String?         @map("exclude_reason")
+  createdAt        DateTime        @default(now()) @map("created_at")
+
+  @@index([familyId, merchantKey])
+  @@map("mapping_transactions")
+}
+
+// Remembered "this merchant belongs to that category" decisions.
+model MerchantRule {
+  id               String          @id @default(uuid())
+  familyId         String          @map("family_id")
+  family           Family          @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  merchantKey      String          @map("merchant_key")
+  categoryId       String?         @map("category_id")
+  category         BudgetCategory? @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  incomeCategoryId String?         @map("income_category_id")
+  incomeCategory   IncomeCategory? @relation(fields: [incomeCategoryId], references: [id], onDelete: Cascade)
+  createdAt        DateTime        @default(now()) @map("created_at")
+
+  @@unique([familyId, merchantKey])
+  @@index([merchantKey])
+  @@map("merchant_rules")
+}
+
+// ---- Financial picture (תמונת מצב): monthly and annual, line by line ----
+
+enum PicturePeriod {
+  monthly
+  annual
+}
+
+enum PictureKind {
+  income
+  expense
+}
+
+// One line of the family's financial picture, e.g. "ארנונה" under monthly
+// fixed expenses, or "מצות" under the Pesach part of the annual cycle.
+model PictureLine {
+  id           String        @id @default(uuid())
+  familyId     String        @map("family_id")
+  family       Family        @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  period       PicturePeriod
+  kind         PictureKind
+  groupName    String        @map("group_name")
+  subGroup     String        @default("") @map("sub_group") // Hebrew month, for the annual cycle
+  name         String
+  amount       Decimal       @default(0) @db.Decimal(12, 2) // what it is today
+  targetAmount Decimal?      @map("target_amount") @db.Decimal(12, 2) // the new goal we set together
+  priority     Int? // 1 = first to deal with
+  notes        String?
+  whenText     String?       @map("when_text") // annual income: expected time
+  sortOrder    Int           @default(0) @map("sort_order")
+  createdAt    DateTime      @default(now()) @map("created_at")
+
+  @@unique([familyId, period, kind, groupName, subGroup, name])
+  @@index([familyId, period])
+  @@map("picture_lines")
 }

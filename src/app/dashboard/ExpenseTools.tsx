@@ -121,7 +121,7 @@ export default function ExpenseTools({
     <div className="mt-6">
       <form
         onSubmit={handleAddExpense}
-        className="rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]"
+        className="rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(11,95,88,0.07)]"
       >
         <h2 className="mb-4 text-lg font-bold text-ru-ink">הוספת הוצאה</h2>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">
@@ -222,7 +222,7 @@ export default function ExpenseTools({
         <button
           type="submit"
           disabled={isPending || !categoryId}
-          className="mt-3 w-full rounded-full bg-ru-blue px-4 py-3 text-base font-bold text-white shadow-[0_4px_14px_rgba(91,123,255,0.35)] disabled:opacity-50"
+          className="mt-3 w-full rounded-full bg-ru-blue px-4 py-3 text-base font-bold text-white shadow-[0_4px_14px_rgba(11,95,88,0.35)] disabled:opacity-50"
         >
           {isPending ? "שומר..." : isRecurring ? "הוסף הוצאה קבועה" : "הוסף הוצאה"}
         </button>
@@ -273,7 +273,7 @@ export default function ExpenseTools({
               <button
                 type="submit"
                 disabled={isPending || !fromCategoryId}
-                className="flex-1 rounded-full bg-ru-blue px-4 py-3 text-base font-bold text-white shadow-[0_4px_14px_rgba(91,123,255,0.35)] disabled:opacity-50"
+                className="flex-1 rounded-full bg-ru-blue px-4 py-3 text-base font-bold text-white shadow-[0_4px_14px_rgba(11,95,88,0.35)] disabled:opacity-50"
               >
                 {isPending ? "מעביר..." : "בצע קיזוז"}
               </button>

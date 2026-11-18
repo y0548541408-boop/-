@@ -39,8 +39,8 @@ export default async function CategoriesPage() {
   }));
 
   return (
-    <main className="min-h-screen bg-ru-bg px-4 pb-32 pt-6 text-ru-ink">
-      <div className="mx-auto max-w-md">
+    <main className="min-h-screen bg-ru-bg px-4 pb-44 pt-6 lg:ps-64 lg:pb-12 text-ru-ink">
+      <div className="mx-auto max-w-md lg:max-w-3xl">
         <h1 className="text-2xl font-bold">הקטגוריות שלי</h1>
         <p className="text-sm text-ru-muted">
           מתאימים את התקציב לבית שלכם: מוסיפים, משנים שם, קובעים תקציב ומסירים.

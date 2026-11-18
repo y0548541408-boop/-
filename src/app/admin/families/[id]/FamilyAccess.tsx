@@ -2,18 +2,20 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { addFamilyMember, removeFamilyMember } from "./actions";
+import { addFamilyMember, removeFamilyMember, createMemberAccessLink } from "./actions";
 
-type Member = { id: string; fullName: string; email: string; role: "primary" | "spouse" };
+type Member = { id: string; fullName: string; email: string; role: "primary" | "spouse"; accessToken: string | null };
 
 export default function FamilyAccess({
   familyId,
   members,
   loginUrl,
+  appOrigin,
 }: {
   familyId: string;
   members: Member[];
   loginUrl: string;
+  appOrigin: string;
 }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -47,7 +49,26 @@ export default function FamilyAccess({
     });
   }
 
+  function personalLink(member: Member) {
+    return member.accessToken ? `${appOrigin}/k/${member.accessToken}` : null;
+  }
+
+  function newLink(member: Member, again: boolean) {
+    if (again && !window.confirm("הקישור הקודם יפסיק לעבוד. ליצור קישור חדש?")) return;
+    startTransition(async () => {
+      await createMemberAccessLink({ familyId, memberId: member.id });
+      router.refresh();
+    });
+  }
+
   function messageFor(member: Member) {
+    const link = personalLink(member);
+    if (link) {
+      return `שלום ${member.fullName}, זה הקישור האישי שלך לתקציב של המשפחה:
+${link}
+
+לוחצים עליו ונכנסים ישר, בלי סיסמה ובלי קוד. כדאי לשמור אותו בוואטסאפ, ולהוסיף את האתר למסך הבית (באייפון: כפתור השיתוף ואז "הוסף למסך הבית". באנדרואיד: תפריט הדפדפן ואז "התקנת אפליקציה"). הקישור אישי, לא שולחים אותו הלאה.`;
+    }
     return `שלום ${member.fullName}, זה הקישור לאזור התקציב האישי שלך:\n${loginUrl}\n\nנכנסים עם המייל ${member.email} ומקבלים קוד כניסה למייל (אם לא מגיע תוך דקה, כדאי לבדוק בספאם). אחרי הכניסה אפשר להוסיף את האתר למסך הבית, ומשם זה נפתח כמו אפליקציה.`;
   }
 
@@ -64,7 +85,7 @@ export default function FamilyAccess({
     <div className="mt-5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
       <h2 className="text-sm font-semibold text-brand-teal">גישה לאזור האישי</h2>
       <p className="mt-1 text-xs text-gray-500">
-        רק מי שרשום כאן יקבל קוד כניסה. נכנסים עם אותו מייל.
+        לכל בן משפחה יש קישור אישי: לוחצים עליו ונכנסים, בלי הרשמה ובלי קוד. מי שאין לו קישור נכנס עם קוד למייל.
       </p>
 
       {members.length === 0 && (
@@ -95,7 +116,17 @@ export default function FamilyAccess({
               <p className="text-xs text-gray-500" dir="ltr">
                 {m.email}
               </p>
-              <div className="mt-2 flex gap-2">
+              <div className="mt-2 flex flex-wrap gap-2">
+                {!m.accessToken && (
+                  <button
+                    type="button"
+                    onClick={() => newLink(m, false)}
+                    disabled={isPending}
+                    className="rounded-lg bg-brand-teal px-3 py-1.5 text-xs font-medium text-white disabled:opacity-50"
+                  >
+                    יצירת קישור אישי
+                  </button>
+                )}
                 <a
                   href={`https://wa.me/?text=${encodeURIComponent(messageFor(m))}`}
                   target="_blank"
@@ -111,6 +142,16 @@ export default function FamilyAccess({
                 >
                   {copied === m.id ? "הועתק ✓" : "העתקת ההודעה"}
                 </button>
+                {m.accessToken && (
+                  <button
+                    type="button"
+                    onClick={() => newLink(m, true)}
+                    disabled={isPending}
+                    className="rounded-lg border border-gray-200 px-3 py-1.5 text-xs text-gray-600"
+                  >
+                    ביטול הקישור והנפקה מחדש
+                  </button>
+                )}
               </div>
             </div>
           ))}

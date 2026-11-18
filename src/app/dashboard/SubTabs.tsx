@@ -18,7 +18,7 @@ export default function SubTabs({
   const tabs = budgetOnly ? BUDGET_ONLY_TABS : items;
 
   return (
-    <div className="mt-5 flex rounded-full bg-white p-1 shadow-[0_1px_6px_rgba(46,46,46,0.06)]">
+    <div className="mt-5 flex rounded-full bg-white p-1 shadow-[0_1px_6px_rgba(11,95,88,0.06)]">
       {tabs.map((item) => (
         <Link
           key={item.path}

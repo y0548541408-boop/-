@@ -24,7 +24,7 @@ export default function AddTabs({
 
   return (
     <div>
-      <div className="mt-4 grid grid-cols-2 gap-1 rounded-full bg-white p-1.5 text-base shadow-[0_2px_14px_rgba(46,46,46,0.07)]">
+      <div className="mt-4 grid grid-cols-2 gap-1 rounded-full bg-white p-1.5 text-base shadow-[0_2px_14px_rgba(11,95,88,0.07)]">
         <button
           type="button"
           onClick={() => setTab("expense")}

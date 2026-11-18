@@ -63,7 +63,7 @@ export default function IncomeTools({
   return (
     <form
       onSubmit={handleAddIncome}
-      className="mt-3 rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]"
+      className="mt-3 rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(11,95,88,0.07)]"
     >
       <h2 className="mb-4 text-lg font-bold text-ru-ink">הוספת הכנסה</h2>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_auto]">

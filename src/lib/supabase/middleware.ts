@@ -5,7 +5,7 @@ import { NextResponse, type NextRequest } from "next/server";
 // inside each route), not via the cookie-based session - they're
 // server-to-server calls with no browser session to check here. The same
 // goes for /api/assistant, which checks ASSISTANT_API_KEY itself.
-const PUBLIC_PATHS = ["/login", "/auth", "/onboarding", "/mortgage", "/q/", "/api/cron", "/api/assistant", "/manifest.webmanifest"];
+const PUBLIC_PATHS = ["/login", "/auth", "/onboarding", "/mortgage", "/q/", "/api/cron", "/api/assistant", "/manifest.webmanifest", "/k"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -40,6 +40,14 @@ export async function updateSession(request: NextRequest) {
   );
 
   if (!user && !isPublicPath) {
+    // The installed app remembers the personal link, and signs in with it.
+    const rememberedLink = request.cookies.get("kt")?.value;
+    if (rememberedLink && /^[a-f0-9]{48}$/.test(rememberedLink)) {
+      const linkUrl = request.nextUrl.clone();
+      linkUrl.pathname = `/k/${rememberedLink}`;
+      linkUrl.search = "";
+      return NextResponse.redirect(linkUrl);
+    }
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     return NextResponse.redirect(loginUrl);

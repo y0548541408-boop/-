@@ -1,16 +1,24 @@
 import type { Metadata, Viewport } from "next";
-import { Heebo, Frank_Ruhl_Libre } from "next/font/google";
+import { Alef, Suez_One, Open_Sans } from "next/font/google";
 import "./globals.css";
 
-const heebo = Heebo({
-  variable: "--font-heebo",
+// Brand fonts: Suez One for headings, Alef for text, Open Sans for numbers.
+const alef = Alef({
+  variable: "--font-alef",
   subsets: ["hebrew", "latin"],
+  weight: ["400", "700"],
 });
 
-const frankRuhlLibre = Frank_Ruhl_Libre({
-  variable: "--font-wordmark",
+const suezOne = Suez_One({
+  variable: "--font-suez",
   subsets: ["hebrew", "latin"],
-  weight: ["500", "700"],
+  weight: "400",
+});
+
+const openSans = Open_Sans({
+  variable: "--font-open-sans",
+  subsets: ["latin"],
+  weight: ["400", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -24,7 +32,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1b4d3e",
+  themeColor: "#0B5F58",
   width: "device-width",
   initialScale: 1,
 };
@@ -34,7 +42,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="he"
       dir="rtl"
-      className={`${heebo.variable} ${frankRuhlLibre.variable} h-full antialiased`}
+      className={`${alef.variable} ${suezOne.variable} ${openSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>

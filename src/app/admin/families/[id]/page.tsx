@@ -91,7 +91,8 @@ export default async function AdminFamilyPage({
   const requestHeaders = await headers();
   const host = requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host");
   const proto = requestHeaders.get("x-forwarded-proto") ?? "https";
-  const loginUrl = `${proto}://${host}/login`;
+  const appOrigin = `${proto}://${host}`;
+  const loginUrl = `${appOrigin}/login`;
 
   const tasks = await getFamilyTasks(family.id);
   const today = isoDay(new Date());
@@ -170,13 +171,28 @@ export default async function AdminFamilyPage({
         <FamilyAccess
           familyId={family.id}
           loginUrl={loginUrl}
+          appOrigin={appOrigin}
           members={family.members.map((m) => ({
             id: m.id,
             fullName: m.fullName,
             email: m.email,
             role: m.role,
+            accessToken: m.accessToken,
           }))}
         />
+
+        <Link
+          href={`/admin/families/${family.id}/mapping`}
+          className="mt-3 flex items-center justify-between rounded-2xl border border-brand-mand/40 bg-brand-mand/10 p-4 text-sm font-medium text-brand-teal"
+        >
+          <span>
+            המיפוי של המשפחה
+            <span className="block text-xs font-normal text-brand-teal/70">
+              תמונת מצב חודשית ושנתית, פירוט מהבנק ותכנון
+            </span>
+          </span>
+          <span aria-hidden>←</span>
+        </Link>
 
         {showOnboardingLink && (
           <div className="mt-3 rounded-2xl border border-brand-terracotta/30 bg-brand-terracotta/10 p-4 text-sm text-brand-teal">

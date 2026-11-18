@@ -21,7 +21,7 @@ export type ManagedCategory = {
   isActive: boolean;
 };
 
-const CARD = "rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]";
+const CARD = "rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(11,95,88,0.07)]";
 const INPUT = "rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base";
 
 function useRunner() {
@@ -234,7 +234,7 @@ function AddForm({
       <button
         type="submit"
         disabled={disabled}
-        className="w-full rounded-full bg-ru-blue px-4 py-3 text-base font-bold text-white shadow-[0_4px_14px_rgba(91,123,255,0.35)] disabled:opacity-50"
+        className="w-full rounded-full bg-ru-blue px-4 py-3 text-base font-bold text-white shadow-[0_4px_14px_rgba(11,95,88,0.35)] disabled:opacity-50"
       >
         הוספת קטגוריה
       </button>
@@ -310,7 +310,7 @@ export default function CategoryManager({
             {hidden.map(({ kind, category }) => (
               <div
                 key={`${kind}-${category.id}`}
-                className="flex items-center justify-between rounded-3xl bg-white px-5 py-3 shadow-[0_2px_14px_rgba(46,46,46,0.07)]"
+                className="flex items-center justify-between rounded-3xl bg-white px-5 py-3 shadow-[0_2px_14px_rgba(11,95,88,0.07)]"
               >
                 <span className="font-semibold">
                   {category.name}{" "}

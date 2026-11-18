@@ -18,14 +18,14 @@ export default function MonthSwitcher({
       <Link
         href={`${basePath}?month=${formatMonthParam(prev)}`}
         aria-label="חודש קודם"
-        className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl text-ru-blue shadow-[0_1px_6px_rgba(46,46,46,0.08)]"
+        className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-xl text-ru-blue shadow-[0_1px_6px_rgba(11,95,88,0.08)]"
       >
         ›
       </Link>
       <div className="text-center">
         <p className="text-xl font-bold text-ru-ink">{label}</p>
         {!atCurrent && (
-          <Link href={basePath} className="text-xs font-medium text-ru-blue">
+          <Link href={basePath} className="text-sm font-bold text-ru-blue">
             חזרה לחודש הנוכחי
           </Link>
         )}
@@ -34,7 +34,7 @@ export default function MonthSwitcher({
         href={`${basePath}?month=${formatMonthParam(next)}`}
         aria-label="חודש הבא"
         aria-disabled={atCurrent}
-        className={`flex h-10 w-10 items-center justify-center rounded-full bg-white text-xl shadow-[0_1px_6px_rgba(46,46,46,0.08)] ${
+        className={`flex h-12 w-12 items-center justify-center rounded-full bg-white text-xl shadow-[0_1px_6px_rgba(11,95,88,0.08)] ${
           atCurrent ? "pointer-events-none opacity-30" : "text-ru-blue"
         }`}
       >

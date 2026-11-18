@@ -15,7 +15,7 @@ type Goal = {
   monthlyNeeded: number | null;
 };
 
-const CARD = "rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]";
+const CARD = "rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(11,95,88,0.07)]";
 const INPUT = "rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base";
 
 function useAction() {
@@ -106,7 +106,7 @@ function GoalForm({ goal, onClose }: { goal?: Goal; onClose: () => void }) {
         <button
           type="submit"
           disabled={isPending}
-          className="flex-1 rounded-full bg-ru-blue px-4 py-3 text-base font-bold text-white shadow-[0_4px_14px_rgba(91,123,255,0.35)] disabled:opacity-50"
+          className="flex-1 rounded-full bg-ru-blue px-4 py-3 text-base font-bold text-white shadow-[0_4px_14px_rgba(11,95,88,0.35)] disabled:opacity-50"
         >
           {isPending ? "שומר..." : goal ? "שמירה" : "הוספת יעד"}
         </button>
@@ -244,7 +244,7 @@ export default function Goals({ goals }: { goals: Goal[] }) {
           <button
             type="button"
             onClick={() => setAdding(true)}
-            className="w-full rounded-full bg-white px-5 py-3.5 text-base font-bold text-ru-blue shadow-[0_2px_14px_rgba(46,46,46,0.07)]"
+            className="w-full rounded-full bg-white px-5 py-3.5 text-base font-bold text-ru-blue shadow-[0_2px_14px_rgba(11,95,88,0.07)]"
           >
             ＋ הוספת יעד
           </button>

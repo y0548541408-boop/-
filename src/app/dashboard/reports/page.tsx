@@ -8,7 +8,7 @@ import TrendChart from "./TrendChart";
 import SubTabs from "../SubTabs";
 import { TASKS_REPORTS_TABS } from "../subTabItems";
 
-const CARD = "rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]";
+const CARD = "rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(11,95,88,0.07)]";
 
 function Breakdown({
   title,
@@ -72,8 +72,8 @@ export default async function ReportsPage() {
   const net = thisMonth?.net ?? 0;
 
   return (
-    <main className="min-h-screen bg-ru-bg px-4 pb-32 pt-6 text-ru-ink">
-      <div className="mx-auto max-w-md">
+    <main className="min-h-screen bg-ru-bg px-4 pb-44 pt-6 lg:ps-64 lg:pb-12 text-ru-ink">
+      <div className="mx-auto max-w-md lg:max-w-3xl">
         <h1 className="text-2xl font-bold">
           {member.family.budgetOnly ? "דוחות" : "משימות ודוחות"}
         </h1>

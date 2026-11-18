@@ -11,7 +11,7 @@ function toDateInputValue(d: Date) {
 }
 
 const INPUT = "rounded-2xl border border-ru-blue-soft bg-white px-3 py-2.5 text-base";
-const CARD = "rounded-3xl bg-white p-4 shadow-[0_2px_14px_rgba(46,46,46,0.07)]";
+const CARD = "rounded-3xl bg-white p-4 shadow-[0_2px_14px_rgba(11,95,88,0.07)]";
 
 export default function TransactionRow({ entry }: { entry: TransactionEntry }) {
   const router = useRouter();

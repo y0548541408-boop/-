@@ -1,4 +1,10 @@
+import { randomBytes } from "node:crypto";
 import { prisma } from "@/lib/prisma";
+
+// 48 hex characters: the secret part of a personal entry link (/k/<token>).
+export function newAccessToken(): string {
+  return randomBytes(24).toString("hex");
+}
 
 export type AddMemberResult = { ok: true } | { error: string };
 
@@ -36,6 +42,7 @@ export async function addFamilyMemberRecord(
       email,
       phone: input.phone?.trim() || null,
       role: input.role,
+      accessToken: newAccessToken(),
     },
   });
   await prisma.family.update({ where: { id: familyId }, data: { portalActive: true } });

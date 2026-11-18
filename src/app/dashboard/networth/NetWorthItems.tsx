@@ -8,7 +8,7 @@ import { deleteNetWorthItem, saveNetWorthItem, type Result } from "./actions";
 type Item = { id: string; group: string; name: string; value: number };
 type Group = { group: string; total: number; items: Item[] };
 
-const CARD = "rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]";
+const CARD = "rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(11,95,88,0.07)]";
 const INPUT = "rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base";
 
 function useAction() {
@@ -152,7 +152,7 @@ function AddItemForm({ kind, groups }: { kind: "asset" | "liability"; groups: re
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="w-full rounded-full bg-white px-5 py-3.5 text-base font-bold text-ru-blue shadow-[0_2px_14px_rgba(46,46,46,0.07)]"
+        className="w-full rounded-full bg-white px-5 py-3.5 text-base font-bold text-ru-blue shadow-[0_2px_14px_rgba(11,95,88,0.07)]"
       >
         {kind === "asset" ? "＋ הוספת נכס" : "＋ הוספת התחייבות"}
       </button>
@@ -206,7 +206,7 @@ function AddItemForm({ kind, groups }: { kind: "asset" | "liability"; groups: re
         <button
           type="submit"
           disabled={isPending}
-          className="flex-1 rounded-full bg-ru-blue px-4 py-3 text-base font-bold text-white shadow-[0_4px_14px_rgba(91,123,255,0.35)] disabled:opacity-50"
+          className="flex-1 rounded-full bg-ru-blue px-4 py-3 text-base font-bold text-white shadow-[0_4px_14px_rgba(11,95,88,0.35)] disabled:opacity-50"
         >
           {isPending ? "שומר..." : "הוספה"}
         </button>

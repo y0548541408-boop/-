@@ -1,16 +1,23 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useTransition } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { requestOtp, verifyOtp } from "./actions";
 import { Logo, LogoMark } from "@/components/Logo";
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const linkProblem = useSearchParams().get("link");
   const [step, setStep] = useState<"email" | "code">("email");
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(
+    linkProblem === "invalid"
+      ? "הקישור הזה כבר לא תקף. אפשר להיכנס עם קוד למייל, או לבקש מישראל קישור חדש."
+      : linkProblem === "error"
+        ? "משהו השתבש בכניסה בקישור. אפשר להיכנס עם קוד למייל."
+        : null
+  );
   const [isPending, startTransition] = useTransition();
 
   function handleRequestOtp(e: React.FormEvent) {
@@ -143,5 +150,13 @@ export default function LoginPage() {
         </div>
       </div>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

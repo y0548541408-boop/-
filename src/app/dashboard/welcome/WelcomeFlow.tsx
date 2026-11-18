@@ -8,9 +8,9 @@ import { completeWelcome } from "./actions";
 type Category = { id: string; name: string };
 type Amounts = Record<string, string>;
 
-const CARD = "rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]";
+const CARD = "rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(11,95,88,0.07)]";
 const PRIMARY =
-  "w-full rounded-full bg-ru-blue px-4 py-3.5 text-base font-bold text-white shadow-[0_4px_14px_rgba(91,123,255,0.35)] disabled:opacity-50";
+  "w-full rounded-full bg-ru-blue px-4 py-3.5 text-base font-bold text-white shadow-[0_4px_14px_rgba(11,95,88,0.35)] disabled:opacity-50";
 const GHOST = "w-full rounded-full px-4 py-3 text-sm font-semibold text-ru-muted";
 const GOAL_IDEAS = ["קרן חירום", "דירה", "חתונה", "רכב"];
 

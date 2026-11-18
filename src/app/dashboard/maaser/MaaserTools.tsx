@@ -6,7 +6,7 @@ import { setMaaserRate, recordTithePayment } from "../actions";
 import RiseCard, { formatShekel } from "../RiseCard";
 import type { MaaserSummary } from "@/lib/maaser";
 
-const CARD = "rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]";
+const CARD = "rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(11,95,88,0.07)]";
 const INPUT = "rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base";
 
 export default function MaaserTools({ summary }: { summary: MaaserSummary }) {
@@ -43,7 +43,7 @@ export default function MaaserTools({ summary }: { summary: MaaserSummary }) {
 
   return (
     <div className="mt-5 space-y-3">
-      <div className="grid grid-cols-2 gap-1 rounded-full bg-white p-1.5 shadow-[0_2px_14px_rgba(46,46,46,0.07)]">
+      <div className="grid grid-cols-2 gap-1 rounded-full bg-white p-1.5 shadow-[0_2px_14px_rgba(11,95,88,0.07)]">
         {([10, 20] as const).map((rate) => (
           <button
             key={rate}
@@ -112,7 +112,7 @@ export default function MaaserTools({ summary }: { summary: MaaserSummary }) {
         <button
           type="submit"
           disabled={isPending}
-          className="mt-3 w-full rounded-full bg-ru-blue px-4 py-3 text-base font-bold text-white shadow-[0_4px_14px_rgba(91,123,255,0.35)] disabled:opacity-50"
+          className="mt-3 w-full rounded-full bg-ru-blue px-4 py-3 text-base font-bold text-white shadow-[0_4px_14px_rgba(11,95,88,0.35)] disabled:opacity-50"
         >
           {isPending ? "שומר..." : "רשום תשלום"}
         </button>

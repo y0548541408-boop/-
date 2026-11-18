@@ -21,7 +21,7 @@ export default function TrendChart({ data }: { data: MonthPoint[] }) {
         <Legend wrapperStyle={{ fontSize: 12 }} />
         <Line type="monotone" dataKey="הכנסות" stroke="#00bf6f" strokeWidth={3} dot={false} />
         <Line type="monotone" dataKey="הוצאות" stroke="#ec4f8a" strokeWidth={3} dot={false} />
-        <Line type="monotone" dataKey="נטו" stroke="#5b7bff" strokeWidth={3} dot={false} />
+        <Line type="monotone" dataKey="נטו" stroke="#0B5F58" strokeWidth={3} dot={false} />
       </LineChart>
     </ResponsiveContainer>
   );

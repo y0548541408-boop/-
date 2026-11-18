@@ -32,7 +32,7 @@ export default function InstallHint() {
   }
 
   return (
-    <div className="mt-4 rounded-3xl bg-white p-4 text-xs leading-relaxed text-ru-ink/70 shadow-[0_2px_14px_rgba(46,46,46,0.07)]">
+    <div className="mt-4 rounded-3xl bg-white p-4 text-base leading-relaxed text-ru-ink/80 shadow-[0_2px_14px_rgba(11,95,88,0.07)]">
       <div className="flex items-start justify-between gap-3">
         <p>
           <span className="font-bold text-ru-blue">התקציב על מסך הבית.</span> באנדרואיד:
@@ -42,7 +42,7 @@ export default function InstallHint() {
         <button
           type="button"
           onClick={dismiss}
-          className="shrink-0 text-gray-400"
+          className="flex h-11 w-11 shrink-0 items-center justify-center text-ru-muted"
           aria-label="סגירה"
         >
           ✕
