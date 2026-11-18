@@ -1,3 +1,4 @@
+import mammoth from "mammoth";
 import { prisma } from "@/lib/prisma";
 import { createAdminClient, DOCUMENTS_BUCKET } from "@/lib/supabase/admin";
 import { analyzeMeetingRecording, analyzeMeetingTranscript } from "@/lib/gemini";
@@ -19,14 +20,22 @@ export async function processRecording(recordingId: string): Promise<void> {
       .download(recording.storagePath);
     if (error || !data) throw new Error(`הורדת ההקלטה נכשלה: ${error?.message ?? "קובץ חסר"}`);
 
-    const draft =
-      recording.mimeType === "text/plain"
-        ? await analyzeMeetingTranscript({ text: await data.text() })
-        : await analyzeMeetingRecording({
-            audio: await data.arrayBuffer(),
-            mimeType: recording.mimeType,
-            displayName: recording.id,
-          });
+    const DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    let draft;
+    if (recording.mimeType === "text/plain") {
+      draft = await analyzeMeetingTranscript({ text: await data.text() });
+    } else if (recording.mimeType === DOCX) {
+      // Word files: pull out the plain text, then analyze it like a transcript.
+      const { value } = await mammoth.extractRawText({ arrayBuffer: await data.arrayBuffer() });
+      draft = await analyzeMeetingTranscript({ text: value });
+    } else {
+      // Audio and PDF go to Gemini as files.
+      draft = await analyzeMeetingRecording({
+        audio: await data.arrayBuffer(),
+        mimeType: recording.mimeType,
+        displayName: recording.id,
+      });
+    }
     if (!draft.summary) throw new Error("לא הצלחתי להפיק סיכום מההקלטה.");
 
     await prisma.meetingRecording.update({

@@ -21,6 +21,8 @@ const UPLOAD_TYPES: Record<string, string> = {
   opus: "audio/ogg",
   flac: "audio/flac",
   txt: "text/plain",
+  pdf: "application/pdf",
+  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
 };
 
 async function ownedFamily(familyId: string) {
@@ -42,7 +44,7 @@ export async function prepareRecordingUpload(input: {
 
   const ext = input.filename.split(".").pop()?.toLowerCase() ?? "";
   const mimeType = UPLOAD_TYPES[ext];
-  if (!mimeType) return { error: "סוג הקובץ לא נתמך. אפשר: mp3, m4a, wav, aac, ogg, flac, או תמלול בקובץ txt." };
+  if (!mimeType) return { error: "סוג הקובץ לא נתמך. אפשר: mp3, m4a, wav, aac, ogg, flac, או תמלול בקובץ txt, PDF או וורד (docx)." };
 
   const path = `${input.familyId}/recordings/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
   const { data, error } = await createAdminClient()
