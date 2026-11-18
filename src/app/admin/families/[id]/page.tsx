@@ -221,7 +221,7 @@ export default async function AdminFamilyPage({
         <RecordingSection familyId={family.id} today={today} recordings={recordings} />
 
         <div className="mt-5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
-          <h2 className="text-sm font-semibold text-brand-teal">מסמכים והקלטות</h2>
+          <h2 className="text-sm font-semibold text-brand-teal">מסמכים</h2>
 
           {family.documents.length > 0 && (
             <div className="mt-3">
@@ -266,7 +266,7 @@ export default async function AdminFamilyPage({
         </div>
 
         <div className="mt-5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
-          <h2 className="text-sm font-semibold text-brand-teal">סיכומי פגישות</h2>
+          <h2 className="text-sm font-semibold text-brand-teal">סיכומים שפורסמו ללקוח</h2>
 
           {family.meetingSummaries.length > 0 && (
             <div className="mt-3 space-y-3">
@@ -291,9 +291,11 @@ export default async function AdminFamilyPage({
             </div>
           )}
 
+          <details className="mt-4 border-t border-gray-100 pt-4">
+            <summary className="cursor-pointer text-xs font-medium text-gray-600">הוספה ידנית (בלי AI)</summary>
           <form
             action={addMeetingSummary}
-            className="mt-4 space-y-2 border-t border-gray-100 pt-4"
+            className="mt-3 space-y-2"
           >
             <input type="hidden" name="familyId" value={family.id} />
             <input
@@ -330,6 +332,7 @@ export default async function AdminFamilyPage({
               הוספת סיכום
             </button>
           </form>
+          </details>
         </div>
 
         <div id="tasks" className="mt-5 scroll-mt-6 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">

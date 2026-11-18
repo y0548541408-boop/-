@@ -316,7 +316,8 @@ export default function RecordingSection({
 
   return (
     <div className="mt-5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
-      <h2 className="text-sm font-semibold text-brand-teal">סיכום והקלטת פגישה (AI)</h2>
+      <h2 className="text-sm font-semibold text-brand-teal">העלאת פגישה: הקלטה, תמלול, וורד או PDF</h2>
+      <p className="mt-0.5 text-xs text-gray-500">המערכת מכינה טיוטת סיכום ומשימות. אתה בודק ומאשר לפני שהלקוח רואה.</p>
       <p className="mt-1 text-xs text-gray-500">
         מעלים הקלטה, המערכת מכינה סיכום ללקוח ורשימת משימות. שום דבר לא מגיע ללקוח לפני שאתה מאשר.
       </p>
