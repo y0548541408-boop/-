@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentAdvisor } from "@/lib/advisor";
+import AdminShell from "@/components/admin/AdminShell";
 import MappingScreen, { parseTab } from "@/components/mapping/MappingScreen";
 
 // The advisor's view of a family's mapping: the same screens the client sees,
@@ -22,8 +23,8 @@ export default async function AdminMappingPage({
   if (!family) redirect("/admin");
 
   return (
-    <main className="client-app min-h-screen bg-ru-bg px-4 pb-16 pt-6 text-ru-ink">
-      <div className="mx-auto max-w-md lg:max-w-5xl">
+    <AdminShell active="clients" advisorName={advisor.fullName}>
+      <div>
         <Link href={`/admin/families/${id}`} className="inline-flex min-h-11 items-center text-base text-ru-muted underline">
           ← חזרה למשפחת {family.displayName}
         </Link>
@@ -35,6 +36,6 @@ export default async function AdminMappingPage({
           tab={parseTab(tab)}
         />
       </div>
-    </main>
+    </AdminShell>
   );
 }
