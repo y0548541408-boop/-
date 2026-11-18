@@ -175,3 +175,101 @@ export async function analyzeMeetingTranscript(input: { text: string }): Promise
   if (!transcript) throw new Error("קובץ התמלול ריק.");
   return requestDraft([{ text: `${TRANSCRIPT_INTRO}\n\n${transcript}` }]);
 }
+
+// ---- Insights from a family's documents (for the advisor only) ----
+
+export type InsightDraft = {
+  severity: "alert" | "check" | "info";
+  title: string;
+  detail: string;
+};
+
+const INSIGHTS_PROMPT = `אתה עוזר ליועץ כלכלת משפחה בישראל. מצורפים מסמכים של משפחה אחת (למשל הצעת משכנתא, תלושי שכר, דפי בנק, דוחות).
+
+מטרתך: למצוא דברים שהיועץ צריך לוודא, במיוחד:
+- דמי ניהול או עמלות גבוהים (בבנק, בקרן, בביטוח, בחשבון).
+- מסלולים במשכנתא שמחירם גבוה, או ריבית שנראית גבוהה ביחס לשוק, או מסלול צמוד מדד ללא סיבה ברורה.
+- סכומים שלא מתיישבים בין מסמכים (למשל שכר בתלוש לעומת הכנסה שנרשמה).
+- הוצאות חוזרות שנראות לא מוצדקות או כפולות.
+
+כתוב בעברית, בפורמט JSON לפי הסכמה בלבד. לכל תובנה:
+- severity: "alert" אם מדובר בהוצאה או סיכון ממשי שכדאי לטפל בו מיד, "check" אם צריך לבדוק, "info" לדבר שנראה תקין אבל שווה לדעת.
+- title: כותרת קצרה (עד 8 מילים).
+- detail: הסבר של משפט עד שניים, עם המספרים מהמסמך ושם המסמך.
+
+כללים: אל תמציא מספרים שאינם במסמכים. אם אינך בטוח, סמן "check". אל תכלול מספרי תעודת זהות, חשבון או כרטיס אשראי. אם אין מה לומר, החזר רשימה ריקה.`;
+
+const INSIGHTS_SCHEMA = {
+  type: "OBJECT",
+  properties: {
+    insights: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          severity: { type: "STRING", enum: ["alert", "check", "info"] },
+          title: { type: "STRING" },
+          detail: { type: "STRING" },
+        },
+        required: ["severity", "title", "detail"],
+      },
+    },
+  },
+  required: ["insights"],
+};
+
+export async function analyzeFamilyDocuments(input: {
+  files: { name: string; mimeType: string; data: ArrayBuffer }[];
+}): Promise<InsightDraft[]> {
+  const key = apiKey();
+  const model = process.env.GEMINI_MODEL || "gemini-2.5-flash";
+  if (input.files.length === 0) return [];
+
+  const uploaded: { name: string; uri: string; mimeType: string; displayName: string }[] = [];
+  try {
+    for (const f of input.files) {
+      const file = await uploadAudio(f.data, f.mimeType, f.name);
+      uploaded.push({ name: file.name, uri: file.uri, mimeType: f.mimeType, displayName: f.name });
+    }
+
+    const parts = [
+      ...uploaded.map((f) => ({ text: `מסמך: ${f.displayName}` })),
+      ...uploaded.map((f) => ({ file_data: { mime_type: f.mimeType, file_uri: f.uri } })),
+      { text: INSIGHTS_PROMPT },
+    ];
+
+    const res = await fetch(`${API}/v1beta/models/${model}:generateContent`, {
+      method: "POST",
+      headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts }],
+        generationConfig: {
+          responseMimeType: "application/json",
+          responseSchema: INSIGHTS_SCHEMA,
+          temperature: 0.2,
+        },
+      }),
+    });
+    if (!res.ok) throw await geminiError(res, "ניתוח המסמכים");
+
+    const data = (await res.json()) as {
+      candidates?: { content?: { parts?: { text?: string }[] } }[];
+    };
+    const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("");
+    if (!text) throw new Error("Gemini לא החזיר תשובה לניתוח המסמכים.");
+
+    const parsed = JSON.parse(text) as { insights?: Partial<InsightDraft>[] };
+    const allowed = ["alert", "check", "info"] as const;
+    return (parsed.insights ?? [])
+      .map((i) => ({
+        severity: (allowed as readonly string[]).includes(String(i.severity))
+          ? (i.severity as InsightDraft["severity"])
+          : "check",
+        title: String(i.title ?? "").trim(),
+        detail: String(i.detail ?? "").trim(),
+      }))
+      .filter((i) => i.title && i.detail);
+  } finally {
+    for (const f of uploaded) await deleteFile(f.name);
+  }
+}

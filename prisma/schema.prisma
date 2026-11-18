@@ -123,6 +123,7 @@ model Family {
   reallocations       BudgetReallocation[]
   meetingSummaries    MeetingSummary[]
   recordings          MeetingRecording[]
+  advisorInsights     AdvisorInsight[]
   tasks               Task[]
   whatsappMessages    WhatsappInboundMessage[]
   notifications       NotificationLog[]
@@ -343,6 +344,22 @@ model MeetingSummary {
   createdAt   DateTime @default(now()) @map("created_at")
 
   @@map("meeting_summaries")
+}
+
+// A point the AI found in the client's documents, for the advisor to check.
+// Only the advisor sees these; the client never does.
+model AdvisorInsight {
+  id        String   @id @default(uuid())
+  familyId  String   @map("family_id")
+  family    Family   @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  severity  String   // "alert" | "check" | "info"
+  title     String
+  detail    String
+  dismissed Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([familyId])
+  @@map("advisor_insights")
 }
 
 model Expense {

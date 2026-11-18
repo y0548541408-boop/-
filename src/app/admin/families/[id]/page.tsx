@@ -15,6 +15,7 @@ import {
 import AdminShell from "@/components/admin/AdminShell";
 import DocumentRow from "./DocumentRow";
 import RecordingSection, { type RecordingView } from "./RecordingSection";
+import InsightsSection, { type InsightView } from "./InsightsSection";
 
 // Recording analysis runs in the background after the upload; give it room.
 export const maxDuration = 300;
@@ -84,6 +85,7 @@ export default async function AdminFamilyPage({
       meetingSummaries: { orderBy: { meetingDate: "desc" } },
       members: { orderBy: { createdAt: "asc" } },
       recordings: { where: { status: { not: "discarded" } }, orderBy: { createdAt: "desc" } },
+      advisorInsights: { where: { dismissed: false }, orderBy: { createdAt: "desc" } },
     },
   });
 
@@ -204,6 +206,17 @@ export default async function AdminFamilyPage({
             </p>
           </div>
         )}
+
+        <InsightsSection
+          familyId={family.id}
+          insights={family.advisorInsights.map((i) => ({
+            id: i.id,
+            severity: i.severity as InsightView["severity"],
+            title: i.title,
+            detail: i.detail,
+            createdAt: isoDay(i.createdAt),
+          }))}
+        />
 
         <RecordingSection familyId={family.id} today={today} recordings={recordings} />
 
