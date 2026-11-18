@@ -3,7 +3,7 @@
 import { Suspense, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { requestOtp, verifyOtp } from "./actions";
-import { Logo, LogoMark } from "@/components/Logo";
+import { LogoMark } from "@/components/Logo";
 
 function LoginForm() {
   const router = useRouter();
@@ -51,28 +51,21 @@ function LoginForm() {
     <main className="flex min-h-screen items-center justify-center bg-brand-cream px-4 py-8">
       <div className="flex w-full max-w-3xl overflow-hidden rounded-3xl shadow-xl shadow-brand-teal/10">
         <div className="hidden w-5/12 flex-col justify-between bg-brand-teal p-10 sm:flex">
-          <Logo light size={19} markSize={30} />
-          <div className="flex flex-col gap-3">
-            <p className="font-wordmark text-2xl leading-snug text-white">
-              ליווי אישי, תקציב אחד
-              <br />
-              צעד אחר צעד.
-            </p>
-            <p className="text-sm leading-relaxed text-white/70">
-              כל פגישה, כל משימה וכל שקל — במקום אחד ברור, יחד איתכם.
-            </p>
-          </div>
-          <div className="flex gap-2">
-            <div className="h-1 w-6 rounded-full bg-brand-terracotta" />
-            <div className="h-1 w-1 rounded-full bg-white/30" />
-            <div className="h-1 w-1 rounded-full bg-white/30" />
+          <LogoMark size={64} color="#FFFFFF" />
+          <div className="flex flex-col gap-4">
+            <p className="font-wordmark text-3xl leading-snug text-white">שרמן משכנתאות וכלכלת המשפחה</p>
+            <div className="h-1 w-12 rounded-full bg-brand-mand" />
+            <p className="text-lg text-white/85">ליווי אישי לשליטה כלכלית</p>
           </div>
         </div>
 
         <div className="flex w-full flex-col justify-center gap-6 bg-white p-8 sm:w-7/12 sm:p-10">
-          <div className="flex items-center gap-2 sm:hidden">
-            <LogoMark size={26} />
-            <span className="font-wordmark text-lg font-bold text-brand-teal">כלכלת המשפחה</span>
+          <div className="sm:hidden">
+            <div className="flex items-center gap-2">
+              <LogoMark size={40} />
+              <span className="font-wordmark text-xl leading-tight text-brand-teal">שרמן משכנתאות וכלכלת המשפחה</span>
+            </div>
+            <p className="mt-2 text-base text-gray-600">ליווי אישי לשליטה כלכלית</p>
           </div>
 
           <div>
@@ -109,7 +102,6 @@ function LoginForm() {
               >
                 {isPending ? "שולח..." : "שלח קוד כניסה"}
               </button>
-              <p className="text-center text-xs text-gray-400">אין קוד קבוע — בטוח יותר, ובלי סיסמה לזכור.</p>
             </form>
           ) : (
             <form onSubmit={handleVerifyOtp} className="space-y-4">
