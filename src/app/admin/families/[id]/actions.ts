@@ -5,11 +5,12 @@ import { prisma } from "@/lib/prisma";
 import { getCurrentAdvisor } from "@/lib/advisor";
 import { createAdminClient, DOCUMENTS_BUCKET } from "@/lib/supabase/admin";
 import { addFamilyMemberRecord, newAccessToken, type AddMemberResult } from "@/lib/familyMembers";
+import { normalizeIsraeliPhone } from "@/lib/phone";
 
 export async function addFamilyMember(input: {
   familyId: string;
   fullName: string;
-  email: string;
+  email?: string;
   phone?: string;
   role: "primary" | "spouse";
 }): Promise<AddMemberResult> {
@@ -31,6 +32,27 @@ export async function removeFamilyMember(input: {
   await prisma.familyMember.deleteMany({
     where: { id: input.memberId, familyId: input.familyId },
   });
+  revalidatePath(`/admin/families/${input.familyId}`);
+  return { ok: true };
+}
+
+// Adds or fixes the phone number of a member, so the link can go to them on WhatsApp.
+export async function updateMemberPhone(input: {
+  familyId: string;
+  memberId: string;
+  phone: string;
+}): Promise<AddMemberResult> {
+  const { error: ownError } = await assertFamilyOwnedByAdvisor(input.familyId);
+  if (ownError) return { error: ownError };
+
+  const phone = normalizeIsraeliPhone(input.phone);
+  if (!phone) return { error: "מספר הטלפון לא תקין. למשל: 050-1234567." };
+
+  const res = await prisma.familyMember.updateMany({
+    where: { id: input.memberId, familyId: input.familyId },
+    data: { phone },
+  });
+  if (res.count === 0) return { error: "בן המשפחה לא נמצא." };
   revalidatePath(`/admin/families/${input.familyId}`);
   return { ok: true };
 }

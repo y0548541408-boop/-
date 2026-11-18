@@ -194,7 +194,7 @@ model FamilyMember {
   family      Family     @relation(fields: [familyId], references: [id], onDelete: Cascade)
   authUserId  String?    @unique @map("auth_user_id") // maps to Supabase auth.users.id
   fullName    String     @map("full_name")
-  email       String
+  email       String?
   phone       String?
   role        MemberRole
   accessToken String?    @unique @map("access_token") // personal login link: /k/<token>

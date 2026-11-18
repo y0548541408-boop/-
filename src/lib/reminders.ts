@@ -43,6 +43,11 @@ export async function sendDueTaskReminders(
     const family = tasks[0].family;
 
     for (const member of family.members) {
+      // Members who joined with a phone number only get no email reminders.
+      if (!member.email) {
+        skipped++;
+        continue;
+      }
       const { data, error: linkError } = await admin.auth.admin.generateLink({
         type: "magiclink",
         email: member.email,

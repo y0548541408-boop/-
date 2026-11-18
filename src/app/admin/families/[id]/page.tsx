@@ -176,6 +176,7 @@ export default async function AdminFamilyPage({
             id: m.id,
             fullName: m.fullName,
             email: m.email,
+            phone: m.phone,
             role: m.role,
             accessToken: m.accessToken,
           }))}

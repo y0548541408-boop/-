@@ -45,7 +45,13 @@ function firstName(fullName: string): string {
   return fullName.trim().split(/\s+/)[0] ?? fullName;
 }
 
-function loginMessage(fullName: string, email: string, loginUrl: string): string {
+function loginMessage(fullName: string, email: string | null, loginUrl: string, personalLink?: string | null): string {
+  if (personalLink || !email) {
+    return `שלום ${fullName}, זה הקישור האישי שלך לתקציב של המשפחה:
+${personalLink ?? loginUrl}
+
+לוחצים עליו ונכנסים ישר, בלי סיסמה ובלי קוד.`;
+  }
   return `שלום ${fullName}, זה הקישור לאזור התקציב האישי שלך:\n${loginUrl}\n\nנכנסים עם המייל ${email} ומקבלים קוד כניסה למייל (אם לא מגיע תוך דקה, כדאי לבדוק בספאם). אחרי הכניסה אפשר להוסיף את האתר למסך הבית, ומשם זה נפתח כמו אפליקציה.`;
 }
 
@@ -182,7 +188,7 @@ export async function POST(request: NextRequest) {
         displayName: existing.family.displayName,
         loginUrl,
         adminUrl: `${origin}/admin/families/${existing.family.id}`,
-        message: loginMessage(existing.fullName, existing.email, loginUrl),
+        message: loginMessage(existing.fullName, existing.email, loginUrl, existing.accessToken ? `${origin}/k/${existing.accessToken}` : null),
       });
     }
 

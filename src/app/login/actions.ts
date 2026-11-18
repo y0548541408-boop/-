@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 
@@ -73,4 +74,6 @@ export async function verifyOtp(
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
+  // Forget the remembered personal link too, or the device would sign straight back in.
+  (await cookies()).delete("kt");
 }

@@ -10,17 +10,31 @@ export async function GET(request: NextRequest, ctx: { params: Promise<{ token: 
   const { token } = await ctx.params;
   const home = new URL("/login", request.url);
 
-  if (!/^[a-f0-9]{48}$/.test(token)) return NextResponse.redirect(new URL("/login?link=invalid", request.url));
+  // A link that no longer works must also forget the copy remembered on this device.
+  const invalid = () => {
+    const res = NextResponse.redirect(new URL("/login?link=invalid", request.url));
+    res.cookies.delete("kt");
+    return res;
+  };
+
+  if (!/^[a-f0-9]{48}$/.test(token)) return invalid();
 
   const member = await prisma.familyMember.findUnique({ where: { accessToken: token } });
-  if (!member) return NextResponse.redirect(new URL("/login?link=invalid", request.url));
+  if (!member) return invalid();
 
   // Never let a client link open the advisor area.
-  const advisor = await prisma.advisor.findUnique({ where: { email: member.email } });
-  if (advisor) return NextResponse.redirect(home);
+  if (member.email) {
+    const advisor = await prisma.advisor.findUnique({ where: { email: member.email } });
+    if (advisor) return NextResponse.redirect(home);
+  }
+
+  // A member who joined with a phone number only has no email. The sign-in
+  // system needs one, so they get a private internal address that never
+  // receives mail: the link itself is how they get in.
+  const signInEmail = member.email ?? `member-${member.id}@members.clalatmishpaha.com`;
 
   const admin = createAdminClient();
-  const { data, error } = await admin.auth.admin.generateLink({ type: "magiclink", email: member.email });
+  const { data, error } = await admin.auth.admin.generateLink({ type: "magiclink", email: signInEmail });
   const tokenHash = data?.properties?.hashed_token;
   if (error || !tokenHash) {
     console.error("personal link: generateLink failed");
@@ -30,7 +44,8 @@ export async function GET(request: NextRequest, ctx: { params: Promise<{ token: 
   const supabase = await createClient();
   const { data: verified, error: verifyError } = await supabase.auth.verifyOtp({
     token_hash: tokenHash,
-    type: "magiclink",
+    // The link made by generateLink is verified as an "email" one-time token.
+    type: "email",
   });
   if (verifyError || !verified.user) {
     console.error("personal link: verifyOtp failed");
