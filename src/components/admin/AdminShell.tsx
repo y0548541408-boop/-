@@ -83,7 +83,7 @@ export default function AdminShell({
         </form>
       </aside>
 
-      <div className="lg:pe-64">
+      <div className="lg:ps-64">
         <header className="sticky top-0 z-20 flex items-center justify-between border-b border-ru-line bg-brand-cream/95 px-4 py-3 backdrop-blur lg:hidden">
           <div className="flex items-center gap-2">
             <LogoMark size={28} />
