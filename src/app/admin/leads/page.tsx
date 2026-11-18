@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import AdminShell from "@/components/admin/AdminShell";
 import { getCurrentAdvisor } from "@/lib/advisor";
 import { prisma } from "@/lib/prisma";
 import { createLead, updateLeadStatus, convertLeadToFamily } from "./actions";
@@ -22,9 +23,9 @@ export default async function AdminLeadsPage() {
   });
 
   return (
-    <main className="min-h-screen bg-brand-cream px-4 py-8">
-      <div className="mx-auto max-w-md">
-        <Link href="/admin" className="text-xs text-gray-400 underline">
+    <AdminShell active="leads" advisorName={advisor.fullName} wide={true}>
+      <div>
+        <Link href="/admin" className="text-sm text-ru-muted underline">
           ← חזרה ללקוחות
         </Link>
         <h1 className="mt-2 text-xl font-semibold text-brand-teal">לידים</h1>
@@ -60,7 +61,7 @@ export default async function AdminLeadsPage() {
           </form>
         </div>
 
-        <div className="mt-5 space-y-2">
+        <div className="mt-5 space-y-2 lg:grid lg:grid-cols-2 lg:gap-3 lg:space-y-0 xl:grid-cols-3">
           {leads.length === 0 && (
             <p className="text-center text-sm text-gray-400">עדיין אין לידים במערכת.</p>
           )}
@@ -120,6 +121,6 @@ export default async function AdminLeadsPage() {
           ))}
         </div>
       </div>
-    </main>
+    </AdminShell>
   );
 }

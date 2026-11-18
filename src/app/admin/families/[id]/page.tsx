@@ -12,6 +12,7 @@ import {
   setFamilyBudgetOnly,
   addTask,
 } from "./actions";
+import AdminShell from "@/components/admin/AdminShell";
 import DocumentRow from "./DocumentRow";
 import RecordingSection, { type RecordingView } from "./RecordingSection";
 
@@ -102,9 +103,9 @@ export default async function AdminFamilyPage({
     (family.status === "lead" || family.status === "onboarding");
 
   return (
-    <main className="min-h-screen bg-brand-cream px-4 py-8">
-      <div className="mx-auto max-w-md">
-        <Link href="/admin" className="text-xs text-gray-400 underline">
+    <AdminShell active="clients" advisorName={advisor.fullName} wide={false}>
+      <div>
+        <Link href="/admin" className="text-sm text-ru-muted underline">
           ← חזרה ללקוחות
         </Link>
         <h1 className="mt-2 text-xl font-semibold text-brand-teal">
@@ -412,6 +413,6 @@ export default async function AdminFamilyPage({
           </form>
         </div>
       </div>
-    </main>
+    </AdminShell>
   );
 }
