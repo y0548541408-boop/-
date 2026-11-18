@@ -6,7 +6,7 @@ const resend = new Resend(process.env.RESEND_API_KEY);
 // any recipient, not just the account owner. The Supabase Auth SMTP sender
 // (login-code emails) is configured separately in the Supabase dashboard
 // and needs the same domain update there.
-const FROM_ADDRESS = "כלכלת המשפחה <noreply@clalatmishpaha.com>";
+const FROM_ADDRESS = "שרמן משכנתאות וכלכלת המשפחה <noreply@clalatmishpaha.com>";
 
 export async function sendTaskReminderEmail(input: {
   to: string;
