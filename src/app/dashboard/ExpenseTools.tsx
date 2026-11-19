@@ -6,8 +6,6 @@ import { addExpense, addRecurringExpense, reallocateBudget , deleteTransaction }
 import SavedBanner, { type EntryStatus } from "./SavedBanner";
 import { formatShekel } from "./RiseCard";
 
-const QUICK_AMOUNTS = [20, 50, 100, 200, 500];
-
 type CategoryOption = { id: string; name: string; type: "fixed" | "variable"; remaining: number };
 
 type OverBudgetPrompt = {
@@ -128,7 +126,7 @@ export default function ExpenseTools({
           <select
             value={categoryId}
             onChange={(e) => setCategoryId(e.target.value)}
-            className="rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base"
+            className="rounded-2xl border border-ru-line bg-ru-bg px-4 py-3 text-base"
           >
             {categories.map((c) => (
               <option key={c.id} value={c.id}>
@@ -146,24 +144,8 @@ export default function ExpenseTools({
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             placeholder="סכום בש״ח"
-            className="rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base sm:w-32"
+            className="rounded-2xl border border-ru-line bg-ru-bg px-4 py-3 text-base sm:w-32"
           />
-        </div>
-        <div className="mt-3 flex flex-wrap gap-2">
-          {QUICK_AMOUNTS.map((value) => (
-            <button
-              key={value}
-              type="button"
-              onClick={() => setAmount(String(value))}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-                amount === String(value)
-                  ? "bg-ru-blue text-white"
-                  : "bg-ru-blue-soft text-ru-blue"
-              }`}
-            >
-              ₪{value}
-            </button>
-          ))}
         </div>
         {categoryId === "__new__" && (
           <input
@@ -172,7 +154,7 @@ export default function ExpenseTools({
             value={newCategoryName}
             onChange={(e) => setNewCategoryName(e.target.value)}
             placeholder='שם הקטגוריה החדשה (למשל "בריאות")'
-            className="mt-3 w-full rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base"
+            className="mt-3 w-full rounded-2xl border border-ru-line bg-ru-bg px-4 py-3 text-base"
           />
         )}
         {!isRecurring && (
@@ -182,7 +164,7 @@ export default function ExpenseTools({
             value={date}
             onChange={(e) => setDate(e.target.value)}
             aria-label="תאריך"
-            className="mt-3 w-full rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base"
+            className="mt-3 w-full rounded-2xl border border-ru-line bg-ru-bg px-4 py-3 text-base"
           />
         )}
         <input
@@ -194,7 +176,7 @@ export default function ExpenseTools({
           }}
           placeholder={isRecurring ? 'שם ההוצאה הקבועה (למשל "שכירות")' : "הערה (לא חובה)"}
           required={isRecurring}
-          className="mt-3 w-full rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base"
+          className="mt-3 w-full rounded-2xl border border-ru-line bg-ru-bg px-4 py-3 text-base"
         />
         <label className="mt-3 flex items-center gap-2 text-sm text-ru-ink">
           <input
@@ -247,7 +229,7 @@ export default function ExpenseTools({
             <select
               value={fromCategoryId}
               onChange={(e) => setFromCategoryId(e.target.value)}
-              className="mt-1 w-full rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base"
+              className="mt-1 w-full rounded-2xl border border-ru-line bg-ru-bg px-4 py-3 text-base"
             >
               {reallocationSources.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -264,7 +246,7 @@ export default function ExpenseTools({
               min="0"
               value={reallocAmount}
               onChange={(e) => setReallocAmount(e.target.value)}
-              className="mt-1 w-full rounded-2xl border border-ru-blue-soft bg-white px-4 py-3 text-base"
+              className="mt-1 w-full rounded-2xl border border-ru-line bg-ru-bg px-4 py-3 text-base"
             />
 
             {reallocError && <p className="mt-2 text-sm font-semibold text-ru-pink">{reallocError}</p>}

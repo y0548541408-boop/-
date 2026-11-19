@@ -127,7 +127,7 @@ function HeadlineCard({
   return (
     <div className="mt-5 rounded-3xl bg-ru-blue p-5 text-white shadow-[0_8px_24px_rgba(11,95,88,0.3)]">
       <p className="text-base text-white/80">{title}</p>
-      <div className="mt-3 grid grid-cols-2 gap-3">
+      <div className="mt-3 grid grid-cols-3 gap-3">
         <div>
           <p className="text-sm text-white/75">{incomeLabel}</p>
           <p className="font-num text-2xl font-bold">{money(income)}</p>
@@ -136,9 +136,13 @@ function HeadlineCard({
           <p className="text-sm text-white/75">{expenseLabel}</p>
           <p className="font-num text-2xl font-bold">{money(expense)}</p>
         </div>
+        <div>
+          <p className="text-sm text-white/75">הפער</p>
+          <p className={`font-num text-2xl font-bold ${diff < 0 ? "text-brand-mand" : ""}`}>{money(diff)}</p>
+        </div>
       </div>
-      <p className={`mt-3 rounded-2xl px-4 py-2.5 text-base font-bold ${diff < 0 ? "bg-brand-mand" : "bg-white/15"}`}>
-        {diff < 0 ? `חסרים ${money(-diff)}` : `נשארים ${money(diff)}`}
+      <p className="mt-3 text-sm text-white/80">
+        {diff < 0 ? `חסרים ${money(-diff)} בחודש` : `נשארים ${money(diff)} בחודש`}
       </p>
       {note && <p className="mt-2 text-sm text-white/80">{note}</p>}
     </div>
@@ -159,10 +163,10 @@ export function MonthlyPicture({ picture, familyId }: { picture: Picture; family
   return (
     <div>
       <HeadlineCard
-        title="התמונה החודשית, כמו שהיא היום"
-        incomeLabel="נכנס בחודש"
+        title="תמונת מצב חודשית"
+        incomeLabel="הכנסות"
         income={s.monthlyIncome.now}
-        expenseLabel="יוצא בחודש (כולל חובות)"
+        expenseLabel="הוצאות (כולל חובות)"
         expense={s.monthlyExpenseNoDebt.now + s.monthlyDebts.now}
         note={s.monthlyDebts.now ? `מתוכם ${money(s.monthlyDebts.now)} החזרי חובות בחודש.` : undefined}
       />

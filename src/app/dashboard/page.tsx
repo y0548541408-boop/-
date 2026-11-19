@@ -177,18 +177,7 @@ export default async function DashboardPage({
             </p>
           </div>
         ) : (
-          <Link
-            href="/dashboard/mapping"
-            className="mt-4 block rounded-3xl bg-ru-blue p-5 text-white shadow-[0_8px_24px_rgba(11,95,88,0.3)]"
-          >
-            <p className="font-display text-2xl">בואו נבנה את התקציב</p>
-            <p className="mt-1 text-base text-white/85">
-              מתחילים מהמיפוי: מעלים את הפירוט מהבנק ורואים לאן הלך הכסף. משם קובעים כמה מוציאים מעכשיו.
-            </p>
-            <span className="mt-3 inline-flex min-h-12 items-center rounded-2xl bg-brand-mand px-5 font-bold">
-              להתחיל במיפוי ←
-            </span>
-          </Link>
+          null
         )}
 
         <div className="mt-3 grid grid-cols-2 gap-3">
