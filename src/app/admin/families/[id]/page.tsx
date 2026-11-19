@@ -16,6 +16,7 @@ import DocumentRow from "./DocumentRow";
 import RecordingSection, { type RecordingView } from "./RecordingSection";
 import InsightsSection, { type InsightView } from "./InsightsSection";
 import PensionSection from "./PensionSection";
+import { archiveFromForm, restoreFromForm } from "./archiveActions";
 import DocumentUploadForm from "./DocumentUploadForm";
 
 // Recording analysis runs in the background after the upload; give it room.
@@ -108,9 +109,17 @@ export default async function AdminFamilyPage({
   return (
     <AdminShell active="clients" advisorName={advisor.fullName} wide={false}>
       <div>
-        <Link href="/admin" className="text-sm text-ru-muted underline">
-          ← חזרה ללקוחות
-        </Link>
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/admin" className="text-sm text-ru-muted underline">
+            ← חזרה ללקוחות
+          </Link>
+          <form action={family.archivedAt ? restoreFromForm : archiveFromForm}>
+            <input type="hidden" name="familyId" value={family.id} />
+            <button type="submit" className="text-sm font-bold text-ru-muted underline hover:text-ru-ink">
+              {family.archivedAt ? "החזר מהארכיון" : "העבר לארכיון"}
+            </button>
+          </form>
+        </div>
         <h1 className="mt-2 text-xl font-semibold text-brand-teal">
           {family.displayName}
         </h1>

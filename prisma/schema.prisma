@@ -111,6 +111,7 @@ model Family {
   maaserRatePercent Int          @default(10) @map("maaser_rate_percent") // 10 = מעשר, 20 = חומש
   welcomedAt        DateTime?    @map("welcomed_at") // null until the client finished (or skipped) the welcome setup
   householdSize     Int?         @map("household_size") // number of people at home, for per-person figures
+  archivedAt        DateTime?    @map("archived_at") // set when the advisor archives the family; hidden from the main list
   budgetOnly        Boolean      @default(false) @map("budget_only") // budget app only: no tasks, meetings, documents, net worth
   createdAt         DateTime     @default(now()) @map("created_at")
 

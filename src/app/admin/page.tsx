@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getCurrentAdvisor } from "@/lib/advisor";
 import { prisma } from "@/lib/prisma";
 import AdminShell from "@/components/admin/AdminShell";
+import { archiveFromForm, restoreFromForm } from "./families/[id]/archiveActions";
 
 const STATUS_LABEL: Record<string, string> = {
   lead: "ליד",
@@ -22,11 +23,14 @@ function StatCard({ label, value, hint, tone = "teal" }: { label: string; value:
   );
 }
 
-export default async function AdminPage() {
+export default async function AdminPage({ searchParams }: { searchParams: Promise<{ archived?: string }> }) {
   const advisor = await getCurrentAdvisor();
   if (!advisor) redirect("/dashboard");
 
-  const [families, newLeads, openDebts] = await Promise.all([
+  const { archived } = await searchParams;
+  const showArchived = archived === "1";
+
+  const [allFamilies, newLeads, openDebts] = await Promise.all([
     prisma.family.findMany({
       where: { advisorId: advisor.id },
       orderBy: { createdAt: "desc" },
@@ -39,8 +43,13 @@ export default async function AdminPage() {
     prisma.family.count({ where: { advisorId: advisor.id, hasDebt: true } }),
   ]);
 
-  const active = families.filter((f) => f.status === "active").length;
-  const onboarding = families.filter((f) => f.status === "onboarding" || f.status === "lead").length;
+  // The main list and the counts show only families that are not archived.
+  const current = allFamilies.filter((f) => !f.archivedAt);
+  const archivedCount = allFamilies.length - current.length;
+  const families = showArchived ? allFamilies.filter((f) => f.archivedAt) : current;
+
+  const active = current.filter((f) => f.status === "active").length;
+  const onboarding = current.filter((f) => f.status === "onboarding" || f.status === "lead").length;
 
   return (
     <AdminShell active="clients" advisorName={advisor.fullName}>
@@ -48,14 +57,19 @@ export default async function AdminPage() {
       <p className="mt-1 text-base text-ru-muted">כל המשפחות במקום אחד. לוחצים על משפחה כדי לראות את התיק שלה.</p>
 
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
-        <StatCard label="משפחות" value={families.length} hint={`${active} פעילות`} />
+        <StatCard label="משפחות" value={current.length} hint={`${active} פעילות`} />
         <StatCard label="בתהליך קליטה" value={onboarding} hint="ליד או בקליטה" />
         <StatCard label="לידים חדשים" value={newLeads} hint="מחכים לקשר ראשון" tone="mand" />
         <StatCard label="חוב פתוח" value={openDebts} hint="משפחות שצריך לטפל בהן" tone="mand" />
       </div>
 
       <div className="mt-8 flex items-center justify-between">
-        <h2 className="font-display text-2xl text-brand-teal">משפחות</h2>
+        <h2 className="font-display text-2xl text-brand-teal">
+          {showArchived ? "בארכיון" : "משפחות"}
+        </h2>
+        <Link href={showArchived ? "/admin" : "/admin?archived=1"} className="text-sm font-bold text-brand-teal underline">
+          {showArchived ? "חזרה ללקוחות הפעילים" : `ארכיון (${archivedCount})`}
+        </Link>
         <Link
           href="/admin/leads"
           className="inline-flex min-h-11 items-center rounded-full bg-brand-mand px-5 text-base font-bold text-white"
@@ -105,6 +119,12 @@ export default async function AdminPage() {
                           <Link href={`/admin/families/${f.id}#tasks`} className="text-sm font-bold text-brand-teal underline">
                             משימות
                           </Link>
+                          <form action={showArchived ? restoreFromForm : archiveFromForm}>
+                            <input type="hidden" name="familyId" value={f.id} />
+                            <button type="submit" className="text-sm font-bold text-ru-muted underline hover:text-ru-ink">
+                              {showArchived ? "החזר מהארכיון" : "לארכיון"}
+                            </button>
+                          </form>
                         </div>
                       </td>
                     </tr>
