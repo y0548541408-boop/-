@@ -65,7 +65,7 @@ export async function sendClientQuestionnaireEmail(input: {
   to: string;
   firstName: string;
   title: string;
-  intro: string;
+  paragraphs: string[];
   link: string;
   meetingLabel: string | null;
   meetingPlace: string | null;
@@ -84,9 +84,9 @@ export async function sendClientQuestionnaireEmail(input: {
         <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#1F5F5B;">שרמן</div>
         <div style="font-size:12px;color:#A35530;margin-bottom:22px;">משכנתאות וכלכלת המשפחה</div>
         <p style="font-size:16px;margin:0 0 10px;">שלום ${escapeHtml(input.firstName)},</p>
-        <p style="font-size:15px;line-height:1.6;margin:0 0 18px;">${escapeHtml(input.intro)}</p>
+        ${input.paragraphs.map((p) => `<p style="font-size:15px;line-height:1.6;margin:0 0 18px;">${escapeHtml(p)}</p>`).join("")}
         ${meetingBox}
-        <p style="font-size:15px;margin:0 0 22px;">${escapeHtml(input.title)} לוקח כמה דקות. אפשר לעצור באמצע ולהמשיך אחר כך.</p>
+        <p style="font-size:15px;margin:0 0 22px;">אפשר לעצור באמצע השאלון ולהמשיך אחר כך.</p>
         <a href="${input.link}" style="background:#1F5F5B;color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;display:inline-block;font-size:14px;font-weight:600;">למילוי השאלון</a>
         <p style="font-size:13px;color:#6b7280;margin-top:22px;">הקישור אישי לכם. לא צריך סיסמה, ואין צורך להירשם.</p>
         <p style="font-family:Georgia,serif;color:#A35530;font-size:14px;margin-top:24px;">נתראה בפגישה.</p>

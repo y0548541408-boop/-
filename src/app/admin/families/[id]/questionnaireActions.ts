@@ -102,7 +102,14 @@ export async function sendQuestionnaireToFamily(formData: FormData): Promise<Sen
 
   const questionnaire = getQuestionnaire(kindRaw);
   const label = meetingAt ? meetingLabel(meetingAt) : null;
-  const intro = `לקראת הפגישה שלנו אשמח שתמלאו את השאלון. ${questionnaire.welcome}`;
+  const paragraphs =
+    kindRaw === "finance"
+      ? [
+          "שמח מאוד שבחרתם להצטרף לליווי הכלכלי. ההחלטה לנהל את הכסף בצורה מודעת ומתוכננת היא צעד שמשתלם לאורך זמן, וכאן מתחילים לבנות את הצמיחה שלכם.",
+          "כדי שנוכל להפיק את המקסימום כבר מהפגישה הראשונה, אשמח שתמלאו את שאלון ההיכרות והמיפוי. בשאלון נבין את התמונה הכלכלית שלכם: מה יש לכם, מה המטרות, ומה הסיכון שמתאים לכם. אם יש מסמכים שכדאי לצרף, השאלון יפרט אותם.",
+          "קבלת הנתונים מראש תאפשר לי לבחון לעומק את האפשרויות לפני שנפגשים. כך בפגישה נוכל להתמקד באסטרטגיה ובתוכנית שמתאימה לכם, במקום לבזבז זמן על איסוף פרטים.",
+        ]
+      : [`לקראת הפגישה שלנו אשמח שתמלאו את השאלון. ${questionnaire.welcome}`];
 
   // Each send is separate: one bad address must not stop the others.
   let sent = 0;
@@ -113,7 +120,7 @@ export async function sendQuestionnaireToFamily(formData: FormData): Promise<Sen
       to: member.email!.trim(),
       firstName,
       title: questionnaire.title,
-      intro,
+      paragraphs,
       link,
       meetingLabel: label,
       meetingPlace: meetingPlace || null,
