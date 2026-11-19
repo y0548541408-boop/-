@@ -21,6 +21,17 @@
   --ru-green-soft: #d8f0e3;
   --ru-pink: #d2461b;
   --ru-pink-soft: #ffe2d4;
+  /* Questionnaire palette (Sherman brand, same as the client emails). These were
+     referenced by the @theme block below but never defined, so the questionnaire
+     rendered without any colour. */
+  --sh-green: #1F5F5B;
+  --sh-green-dark: #174A47;
+  --sh-accent: #C8734A;
+  --sh-accent-ink: #A35530;
+  --sh-cream: #F7F2E8;
+  --sh-cream-dark: #E8DDCB;
+  --sh-mint: #DDEBE6;
+  --sh-ink: #1B2B2A;
 }
 
 @theme inline {

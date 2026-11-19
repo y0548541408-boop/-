@@ -651,7 +651,7 @@ export default function QuestionnaireForm({ token, clientName, kind }: { token: 
                 >
                   {state === "done" ? "✓" : s.letter}
                 </span>
-                <span className={`text-xs leading-tight ${state === "current" ? "font-semibold text-sh-green" : "text-sh-ink/75"}`}>
+                <span className={`text-sm leading-tight ${state === "current" ? "font-semibold text-sh-green" : "text-sh-ink/75"}`}>
                   {s.title}
                   {state === "done" && <span className="sr-only"> (הושלם)</span>}
                 </span>
