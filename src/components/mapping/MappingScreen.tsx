@@ -4,15 +4,17 @@ import { ensurePictureLines, getPicture } from "@/lib/picture";
 import { ensureDefaultCategories, familyHasNoCategories } from "@/lib/defaultCategories";
 import AutoRefresh from "@/components/AutoRefresh";
 import MappingView from "./MappingView";
+import AssetsTab from "./AssetsTab";
 import { MappingTabs, MonthlyPicture, AnnualPicture, PictureSummaryView, type MappingTab } from "./PictureView";
 
 export function parseTab(value: string | undefined): MappingTab {
-  return value === "annual" || value === "summary" || value === "bank" ? value : "monthly";
+  return value === "annual" || value === "assets" || value === "summary" || value === "bank" ? value : "monthly";
 }
 
 const INTRO: Record<MappingTab, string> = {
   monthly: "קודם התמונה החודשית: כמה נכנס וכמה יוצא בחודש רגיל, שורה אחרי שורה.",
   annual: "ואחר כך התמונה השנתית: מה קורה פעם בשנה, כולל החגים. אנחנו מחלקים את זה ל-12.",
+  assets: "מה יש לנו, ומה אנחנו חייבים. ככה רואים את המצב הכולל, לא רק את החודש.",
   summary: "כל המספרים ביחד: כמה נשאר בחודש, ומה השתנה מול הבנק.",
   bank: "מעלים פירוט מהבנק ומהאשראי, ורואים בדיוק לאן הלך הכסף בפועל. זה בודק שהתמונה נכונה.",
 };
@@ -61,6 +63,7 @@ export default async function MappingScreen({
 
       {tab === "monthly" && <MonthlyPicture picture={picture} familyId={familyArg} />}
       {tab === "annual" && <AnnualPicture picture={picture} familyId={familyArg} />}
+      {tab === "assets" && <AssetsTab familyId={id} editable={!advisorView} />}
       {tab === "summary" && overview && (
         <PictureSummaryView picture={picture} bank={overview} familyId={familyArg} planHref={planHref} />
       )}
