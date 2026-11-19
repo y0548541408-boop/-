@@ -135,7 +135,7 @@ export const FINANCE_SECTIONS: Section[] = [
     id: "budget",
     letter: "ג",
     title: "התקציב החודשי",
-    intro: "תמונה כללית של מה שנכנס ומה שיוצא. הערכה מספיקה, את הפרטים נעשה יחד.",
+    intro: "תמונה כללית של מה שנכנס ומה שיוצא. הערכה מספיקה, את הפרטים נעבור יחד.",
     fields: [
       {
         key: "totalIncome",
