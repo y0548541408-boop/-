@@ -161,9 +161,9 @@ export function MonthlyPicture({ picture, familyId }: { picture: Picture; family
         title="התמונה החודשית, כמו שהיא היום"
         incomeLabel="נכנס בחודש"
         income={s.monthlyIncome.now}
-        expenseLabel="יוצא בחודש (בלי חובות)"
-        expense={s.monthlyExpenseNoDebt.now}
-        note={s.monthlyDebts.now ? `ועוד ${money(s.monthlyDebts.now)} החזרי חובות בחודש.` : undefined}
+        expenseLabel="יוצא בחודש (כולל חובות)"
+        expense={s.monthlyExpenseNoDebt.now + s.monthlyDebts.now}
+        note={s.monthlyDebts.now ? `מתוכם ${money(s.monthlyDebts.now)} החזרי חובות בחודש.` : undefined}
       />
       <p className="mt-3 text-base">
         ממלאים כמה זה היום, בערך. לא צריך להיות מדויק, מספיק קרוב. בלחיצה על &quot;פרטים&quot; אפשר להוסיף יעד חדש, סדר עדיפות והערה.
