@@ -19,6 +19,8 @@ import PensionSection from "./PensionSection";
 import { archiveFromForm, restoreFromForm } from "./archiveActions";
 import DeleteFamilyForm from "./DeleteFamilyForm";
 import DocumentUploadForm from "./DocumentUploadForm";
+import QuestionnaireSection from "./QuestionnaireSection";
+import { KINDS, QUESTIONNAIRES, getQuestionnaire } from "@/lib/questionnaires";
 
 // Recording analysis runs in the background after the upload; give it room.
 export const maxDuration = 300;
@@ -89,6 +91,7 @@ export default async function AdminFamilyPage({
       members: { orderBy: { createdAt: "asc" } },
       recordings: { where: { status: { not: "discarded" } }, orderBy: { createdAt: "desc" } },
       advisorInsights: { where: { dismissed: false }, orderBy: { createdAt: "desc" } },
+      mortgageQuestionnaires: { orderBy: { createdAt: "desc" } },
     },
   });
 
@@ -194,6 +197,24 @@ export default async function AdminFamilyPage({
             phone: m.phone,
             role: m.role,
             accessToken: m.accessToken,
+          }))}
+        />
+
+        <QuestionnaireSection
+          familyId={family.id}
+          kinds={KINDS.map((k) => ({ value: k, title: QUESTIONNAIRES[k].title }))}
+          hasRecipients={family.members.some((m) => !!m.email)}
+          questionnaires={family.mortgageQuestionnaires.map((q) => ({
+            id: q.id,
+            title: getQuestionnaire(q.kind).title,
+            submitted: q.status === "submitted",
+            createdAt: q.createdAt.toLocaleDateString("he-IL"),
+            submittedAt: q.submittedAt ? q.submittedAt.toLocaleDateString("he-IL") : null,
+            meetingLabel: q.meetingAt
+              ? q.meetingAt.toLocaleString("he-IL", { timeZone: "Asia/Jerusalem", weekday: "long", day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })
+              : null,
+            meetingPlace: q.meetingPlace,
+            link: `${appOrigin}/q/${q.token}`,
           }))}
         />
 

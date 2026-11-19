@@ -125,6 +125,7 @@ model Family {
   meetingSummaries    MeetingSummary[]
   recordings          MeetingRecording[]
   advisorInsights     AdvisorInsight[]
+  mortgageQuestionnaires MortgageQuestionnaire[]
   tasks               Task[]
   whatsappMessages    WhatsappInboundMessage[]
   notifications       NotificationLog[]
@@ -528,7 +529,13 @@ model MortgageQuestionnaire {
   responses   Json?
   submittedAt DateTime?                   @map("submitted_at")
   createdAt   DateTime                    @default(now()) @map("created_at")
+  // Set when the questionnaire was sent from a client's family page.
+  familyId    String?                     @map("family_id")
+  family      Family?                     @relation(fields: [familyId], references: [id], onDelete: Cascade)
+  meetingAt   DateTime?                   @map("meeting_at") // the meeting this questionnaire prepares for
+  meetingPlace String?                    @map("meeting_place")
 
+  @@index([familyId])
   @@map("mortgage_questionnaires")
 }
 

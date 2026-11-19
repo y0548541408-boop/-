@@ -59,6 +59,51 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
+// Sent to a client (each family member with an email) with the questionnaire link
+// and the details of the meeting it prepares for.
+export async function sendClientQuestionnaireEmail(input: {
+  to: string;
+  firstName: string;
+  title: string;
+  intro: string;
+  link: string;
+  meetingLabel: string | null;
+  meetingPlace: string | null;
+}): Promise<{ ok: true } | { error: string }> {
+  const meetingRows = [
+    input.meetingLabel ? `<tr><td style="padding:6px 0;color:#6b7280;">מועד הפגישה</td><td style="padding:6px 0;"><strong>${escapeHtml(input.meetingLabel)}</strong></td></tr>` : "",
+    input.meetingPlace ? `<tr><td style="padding:6px 0;color:#6b7280;">מיקום</td><td style="padding:6px 0;"><strong>${escapeHtml(input.meetingPlace)}</strong></td></tr>` : "",
+  ].join("");
+  const meetingBox = meetingRows
+    ? `<table style="width:100%;border-collapse:collapse;background:#F7F2E8;border-radius:10px;padding:8px 14px;margin:0 0 22px;">${meetingRows}</table>`
+    : `<p style="font-size:14px;color:#1B2B2A;margin:0 0 22px;">את מועד הפגישה נקבע יחד בהמשך.</p>`;
+
+  const html = `
+    <div dir="rtl" style="background:#F7F2E8;padding:24px 8px;">
+      <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;padding:28px;font-family:Arial,sans-serif;color:#1B2B2A;">
+        <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#1F5F5B;">שרמן</div>
+        <div style="font-size:12px;color:#A35530;margin-bottom:22px;">משכנתאות וכלכלת המשפחה</div>
+        <p style="font-size:16px;margin:0 0 10px;">שלום ${escapeHtml(input.firstName)},</p>
+        <p style="font-size:15px;line-height:1.6;margin:0 0 18px;">${escapeHtml(input.intro)}</p>
+        ${meetingBox}
+        <p style="font-size:15px;margin:0 0 22px;">${escapeHtml(input.title)} לוקח כמה דקות. אפשר לעצור באמצע ולהמשיך אחר כך.</p>
+        <a href="${input.link}" style="background:#1F5F5B;color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;display:inline-block;font-size:14px;font-weight:600;">למילוי השאלון</a>
+        <p style="font-size:13px;color:#6b7280;margin-top:22px;">הקישור אישי לכם. לא צריך סיסמה, ואין צורך להירשם.</p>
+        <p style="font-family:Georgia,serif;color:#A35530;font-size:14px;margin-top:24px;">נתראה בפגישה.</p>
+      </div>
+    </div>`;
+
+  const { error } = await resend.emails.send({
+    from: FROM_ADDRESS,
+    to: input.to,
+    subject: `${input.title}: לקראת הפגישה`,
+    html,
+  });
+
+  if (error) return { error: error.message };
+  return { ok: true };
+}
+
 // Sent to the advisor when a client submits a questionnaire (mortgage or coaching). Colors follow the brand guide (green #1F5F5B, accent #C8734A).
 export async function sendQuestionnaireSubmittedEmail(input: {
   title: string;
