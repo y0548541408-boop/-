@@ -17,6 +17,7 @@ import RecordingSection, { type RecordingView } from "./RecordingSection";
 import InsightsSection, { type InsightView } from "./InsightsSection";
 import PensionSection from "./PensionSection";
 import { archiveFromForm, restoreFromForm } from "./archiveActions";
+import DeleteFamilyForm from "./DeleteFamilyForm";
 import DocumentUploadForm from "./DocumentUploadForm";
 
 // Recording analysis runs in the background after the upload; give it room.
@@ -120,6 +121,7 @@ export default async function AdminFamilyPage({
             </button>
           </form>
         </div>
+        {family.archivedAt && <DeleteFamilyForm familyId={family.id} displayName={family.displayName} />}
         <h1 className="mt-2 text-xl font-semibold text-brand-teal">
           {family.displayName}
         </h1>
