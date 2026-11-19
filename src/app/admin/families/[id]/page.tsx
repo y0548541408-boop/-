@@ -6,7 +6,6 @@ import { getCurrentAdvisor } from "@/lib/advisor";
 import { prisma } from "@/lib/prisma";
 import { getFamilyTasks } from "@/lib/tasks";
 import {
-  uploadDocument,
   addMeetingSummary,
   toggleFamilyDebt,
   setFamilyBudgetOnly,
@@ -17,6 +16,7 @@ import DocumentRow from "./DocumentRow";
 import RecordingSection, { type RecordingView } from "./RecordingSection";
 import InsightsSection, { type InsightView } from "./InsightsSection";
 import PensionSection from "./PensionSection";
+import DocumentUploadForm from "./DocumentUploadForm";
 
 // Recording analysis runs in the background after the upload; give it room.
 export const maxDuration = 300;
@@ -241,31 +241,7 @@ export default async function AdminFamilyPage({
             </div>
           )}
 
-          <form
-            action={uploadDocument}
-            className="mt-4 space-y-2 border-t border-gray-100 pt-4"
-          >
-            <input type="hidden" name="familyId" value={family.id} />
-            <input
-              type="text"
-              name="tag"
-              required
-              placeholder='תגית (למשל "הקלטת פגישה 3" או "תלוש שכר")'
-              className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            />
-            <input
-              type="file"
-              name="file"
-              required
-              className="w-full text-sm text-gray-600 file:ml-3 file:rounded-lg file:border-0 file:bg-brand-teal/5 file:px-3 file:py-2 file:text-brand-teal"
-            />
-            <button
-              type="submit"
-              className="w-full rounded-lg bg-brand-teal px-3 py-2 text-sm font-medium text-white hover:bg-brand-teal-dark"
-            >
-              העלאה
-            </button>
-          </form>
+          <DocumentUploadForm familyId={family.id} />
         </div>
 
         <div className="mt-5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
