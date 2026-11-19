@@ -273,3 +273,72 @@ export async function analyzeFamilyDocuments(input: {
     for (const f of uploaded) await deleteFile(f.name);
   }
 }
+
+// ---- Pension / provident / study-fund reports (clearing house) ----
+
+export type PensionDraftItem = { name: string; group: string; value: number };
+
+const PENSION_PROMPT = `מצורף דוח ממסלקה הפנסיונית בישראל, שמפרט קופות גמל, קרנות השתלמות, פוליסות ופנסיה של אדם אחד.
+
+החזר JSON לפי הסכמה בלבד. לכל מוצר שמופיע בדוח, החזר:
+- name: שם המוצר או הגוף (למשל "קרן השתלמות איילון" או "קופת גמל מגדל"). בלי מספרי פוליסה או חשבון.
+- group: אחד מ: "פנסיה וקרנות" (פנסיה, קופת גמל, קרן השתלמות, ביטוח מנהלים), או "השקעות" (קרנות נאמנות ומניות).
+- value: היתרה או שווי הצבירה הנוכחי בשקלים, כמספר בלבד. אם יש כמה תאריכים, קח את האחרון.
+
+כללים: אל תכלול מספרי תעודת זהות, מספרי חשבון או פוליסה, כתובות או שמות פרטיים של אנשים. אם סכום לא ברור, דלג על המוצר במקום לנחש. אם אין מוצרים, החזר רשימה ריקה.`;
+
+const PENSION_SCHEMA = {
+  type: "OBJECT",
+  properties: {
+    items: {
+      type: "ARRAY",
+      items: {
+        type: "OBJECT",
+        properties: {
+          name: { type: "STRING" },
+          group: { type: "STRING", enum: ["פנסיה וקרנות", "השקעות"] },
+          value: { type: "NUMBER" },
+        },
+        required: ["name", "group", "value"],
+      },
+    },
+  },
+  required: ["items"],
+};
+
+export async function analyzePensionReport(input: { pdf: ArrayBuffer; displayName: string }): Promise<PensionDraftItem[]> {
+  const key = apiKey();
+  const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+  const file = await uploadAudio(input.pdf, "application/pdf", input.displayName);
+  try {
+    const res = await fetch(`${API}/v1beta/models/${model}:generateContent`, {
+      method: "POST",
+      headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            role: "user",
+            parts: [{ file_data: { mime_type: "application/pdf", file_uri: file.uri } }, { text: PENSION_PROMPT }],
+          },
+        ],
+        generationConfig: { responseMimeType: "application/json", responseSchema: PENSION_SCHEMA, temperature: 0.1 },
+      }),
+    });
+    if (!res.ok) throw await geminiError(res, "ניתוח הדוח");
+
+    const data = (await res.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
+    const text = data.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("");
+    if (!text) throw new Error("Gemini לא החזיר תשובה לניתוח הדוח.");
+
+    const parsed = JSON.parse(text) as { items?: Partial<PensionDraftItem>[] };
+    return (parsed.items ?? [])
+      .map((i) => ({
+        name: String(i.name ?? "").trim(),
+        group: i.group === "השקעות" ? "השקעות" : "פנסיה וקרנות",
+        value: Number.isFinite(i.value) ? Math.round(Number(i.value)) : 0,
+      }))
+      .filter((i) => i.name && i.value > 0);
+  } finally {
+    await deleteFile(file.name);
+  }
+}

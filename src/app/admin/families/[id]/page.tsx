@@ -16,6 +16,7 @@ import AdminShell from "@/components/admin/AdminShell";
 import DocumentRow from "./DocumentRow";
 import RecordingSection, { type RecordingView } from "./RecordingSection";
 import InsightsSection, { type InsightView } from "./InsightsSection";
+import PensionSection from "./PensionSection";
 
 // Recording analysis runs in the background after the upload; give it room.
 export const maxDuration = 300;
@@ -206,6 +207,8 @@ export default async function AdminFamilyPage({
             </p>
           </div>
         )}
+
+        <PensionSection familyId={family.id} />
 
         <InsightsSection
           familyId={family.id}
