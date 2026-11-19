@@ -25,7 +25,10 @@ export async function prepareDocumentUpload(input: {
   if (!input.tag.trim()) return { error: "צריך לכתוב תגית למסמך." };
   if (!input.filename.trim()) return { error: "לא נבחר קובץ." };
 
-  const path = `${input.familyId}/${Date.now()}-${input.filename}`;
+  // The stored name is random and safe for URLs (no #, %, ? or Hebrew). The real
+  // file name is kept in the database and shown to the advisor.
+  const ext = input.filename.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") ?? "";
+  const path = `${input.familyId}/${Date.now()}-${Math.random().toString(36).slice(2, 10)}${ext ? `.${ext}` : ""}`;
   const { data, error } = await createAdminClient().storage.from(DOCUMENTS_BUCKET).createSignedUploadUrl(path);
   if (error || !data) return { error: "לא הצלחתי להכין העלאה. נסה שוב." };
   return { bucket: DOCUMENTS_BUCKET, path, token: data.token };
