@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { prisma } from "@/lib/prisma";
 import { sendQuestionnaireSubmittedEmail } from "@/lib/email";
 import { getQuestionnaire } from "@/lib/questionnaires";
+import { buildDigest } from "@/lib/questionnaireDigest";
 import type { QuestionnaireResponses, Row, Tables, Values } from "@/lib/questionnaire/core";
 
 type ActionResult = { error: string } | { ok: true };
@@ -68,6 +69,7 @@ export async function submitQuestionnaire(token: string, data: QuestionnaireResp
     to: questionnaire.advisor.email,
     clientName: responses.values["b1.fullName"] || questionnaire.clientName,
     reportLink,
+    digest: buildDigest(questionnaire.kind, responses),
   }).catch((e: unknown) => ({ error: String(e) }));
   if ("error" in mail) console.error("submitQuestionnaire email:", mail.error);
 

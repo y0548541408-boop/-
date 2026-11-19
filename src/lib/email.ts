@@ -1,4 +1,5 @@
 import { Resend } from "resend";
+import type { Digest } from "./questionnaireDigest";
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
@@ -110,15 +111,45 @@ export async function sendQuestionnaireSubmittedEmail(input: {
   to: string;
   clientName: string;
   reportLink: string;
+  digest?: Digest;
 }): Promise<{ ok: true } | { error: string }> {
   const name = escapeHtml(input.clientName);
+  const d = input.digest;
+  const section = (heading: string, body: string) =>
+    body
+      ? `<div style="margin:0 0 18px;"><div style="font-size:13px;font-weight:700;color:#1F5F5B;margin-bottom:6px;">${heading}</div>${body}</div>`
+      : "";
+  const rowsHtml = (items: { label: string; value: string }[]) =>
+    `<table style="width:100%;border-collapse:collapse;font-size:14px;">${items
+      .map(
+        (r) =>
+          `<tr><td style="padding:6px 0;border-bottom:1px solid #eee;color:#6b7280;">${escapeHtml(r.label)}</td><td style="padding:6px 0;border-bottom:1px solid #eee;text-align:left;"><strong>${escapeHtml(r.value)}</strong></td></tr>`
+      )
+      .join("")}</table>`;
+  const digestHtml = d
+    ? [
+        section("פרטי קשר", d.contacts.length ? rowsHtml(d.contacts) : ""),
+        section("המספרים", d.figures.length ? rowsHtml(d.figures) : ""),
+        section(
+          "נקודות לתשומת לב",
+          d.insights.length
+            ? `<ul style="margin:0;padding-right:18px;font-size:14px;line-height:1.6;">${d.insights.map((t) => `<li>${escapeHtml(t)}</li>`).join("")}</ul>`
+            : ""
+        ),
+        section(
+          "במילים שלהם",
+          d.notes.map((n) => `<p style="margin:0 0 8px;font-size:14px;line-height:1.6;"><span style="color:#6b7280;">${escapeHtml(n.label)}:</span> ${escapeHtml(n.text)}</p>`).join("")
+        ),
+      ].join("")
+    : "";
   const html = `
     <div dir="rtl" style="background:#F7F2E8;padding:24px 8px;">
       <div style="max-width:480px;margin:0 auto;background:#ffffff;border-radius:16px;padding:28px;font-family:Arial,sans-serif;color:#1B2B2A;">
         <div style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#1F5F5B;">שרמן</div>
         <div style="font-size:12px;color:#A35530;margin-bottom:22px;">משכנתאות וכלכלת המשפחה</div>
         <p style="font-size:16px;margin:0 0 8px;"><strong>${name}</strong> מילא/ה את ה${escapeHtml(input.title)}.</p>
-        <p style="font-size:14px;color:#1B2B2A;opacity:.85;margin:0 0 22px;">הדוח המפורט מחכה לך: תמונת מצב, נקודות לתשומת לב וכל התשובות.</p>
+        ${digestHtml}
+        <p style="font-size:14px;color:#1B2B2A;opacity:.85;margin:0 0 22px;">הדוח המלא מחכה לך: כל התשובות, תמונת מצב וחישובים.</p>
         <a href="${input.reportLink}" style="background:#1F5F5B;color:#fff;padding:12px 22px;border-radius:10px;text-decoration:none;display:inline-block;font-size:14px;font-weight:600;">לצפייה בדוח</a>
         <p style="font-family:Georgia,serif;color:#A35530;font-size:14px;margin-top:28px;">חותמים בראש שקט.</p>
       </div>
