@@ -39,8 +39,9 @@ export default async function MappingScreen({
   if (noCategories) await ensureDefaultCategories(id);
 
   const needsBank = tab === "bank" || tab === "summary";
-  const [picture, overview, expenseCategories, incomeCategories] = await Promise.all([
+  const [picture, members, overview, expenseCategories, incomeCategories] = await Promise.all([
     getPicture(id),
+    prisma.familyMember.findMany({ where: { familyId: id }, select: { fullName: true, role: true } }),
     needsBank ? getMappingOverview(id) : Promise.resolve(null),
     needsBank
       ? prisma.budgetCategory.findMany({ where: { familyId: id, isActive: true }, select: { id: true, name: true }, orderBy: { createdAt: "asc" } })
@@ -52,6 +53,13 @@ export default async function MappingScreen({
 
   const familyArg = advisorView ? id : undefined;
 
+  // Show the first names from the family's details. The stored group names stay the same.
+  const firstName = (role: "primary" | "spouse") => {
+    const full = members.find((m) => m.role === role)?.fullName.trim().split(/\s+/)[0];
+    return full || null;
+  };
+  const names = { husband: firstName("primary"), wife: firstName("spouse") };
+
   return (
     <div>
       <AutoRefresh />
@@ -61,8 +69,8 @@ export default async function MappingScreen({
 
       <MappingTabs active={tab} basePath={basePath} />
 
-      {tab === "monthly" && <MonthlyPicture picture={picture} familyId={familyArg} />}
-      {tab === "annual" && <AnnualPicture picture={picture} familyId={familyArg} />}
+      {tab === "monthly" && <MonthlyPicture picture={picture} familyId={familyArg} names={names} />}
+      {tab === "annual" && <AnnualPicture picture={picture} familyId={familyArg} names={names} />}
       {tab === "assets" && <AssetsTab familyId={id} editable={!advisorView} />}
       {tab === "summary" && overview && (
         <PictureSummaryView picture={picture} bank={overview} familyId={familyArg} planHref={planHref} />

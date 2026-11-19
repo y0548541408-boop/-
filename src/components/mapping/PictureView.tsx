@@ -158,7 +158,15 @@ function SectionTitle({ children, sub }: { children: React.ReactNode; sub?: stri
   );
 }
 
-export function MonthlyPicture({ picture, familyId }: { picture: Picture; familyId?: string }) {
+// The husband and wife groups are shown by their first names when the family has them.
+type Names = { husband: string | null; wife: string | null };
+function groupTitle(groupName: string, names: Names): string | undefined {
+  if (groupName === G.husband && names.husband) return names.husband;
+  if (groupName === G.wife && names.wife) return names.wife;
+  return undefined;
+}
+
+export function MonthlyPicture({ picture, familyId, names }: { picture: Picture; familyId?: string; names: Names }) {
   const s = picture.summary;
   return (
     <div>
@@ -179,7 +187,7 @@ export function MonthlyPicture({ picture, familyId }: { picture: Picture; family
           <SectionTitle>הכנסות</SectionTitle>
           <div className="space-y-3">
             {picture.groups.monthlyIncome.map((g, i) => (
-              <GroupCard key={g.groupName} familyId={familyId} group={g} period="monthly" kind="income" defaultOpen={i === 0} />
+              <GroupCard key={g.groupName} familyId={familyId} group={g} period="monthly" kind="income" defaultOpen={i === 0} title={groupTitle(g.groupName, names)} />
             ))}
           </div>
         </div>
@@ -196,7 +204,7 @@ export function MonthlyPicture({ picture, familyId }: { picture: Picture; family
   );
 }
 
-export function AnnualPicture({ picture, familyId }: { picture: Picture; familyId?: string }) {
+export function AnnualPicture({ picture, familyId, names }: { picture: Picture; familyId?: string; names: Names }) {
   const s = picture.summary;
   return (
     <div>
@@ -225,7 +233,7 @@ export function AnnualPicture({ picture, familyId }: { picture: Picture; familyI
             kind="income"
             defaultOpen={i === 0}
             showWhen
-            title={g.groupName === G.productivityLoss ? "חודשים עם פחות הכנסה (יורד מהסכום)" : undefined}
+            title={g.groupName === G.productivityLoss ? "חודשים עם פחות הכנסה (יורד מהסכום)" : groupTitle(g.groupName, names)}
           />
         ))}
       </div>
