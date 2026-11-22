@@ -20,6 +20,7 @@ import { archiveFromForm, restoreFromForm } from "./archiveActions";
 import DeleteFamilyForm from "./DeleteFamilyForm";
 import DocumentUploadForm from "./DocumentUploadForm";
 import QuestionnaireSection from "./QuestionnaireSection";
+import OnboardingAnswers from "./OnboardingAnswers";
 import { KINDS, QUESTIONNAIRES, getQuestionnaire } from "@/lib/questionnaires";
 
 // Recording analysis runs in the background after the upload; give it room.
@@ -92,6 +93,7 @@ export default async function AdminFamilyPage({
       recordings: { where: { status: { not: "discarded" } }, orderBy: { createdAt: "desc" } },
       advisorInsights: { where: { dismissed: false }, orderBy: { createdAt: "desc" } },
       mortgageQuestionnaires: { orderBy: { createdAt: "desc" } },
+      questionnaires: { orderBy: { submittedAt: "desc" }, take: 1 },
     },
   });
 
@@ -238,6 +240,13 @@ export default async function AdminFamilyPage({
               /onboarding/{family.onboardingToken}
             </p>
           </div>
+        )}
+
+        {family.questionnaires[0] && (
+          <OnboardingAnswers
+            responses={(family.questionnaires[0].responses ?? {}) as Record<string, unknown>}
+            submittedAt={family.questionnaires[0].submittedAt.toLocaleDateString("he-IL")}
+          />
         )}
 
         <PensionSection familyId={family.id} />
