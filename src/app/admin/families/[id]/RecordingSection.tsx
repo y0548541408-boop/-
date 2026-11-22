@@ -310,29 +310,46 @@ export default function RecordingSection({
   // While the AI works in the background, check back every few seconds.
   useEffect(() => {
     if (!processing) return;
-    const timer = setInterval(() => router.refresh(), 6000);
+    const timer = setInterval(() => router.refresh(), 3000);
     return () => clearInterval(timer);
   }, [processing, router]);
 
+  // Items that need the advisor's attention come first. Published ones move to a folded list.
+  const open = recordings.filter((r) => r.status !== "published");
+  const published = recordings.filter((r) => r.status === "published");
+
   return (
     <div className="mt-5 rounded-2xl border border-brand-teal/10 bg-white p-4 shadow-sm shadow-brand-teal/5">
-      <h2 className="text-sm font-semibold text-brand-teal">העלאת פגישה: הקלטה, תמלול, וורד או PDF</h2>
-      <p className="mt-0.5 text-xs text-gray-500">המערכת מכינה טיוטת סיכום ומשימות. אתה בודק ומאשר לפני שהלקוח רואה.</p>
-      <p className="mt-1 text-xs text-gray-500">
-        מעלים הקלטה, המערכת מכינה סיכום ללקוח ורשימת משימות. שום דבר לא מגיע ללקוח לפני שאתה מאשר.
+      <h2 className="text-sm font-semibold text-brand-teal">פגישות: העלאה וסיכום</h2>
+      <p className="mt-0.5 text-xs text-gray-500">
+        מעלים הקלטה או תמלול. המערכת מכינה טיוטה, אתה בודק ומאשר, ואז הלקוח רואה. שום דבר לא מגיע ללקוח בלי אישורך.
       </p>
 
-      {recordings.length > 0 && (
+      {open.length > 0 && (
         <div className="mt-3 space-y-2">
-          {recordings.map((r) => (
+          {open.map((r) => (
             <RecordingCard key={r.id} familyId={familyId} recording={r} />
           ))}
         </div>
       )}
 
-      <div className="border-t border-gray-100 pt-1">
+      <div className="mt-3 rounded-xl bg-brand-teal/5 p-3">
+        <p className="mb-2 text-xs font-semibold text-gray-700">העלאה חדשה</p>
         <UploadForm familyId={familyId} today={today} />
       </div>
+
+      {published.length > 0 && (
+        <details className="mt-3">
+          <summary className="cursor-pointer text-xs font-medium text-gray-600">
+            פגישות שפורסמו ללקוח ({published.length})
+          </summary>
+          <div className="mt-2 space-y-2">
+            {published.map((r) => (
+              <RecordingCard key={r.id} familyId={familyId} recording={r} />
+            ))}
+          </div>
+        </details>
+      )}
     </div>
   );
 }
