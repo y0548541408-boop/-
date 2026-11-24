@@ -108,6 +108,19 @@ async function uploadAudio(audio: ArrayBuffer, mimeType: string, displayName: st
   return file;
 }
 
+const RETRYABLE = [429, 500, 502, 503, 504];
+
+// Calls the request again after a short wait when the service is busy.
+async function withRetry(send: () => Promise<Response>): Promise<Response> {
+  let res = await send();
+  for (const waitMs of [4000, 10000, 20000]) {
+    if (!RETRYABLE.includes(res.status)) break;
+    await new Promise((r) => setTimeout(r, waitMs));
+    res = await send();
+  }
+  return res;
+}
+
 async function deleteFile(name: string) {
   await fetch(`${API}/v1beta/${name}`, {
     method: "DELETE",
@@ -120,18 +133,22 @@ async function requestDraft(parts: Record<string, unknown>[]): Promise<MeetingDr
   const key = apiKey();
   const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
 
-  const res = await fetch(`${API}/v1beta/models/${model}:generateContent`, {
-    method: "POST",
-    headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ role: "user", parts: [...parts, { text: PROMPT }] }],
-      generationConfig: {
-        responseMimeType: "application/json",
-        responseSchema: SCHEMA,
-        temperature: 0.3,
-      },
-    }),
+  const body = JSON.stringify({
+    contents: [{ role: "user", parts: [...parts, { text: PROMPT }] }],
+    generationConfig: {
+      responseMimeType: "application/json",
+      responseSchema: SCHEMA,
+      temperature: 0.3,
+    },
   });
+  // Google returns 503/429 when the model is busy. Wait and try again before giving up.
+  const res = await withRetry(() =>
+    fetch(`${API}/v1beta/models/${model}:generateContent`, {
+      method: "POST",
+      headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
+      body,
+    })
+  );
   if (!res.ok) throw await geminiError(res, "יצירת הסיכום");
 
   const data = (await res.json()) as {
