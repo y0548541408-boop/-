@@ -196,15 +196,137 @@ export function parsePictureWorkbook(buffer: ArrayBuffer): ImportResult {
   }
 
   const lines: ImportedLine[] = [];
-  let found = 0;
-  for (const tab of TABS) {
-    const sheetName = wb.SheetNames.find((n) => n.includes(tab.match));
-    if (!sheetName) continue;
-    found++;
-    lines.push(...readTab(wb.Sheets[sheetName], tab.period));
+  for (const sheetName of wb.SheetNames) {
+    if (SUMMARY_SHEET.test(sheetName)) continue;
+    const ws = wb.Sheets[sheetName];
+    const tab = TABS.find((t) => sheetName.includes(t.match));
+    // The picture workbook's own tabs, with an amount column.
+    if (tab || hasAmountHeader(ws)) {
+      lines.push(...readTab(ws, tab?.period ?? "monthly"));
+      continue;
+    }
+    // Any other workbook: each line's amount is the average of its months.
+    lines.push(...readAverages(ws, sheetName));
   }
-  if (found === 0) {
-    return { ok: false, error: 'לא מצאתי בקובץ את הלשוניות "תמונת מצב חודשית" ו"תמונת מצב שנתית".' };
+  if (lines.length === 0) {
+    return { ok: false, error: "לא מצאתי בקובץ שורות עם סכומים. בודקים שהקובץ הוא תמונת מצב או טבלה של חודשים." };
   }
   return { ok: true, lines };
+}
+
+// ---------------------------------------------------------------------------
+// Workbooks with monthly columns (e.g. three months and their average).
+// ---------------------------------------------------------------------------
+
+const SUMMARY_SHEET = /סיכום|תובנות|גרף/;
+const MONTH_HEADER = /ממוצע|יעד|הערה|מגמה|ינואר|פברואר|מרץ|אפריל|מאי|יוני|יולי|אוגוסט|ספטמבר|אוקטובר|נובמבר|דצמבר/;
+
+function hasAmountHeader(ws: XLSX.WorkSheet): boolean {
+  if (!ws["!ref"]) return false;
+  const rows = sheetRows(ws);
+  return rows.some((r) => headerCols(r) !== null);
+}
+
+function sheetRows(ws: XLSX.WorkSheet): Cell[][] {
+  const end = XLSX.utils.decode_range(ws["!ref"] ?? "A1").e;
+  return XLSX.utils.sheet_to_json<Cell[]>(ws, {
+    header: 1,
+    defval: null,
+    raw: true,
+    range: XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: end }),
+  });
+}
+
+// Where a line in a generic tab belongs: by its name, else by the tab.
+function sheetDefault(sheetName: string): { kind: PictureKind; group: string } {
+  if (sheetName.includes("הכנסות")) return { kind: "income", group: G.otherIncome };
+  if (sheetName.includes("קבועות")) return { kind: "expense", group: G.fixed };
+  if (sheetName.includes("חובות")) return { kind: "expense", group: G.debts };
+  return { kind: "expense", group: G.current };
+}
+
+// "משכורת בעל (80% משרה)" and "משכורת אשה (...)" are the job lines of the two people.
+function personLine(name: string): { name: string; block: string } | null {
+  if (/^משכורת\s*בעל/.test(name)) return { name: "משכורת (עיסוק)", block: G.husband };
+  if (/^משכורת\s*אשה/.test(name)) return { name: "משכורת (עיסוק)", block: G.wife };
+  return null;
+}
+
+function readAverages(ws: XLSX.WorkSheet, sheetName: string): ImportedLine[] {
+  if (!ws["!ref"]) return [];
+  const rows = sheetRows(ws);
+  const def = sheetDefault(sheetName);
+  const out: ImportedLine[] = [];
+
+  let avgCol = -1;
+  let targetCol = -1;
+  let notesCol = -1;
+  let monthCols: number[] = [];
+
+  for (const row of rows) {
+    const cells = row.map((c) => (typeof c === "string" ? c.trim() : c));
+    const texts = cells.filter((c) => typeof c === "string" && c.length > 0);
+    const isHeader = texts.filter((t) => typeof t === "string" && MONTH_HEADER.test(t)).length >= 2;
+    if (isHeader) {
+      const find = (re: RegExp) => cells.findIndex((c) => typeof c === "string" && re.test(c));
+      avgCol = find(/ממוצע/);
+      targetCol = find(/יעד/);
+      notesCol = find(/הערה/);
+      monthCols = cells
+        .map((c, i) => (typeof c === "string" && /ינואר|פברואר|מרץ|אפריל|מאי|יוני|יולי|אוגוסט|ספטמבר|אוקטובר|נובמבר|דצמבר/.test(c) ? i : -1))
+        .filter((i) => i >= 0);
+      continue;
+    }
+
+    const nameIdx = cells.findIndex((c) => typeof c === "string" && c.length > 0);
+    if (nameIdx < 0) continue;
+    const rawName = (cells[nameIdx] as string).slice(0, 120);
+    if (SKIP_NAME.test(rawName)) continue;
+
+    const reserved = new Set([avgCol, targetCol, notesCol]);
+    const values: number[] = [];
+    const pool = monthCols.length ? monthCols : cells.map((_, i) => i).filter((i) => i > nameIdx && !reserved.has(i));
+    for (const i of pool) {
+      const v = numberAt(cells, i);
+      if (v !== null) values.push(v);
+    }
+    const given = numberAt(cells, avgCol);
+    const amount = given ?? (values.length ? Math.round((values.reduce((s, v) => s + v, 0) / values.length) * 100) / 100 : null);
+    const target = numberAt(cells, targetCol);
+    if (!(amount || target)) continue;
+
+    const person = personLine(rawName);
+    const name = person ? person.name : rawName.trim();
+    const group = def.kind === "income" && /קצב/.test(name) ? G.benefits : def.group;
+    const resolved = resolveLine("monthly", def.kind, name, person?.block ?? null, group);
+    out.push({
+      period: "monthly",
+      ...resolved,
+      amount,
+      targetAmount: target,
+      priority: null,
+      notes: textAt(cells, notesCol, 300),
+      whenText: null,
+    });
+  }
+  return out;
+}
+
+// Finds the standard line for a name, or keeps the name in the fallback group.
+function resolveLine(
+  period: PicturePeriod,
+  kind: PictureKind,
+  name: string,
+  block: string | null,
+  fallbackGroup: string
+): { kind: PictureKind; groupName: string; subGroup: string; name: string; matched: boolean } {
+  const candidates = INDEX.get(`${period}|${keyOf(name)}`) ?? [];
+  const best = [...candidates].sort((a, b) => matchScore(b, kind, "", block) - matchScore(a, kind, "", block))[0];
+  return {
+    kind: best?.kind ?? kind,
+    groupName: best?.groupName ?? fallbackGroup,
+    subGroup: best?.subGroup ?? "",
+    name: best?.name ?? name.slice(0, 80),
+    matched: Boolean(best),
+  };
 }
