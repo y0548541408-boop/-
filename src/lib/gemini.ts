@@ -131,7 +131,8 @@ async function deleteFile(name: string) {
 // Sends the parts (audio reference or text) to Gemini and turns the JSON answer into a draft.
 async function requestDraft(parts: Record<string, unknown>[]): Promise<MeetingDraft> {
   const key = apiKey();
-  const model = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+  const primary = process.env.GEMINI_MODEL || "gemini-3.8-flash";
+  const fallback = process.env.GEMINI_FALLBACK_MODEL || "gemini-2.5-flash";
 
   const body = JSON.stringify({
     contents: [{ role: "user", parts: [...parts, { text: PROMPT }] }],
@@ -142,13 +143,17 @@ async function requestDraft(parts: Record<string, unknown>[]): Promise<MeetingDr
     },
   });
   // Google returns 503/429 when the model is busy. Wait and try again before giving up.
-  const res = await withRetry(() =>
-    fetch(`${API}/v1beta/models/${model}:generateContent`, {
-      method: "POST",
-      headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
-      body,
-    })
-  );
+  const send = (model: string) =>
+    withRetry(() =>
+      fetch(`${API}/v1beta/models/${model}:generateContent`, {
+        method: "POST",
+        headers: { "x-goog-api-key": key, "Content-Type": "application/json" },
+        body,
+      })
+    );
+  // If the main model stays busy, switch to the backup model instead of failing.
+  let res = await send(primary);
+  if (RETRYABLE.includes(res.status) && fallback !== primary) res = await send(fallback);
   if (!res.ok) throw await geminiError(res, "יצירת הסיכום");
 
   const data = (await res.json()) as {
@@ -177,6 +182,11 @@ export async function analyzeMeetingRecording(input: {
   mimeType: string;
   displayName: string;
 }): Promise<MeetingDraft> {
+  // Small PDFs go inline in the request: no upload, no waiting for processing.
+  if (input.mimeType === "application/pdf" && input.audio.byteLength < 15 * 1024 * 1024) {
+    const data = Buffer.from(input.audio).toString("base64");
+    return requestDraft([{ inline_data: { mime_type: input.mimeType, data } }]);
+  }
   const file = await uploadAudio(input.audio, input.mimeType, input.displayName);
   try {
     return await requestDraft([{ file_data: { mime_type: input.mimeType, file_uri: file.uri } }]);
