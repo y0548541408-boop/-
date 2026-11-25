@@ -4,14 +4,13 @@ import type { MappingOverview } from "@/lib/mapping";
 import { GROUP_HELP, LINE_HINTS, G } from "@/lib/pictureTemplate";
 import { PictureLineRow, AddPictureLine, HouseholdSize, ApplyPictureToPlan } from "./PictureClient";
 
-export type MappingTab = "monthly" | "annual" | "assets" | "summary" | "bank";
+export type MappingTab = "monthly" | "annual" | "assets" | "summary";
 
 const TABS: { id: MappingTab; label: string }[] = [
   { id: "monthly", label: "חודשי" },
   { id: "annual", label: "שנתי" },
   { id: "assets", label: "נכסים מול התחייבויות" },
   { id: "summary", label: "סיכום" },
-  { id: "bank", label: "מהבנק" },
 ];
 
 // Money, with the minus sign in the right place inside Hebrew text.

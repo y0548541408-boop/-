@@ -119,12 +119,17 @@ export default async function AdminFamilyPage({
           <Link href="/admin" className="text-sm text-ru-muted underline">
             ← חזרה ללקוחות
           </Link>
-          <form action={family.archivedAt ? restoreFromForm : archiveFromForm}>
-            <input type="hidden" name="familyId" value={family.id} />
-            <button type="submit" className="text-sm font-bold text-ru-muted underline hover:text-ru-ink">
-              {family.archivedAt ? "החזר מהארכיון" : "העבר לארכיון"}
-            </button>
-          </form>
+          <div className="flex items-center gap-4">
+            <a href={`/admin/families/${family.id}/view`} className="text-sm font-bold text-brand-teal underline">
+              צפייה כמו הלקוח
+            </a>
+            <form action={family.archivedAt ? restoreFromForm : archiveFromForm}>
+              <input type="hidden" name="familyId" value={family.id} />
+              <button type="submit" className="text-sm font-bold text-ru-muted underline hover:text-ru-ink">
+                {family.archivedAt ? "החזר מהארכיון" : "העבר לארכיון"}
+              </button>
+            </form>
+          </div>
         </div>
         {family.archivedAt && <DeleteFamilyForm familyId={family.id} displayName={family.displayName} />}
         <h1 className="mt-2 text-xl font-semibold text-brand-teal">

@@ -3,13 +3,12 @@ import { getMappingOverview } from "@/lib/mapping";
 import { ensurePictureLines, getPicture } from "@/lib/picture";
 import { ensureDefaultCategories, familyHasNoCategories } from "@/lib/defaultCategories";
 import AutoRefresh from "@/components/AutoRefresh";
-import MappingView from "./MappingView";
 import AssetsTab from "./AssetsTab";
 import { PictureImport } from "./PictureImport";
 import { MappingTabs, MonthlyPicture, AnnualPicture, PictureSummaryView, type MappingTab } from "./PictureView";
 
 export function parseTab(value: string | undefined): MappingTab {
-  return value === "annual" || value === "assets" || value === "summary" || value === "bank" ? value : "monthly";
+  return value === "annual" || value === "assets" || value === "summary" ? value : "monthly";
 }
 
 const INTRO: Record<MappingTab, string> = {
@@ -17,7 +16,6 @@ const INTRO: Record<MappingTab, string> = {
   annual: "ואחר כך התמונה השנתית: מה קורה פעם בשנה, כולל החגים. אנחנו מחלקים את זה ל-12.",
   assets: "מה יש לנו, ומה אנחנו חייבים. ככה רואים את המצב הכולל, לא רק את החודש.",
   summary: "כל המספרים ביחד: כמה נשאר בחודש, ומה השתנה מול הבנק.",
-  bank: "מעלים פירוט מהבנק ומהאשראי, ורואים בדיוק לאן הלך הכסף בפועל. זה בודק שהתמונה נכונה.",
 };
 
 // The whole mapping stage, shared by the client's app and the advisor's view of
@@ -39,17 +37,11 @@ export default async function MappingScreen({
   const [noCategories] = await Promise.all([familyHasNoCategories(id), ensurePictureLines(id)]);
   if (noCategories) await ensureDefaultCategories(id);
 
-  const needsBank = tab === "bank" || tab === "summary";
-  const [picture, members, overview, expenseCategories, incomeCategories] = await Promise.all([
+  // The bank numbers are only needed for the summary's comparison.
+  const [picture, members, overview] = await Promise.all([
     getPicture(id),
     prisma.familyMember.findMany({ where: { familyId: id }, select: { fullName: true, role: true } }),
-    needsBank ? getMappingOverview(id) : Promise.resolve(null),
-    needsBank
-      ? prisma.budgetCategory.findMany({ where: { familyId: id, isActive: true }, select: { id: true, name: true }, orderBy: { createdAt: "asc" } })
-      : Promise.resolve([]),
-    needsBank
-      ? prisma.incomeCategory.findMany({ where: { familyId: id, isActive: true }, select: { id: true, name: true }, orderBy: { createdAt: "asc" } })
-      : Promise.resolve([]),
+    tab === "summary" ? getMappingOverview(id) : Promise.resolve(null),
   ]);
 
   const familyArg = advisorView ? id : undefined;
@@ -77,15 +69,6 @@ export default async function MappingScreen({
       {tab === "assets" && <AssetsTab familyId={id} advisorView={advisorView} />}
       {tab === "summary" && overview && (
         <PictureSummaryView picture={picture} bank={overview} familyId={familyArg} planHref={planHref} />
-      )}
-      {tab === "bank" && overview && (
-        <MappingView
-          overview={overview}
-          expenseCategories={expenseCategories}
-          incomeCategories={incomeCategories}
-          familyId={familyArg}
-          planHref={planHref}
-        />
       )}
     </div>
   );
