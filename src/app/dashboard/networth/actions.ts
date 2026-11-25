@@ -3,12 +3,28 @@
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { getCurrentFamilyMember } from "@/lib/currentMember";
+import { getCurrentAdvisor } from "@/lib/advisor";
 import { recordNetWorthSnapshot } from "@/lib/netWorth";
 
 export type Result = { error: string } | { ok: true };
 
 function refresh() {
   revalidatePath("/dashboard", "layout");
+  revalidatePath("/admin", "layout");
+}
+
+// The client edits their own family. The advisor edits a family of theirs when familyId is given.
+async function resolveNetWorthFamily(familyId?: string): Promise<{ familyId: string } | { error: string }> {
+  if (familyId) {
+    const advisor = await getCurrentAdvisor();
+    if (!advisor) return { error: "יש להתחבר מחדש." };
+    const family = await prisma.family.findFirst({ where: { id: familyId, advisorId: advisor.id }, select: { id: true } });
+    if (!family) return { error: "המשפחה לא נמצאה." };
+    return { familyId };
+  }
+  const member = await getCurrentFamilyMember();
+  if (!member) return { error: "יש להתחבר מחדש." };
+  return { familyId: member.familyId };
 }
 
 function validAmount(value: number): boolean {
@@ -21,9 +37,10 @@ export async function saveNetWorthItem(input: {
   group: string;
   name: string;
   value: number;
+  familyId?: string;
 }): Promise<Result> {
-  const member = await getCurrentFamilyMember();
-  if (!member) return { error: "יש להתחבר מחדש." };
+  const who = await resolveNetWorthFamily(input.familyId);
+  if ("error" in who) return who;
 
   const name = input.name.trim();
   const group = input.group.trim();
@@ -33,31 +50,31 @@ export async function saveNetWorthItem(input: {
 
   if (input.id) {
     const result = await prisma.netWorthItem.updateMany({
-      where: { id: input.id, familyId: member.familyId },
+      where: { id: input.id, familyId: who.familyId },
       data: { name, group, value: input.value },
     });
     if (result.count === 0) return { error: "הפריט לא נמצא." };
   } else {
     await prisma.netWorthItem.create({
-      data: { familyId: member.familyId, kind: input.kind, group, name, value: input.value },
+      data: { familyId: who.familyId, kind: input.kind, group, name, value: input.value },
     });
   }
 
-  await recordNetWorthSnapshot(member.familyId);
+  await recordNetWorthSnapshot(who.familyId);
   refresh();
   return { ok: true };
 }
 
-export async function deleteNetWorthItem(input: { id: string }): Promise<Result> {
-  const member = await getCurrentFamilyMember();
-  if (!member) return { error: "יש להתחבר מחדש." };
+export async function deleteNetWorthItem(input: { id: string; familyId?: string }): Promise<Result> {
+  const who = await resolveNetWorthFamily(input.familyId);
+  if ("error" in who) return who;
 
   const result = await prisma.netWorthItem.deleteMany({
-    where: { id: input.id, familyId: member.familyId },
+    where: { id: input.id, familyId: who.familyId },
   });
   if (result.count === 0) return { error: "הפריט לא נמצא." };
 
-  await recordNetWorthSnapshot(member.familyId);
+  await recordNetWorthSnapshot(who.familyId);
   refresh();
   return { ok: true };
 }

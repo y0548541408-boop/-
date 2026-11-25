@@ -6,8 +6,8 @@ import { formatShekel } from "@/app/dashboard/RiseCard";
 const CARD = "rounded-3xl bg-white p-5 shadow-[0_2px_14px_rgba(11,95,88,0.07)]";
 
 // The "assets against liabilities" part of the mapping. The client fills it in on
-// their own side; the advisor sees the totals.
-export default async function AssetsTab({ familyId, editable }: { familyId: string; editable: boolean }) {
+// their own side; the advisor fills it in for the family too (advisorView).
+export default async function AssetsTab({ familyId, advisorView }: { familyId: string; advisorView?: boolean }) {
   const worth = await getFamilyNetWorth(familyId);
 
   return (
@@ -30,20 +30,22 @@ export default async function AssetsTab({ familyId, editable }: { familyId: stri
         </div>
       </div>
 
-      {editable ? (
-        <>
-          <NetWorthItems kind="asset" title="נכסים" total={worth.assets} groups={worth.assetGroups} groupOptions={ASSET_GROUPS} />
-          <NetWorthItems
-            kind="liability"
-            title="התחייבויות"
-            total={worth.liabilities}
-            groups={worth.liabilityGroups}
-            groupOptions={LIABILITY_GROUPS}
-          />
-        </>
-      ) : (
-        <p className="text-sm text-ru-muted">הלקוח ממלא את הנכסים וההתחייבויות באזור האישי שלו.</p>
-      )}
+      <NetWorthItems
+        kind="asset"
+        title="נכסים"
+        total={worth.assets}
+        groups={worth.assetGroups}
+        groupOptions={ASSET_GROUPS}
+        familyId={advisorView ? familyId : undefined}
+      />
+      <NetWorthItems
+        kind="liability"
+        title="התחייבויות"
+        total={worth.liabilities}
+        groups={worth.liabilityGroups}
+        groupOptions={LIABILITY_GROUPS}
+        familyId={advisorView ? familyId : undefined}
+      />
     </div>
   );
 }

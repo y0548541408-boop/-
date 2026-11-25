@@ -35,10 +35,12 @@ function ItemRow({
   kind,
   item,
   groups,
+  familyId,
 }: {
   kind: "asset" | "liability";
   item: Item;
   groups: readonly string[];
+  familyId?: string;
 }) {
   const { isPending, error, run } = useAction();
   const [editing, setEditing] = useState(false);
@@ -54,7 +56,7 @@ function ItemRow({
         onSubmit={(e) => {
           e.preventDefault();
           run(
-            () => saveNetWorthItem({ id: item.id, kind, group, name, value: Number(value) }),
+            () => saveNetWorthItem({ id: item.id, kind, group, name, value: Number(value), familyId }),
             () => setEditing(false)
           );
         }}
@@ -111,7 +113,7 @@ function ItemRow({
             <button
               type="button"
               disabled={isPending}
-              onClick={() => run(() => deleteNetWorthItem({ id: item.id }))}
+              onClick={() => run(() => deleteNetWorthItem({ id: item.id, familyId }))}
               className="rounded-full bg-ru-pink px-3 py-1 font-bold text-white disabled:opacity-50"
             >
               כן
@@ -140,7 +142,15 @@ function ItemRow({
   );
 }
 
-function AddItemForm({ kind, groups }: { kind: "asset" | "liability"; groups: readonly string[] }) {
+function AddItemForm({
+  kind,
+  groups,
+  familyId,
+}: {
+  kind: "asset" | "liability";
+  groups: readonly string[];
+  familyId?: string;
+}) {
   const { isPending, error, run } = useAction();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
@@ -165,7 +175,7 @@ function AddItemForm({ kind, groups }: { kind: "asset" | "liability"; groups: re
       onSubmit={(e) => {
         e.preventDefault();
         run(
-          () => saveNetWorthItem({ kind, group, name, value: Number(value) }),
+          () => saveNetWorthItem({ kind, group, name, value: Number(value), familyId }),
           () => {
             setName("");
             setValue("");
@@ -228,12 +238,15 @@ export default function NetWorthItems({
   total,
   groups,
   groupOptions,
+  familyId,
 }: {
   kind: "asset" | "liability";
   title: string;
   total: number;
   groups: Group[];
   groupOptions: readonly string[];
+  // Set by the advisor, who edits the family's items. The client leaves it out.
+  familyId?: string;
 }) {
   const tone = kind === "asset" ? "text-ru-green" : "text-ru-pink";
 
@@ -251,11 +264,11 @@ export default function NetWorthItems({
               <span className="text-sm font-semibold text-ru-muted">{formatShekel(g.total)}</span>
             </div>
             {g.items.map((item) => (
-              <ItemRow key={item.id} kind={kind} item={item} groups={groupOptions} />
+              <ItemRow key={item.id} kind={kind} item={item} groups={groupOptions} familyId={familyId} />
             ))}
           </div>
         ))}
-        <AddItemForm kind={kind} groups={groupOptions} />
+        <AddItemForm kind={kind} groups={groupOptions} familyId={familyId} />
       </div>
     </section>
   );

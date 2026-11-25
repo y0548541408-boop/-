@@ -74,7 +74,7 @@ export default async function MappingScreen({
 
       {tab === "monthly" && <MonthlyPicture picture={picture} familyId={familyArg} names={names} />}
       {tab === "annual" && <AnnualPicture picture={picture} familyId={familyArg} names={names} />}
-      {tab === "assets" && <AssetsTab familyId={id} editable={!advisorView} />}
+      {tab === "assets" && <AssetsTab familyId={id} advisorView={advisorView} />}
       {tab === "summary" && overview && (
         <PictureSummaryView picture={picture} bank={overview} familyId={familyArg} planHref={planHref} />
       )}
