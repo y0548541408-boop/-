@@ -39,3 +39,12 @@ export async function getFamilyGoals(familyId: string): Promise<GoalItem[]> {
     };
   });
 }
+
+// The savings goals in one line: how many there are, and how much to put aside
+// each month for the ones that have a date (the rest have no monthly figure yet).
+export function summarizeGoals(goals: GoalItem[]): { count: number; monthlyNeeded: number } {
+  return {
+    count: goals.length,
+    monthlyNeeded: goals.reduce((sum, g) => sum + (g.monthlyNeeded ?? 0), 0),
+  };
+}

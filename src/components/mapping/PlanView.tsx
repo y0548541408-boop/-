@@ -9,11 +9,13 @@ export default function PlanView({
   familyId,
   mappingHref,
   picture,
+  goals,
 }: {
   overview: MappingOverview;
   familyId?: string;
   mappingHref: string;
   picture?: { hasData: boolean; expense: Record<string, number>; income: Record<string, number> };
+  goals?: { count: number; monthlyNeeded: number };
 }) {
   const usePicture = !!picture?.hasData;
   const hasMapping = usePicture || overview.transactionCount > 0 || overview.cash.length > 0;
@@ -49,6 +51,22 @@ export default function PlanView({
           <p className="text-sm text-white/85">{left < 0 ? "חסר כדי לסגור את החודש" : "נשאר כל חודש לחיסכון ולמטרות"}</p>
           <p className="font-num text-3xl font-bold">{shekel(Math.abs(left))}</p>
         </div>
+        {goals && goals.count > 0 && goals.monthlyNeeded > 0 && (
+          <p className="mt-2 text-sm text-white/85">
+            ליעדי החיסכון צריך {shekel(goals.monthlyNeeded)} בחודש.{" "}
+            {left - goals.monthlyNeeded >= 0
+              ? `אחריהם נשאר ${shekel(left - goals.monthlyNeeded)}.`
+              : `חסרים ${shekel(goals.monthlyNeeded - left)} כדי לעמוד ביעדים.`}
+          </p>
+        )}
+        {(!goals || goals.count === 0) && (
+          <p className="mt-2 text-sm text-white/85">
+            עוד אין יעד חיסכון.{" "}
+            <Link href="/dashboard/networth" className="font-bold underline">
+              קובעים יעד בלשונית יעדים ←
+            </Link>
+          </p>
+        )}
         {hasMapping && plannedExpenses > 0 && Math.abs(savingVsToday) >= 50 && (
           <p className="mt-2 text-sm text-white/85">
             {savingVsToday > 0

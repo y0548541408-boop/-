@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { getMappingOverview } from "@/lib/mapping";
+import { getFamilyGoals, summarizeGoals } from "@/lib/goals";
+import JourneySteps from "@/components/JourneySteps";
 import { ensurePictureLines, getPicture } from "@/lib/picture";
 import { ensureDefaultCategories, familyHasNoCategories } from "@/lib/defaultCategories";
 import AutoRefresh from "@/components/AutoRefresh";
@@ -38,10 +40,11 @@ export default async function MappingScreen({
   if (noCategories) await ensureDefaultCategories(id);
 
   // The bank numbers are only needed for the summary's comparison.
-  const [picture, members, overview] = await Promise.all([
+  const [picture, members, overview, goals] = await Promise.all([
     getPicture(id),
     prisma.familyMember.findMany({ where: { familyId: id }, select: { fullName: true, role: true } }),
     tab === "summary" ? getMappingOverview(id) : Promise.resolve(null),
+    tab === "summary" ? getFamilyGoals(id) : Promise.resolve([]),
   ]);
 
   const familyArg = advisorView ? id : undefined;
@@ -56,8 +59,8 @@ export default async function MappingScreen({
   return (
     <div>
       <AutoRefresh />
-      <p className="text-lg text-ru-muted">שלב 1 בתהליך</p>
-      <h1 className="text-4xl leading-tight text-ru-blue">המיפוי: איפה אנחנו היום</h1>
+      {advisorView ? <p className="text-lg text-ru-muted">שלב 1 בתהליך</p> : <JourneySteps current={1} />}
+      <h1 className="mt-4 text-4xl leading-tight text-ru-blue">המיפוי: איפה אנחנו היום</h1>
       <p className="mt-2 text-lg leading-relaxed">{INTRO[tab]}</p>
 
       {advisorView && <PictureImport familyId={id} />}
@@ -68,7 +71,13 @@ export default async function MappingScreen({
       {tab === "annual" && <AnnualPicture picture={picture} familyId={familyArg} names={names} />}
       {tab === "assets" && <AssetsTab familyId={id} advisorView={advisorView} />}
       {tab === "summary" && overview && (
-        <PictureSummaryView picture={picture} bank={overview} familyId={familyArg} planHref={planHref} />
+        <PictureSummaryView
+          picture={picture}
+          bank={overview}
+          familyId={familyArg}
+          planHref={planHref}
+          goals={goals.length ? summarizeGoals(goals) : undefined}
+        />
       )}
     </div>
   );

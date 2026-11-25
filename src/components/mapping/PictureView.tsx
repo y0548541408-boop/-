@@ -285,11 +285,13 @@ export function PictureSummaryView({
   bank,
   familyId,
   planHref,
+  goals,
 }: {
   picture: Picture;
   bank: MappingOverview;
   familyId?: string;
   planHref: string;
+  goals?: { count: number; monthlyNeeded: number };
 }) {
   const s = picture.summary;
 
@@ -330,6 +332,24 @@ export function PictureSummaryView({
         {s.diffAfterDebts.now < 0 && (
           <p className="mt-3 rounded-2xl bg-ru-pink-soft px-4 py-3 text-base font-bold">
             היום יוצא בחודש {money(-s.diffAfterDebts.now)} יותר ממה שנכנס. זה בדיוק מה שנעבוד עליו.
+          </p>
+        )}
+        {goals && goals.count > 0 && (
+          <p className="mt-3 rounded-2xl bg-ru-blue-soft px-4 py-3 text-base">
+            {goals.monthlyNeeded > 0 && (
+              <>
+                ליעדי החיסכון שקבעתם צריך {money(goals.monthlyNeeded)} בחודש.{" "}
+                {s.diffAfterDebts.target - goals.monthlyNeeded >= 0
+                  ? `אחרי זה נשאר ${money(s.diffAfterDebts.target - goals.monthlyNeeded)} בחודש.`
+                  : `חסרים ${money(goals.monthlyNeeded - s.diffAfterDebts.target)} בחודש כדי לעמוד ביעדים.`}
+              </>
+            )}
+            {goals.monthlyNeeded === 0 && "יש יעדי חיסכון, אבל עוד לא נקבע להם תאריך, אז אין עדיין סכום חודשי."}{" "}
+            {!familyId && (
+              <Link href="/dashboard/networth" className="font-bold text-ru-blue underline">
+                ליעדים ←
+              </Link>
+            )}
           </p>
         )}
       </section>
