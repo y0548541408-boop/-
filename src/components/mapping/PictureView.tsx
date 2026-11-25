@@ -21,13 +21,13 @@ function money(n: number): string {
 
 export function MappingTabs({ active, basePath }: { active: MappingTab; basePath: string }) {
   return (
-    <nav aria-label="חלקי המיפוי" className="mt-5 flex rounded-full bg-white p-1 shadow-[0_1px_6px_rgba(11,95,88,0.08)]">
+    <nav aria-label="חלקי המיפוי" className="mt-5 grid grid-cols-2 gap-1 rounded-3xl bg-white p-1.5 shadow-[0_1px_6px_rgba(11,95,88,0.08)] sm:flex sm:rounded-full">
       {TABS.map((t) => (
         <Link
           key={t.id}
           href={`${basePath}?tab=${t.id}`}
           aria-current={t.id === active ? "page" : undefined}
-          className={`flex min-h-12 flex-1 items-center justify-center rounded-full px-1 text-base font-bold transition-colors ${
+          className={`flex min-h-12 flex-1 items-center justify-center rounded-full px-2 text-center text-lg font-bold transition-colors ${
             t.id === active ? "bg-ru-blue text-white" : "text-ru-ink/70"
           }`}
         >
@@ -62,20 +62,20 @@ function GroupCard({
       open={defaultOpen}
       className="group rounded-3xl bg-white shadow-[0_4px_20px_rgba(11,95,88,0.07)] [&_summary::-webkit-details-marker]:hidden"
     >
-      <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-3 px-5 py-3">
+      <summary className="flex min-h-16 cursor-pointer list-none items-center justify-between gap-3 px-5 py-4">
         <span className="min-w-0">
-          <span className="block font-display text-xl text-ru-blue">{title ?? group.groupName}</span>
-          <span className="block text-sm text-ru-muted">
+          <span className="block font-display text-2xl leading-tight text-ru-blue">{title ?? group.groupName}</span>
+          <span className="block text-base text-ru-muted">
             {group.lines.length === 0 ? "אין שורות עדיין" : group.lines.length === 1 ? "שורה אחת" : `${group.lines.length} שורות`}
           </span>
         </span>
         <span className="flex shrink-0 items-center gap-2 text-end">
           <span>
-            <span className={`block font-num text-xl font-bold ${group.isDeduction ? "text-ru-pink" : ""}`}>
+            <span className={`block font-num text-2xl font-bold ${group.isDeduction ? "text-ru-pink" : ""}`}>
               {group.isDeduction && group.total.now ? "-" : ""}
               {money(group.total.now)}
             </span>
-            {showTarget && <span className="block text-sm font-bold text-brand-mand">יעד {money(group.total.target)}</span>}
+            {showTarget && <span className="block text-base font-bold text-brand-mand">יעד {money(group.total.target)}</span>}
           </span>
           <svg viewBox="0 0 24 24" className="h-5 w-5 text-ru-muted transition-transform group-open:rotate-180" fill="none" stroke="currentColor" strokeWidth="2.4" aria-hidden>
             <path d="M6 9l6 6 6-6" strokeLinecap="round" strokeLinejoin="round" />
@@ -83,7 +83,7 @@ function GroupCard({
         </span>
       </summary>
       <div className="border-t border-ru-line px-5 pb-4 pt-2">
-        {help && <p className="py-2 text-base text-ru-muted">{help}</p>}
+        {help && <p className="py-2 text-lg text-ru-muted">{help}</p>}
         <div className="divide-y divide-ru-line">
           {group.lines.map((l) => (
             <PictureLineRow
@@ -124,26 +124,26 @@ function HeadlineCard({
 }) {
   const diff = income - expense;
   return (
-    <div className="mt-5 rounded-3xl bg-ru-blue p-5 text-white shadow-[0_8px_24px_rgba(11,95,88,0.3)]">
-      <p className="text-base text-white/80">{title}</p>
-      <div className="mt-3 grid grid-cols-3 gap-3">
+    <div className="mt-5 rounded-3xl bg-gradient-to-br from-ru-blue to-brand-teal-dark p-5 text-white shadow-[0_8px_24px_rgba(11,95,88,0.3)]">
+      <p className="text-lg text-white/85">{title}</p>
+      <div className="mt-3 grid grid-cols-3 gap-2">
         <div>
-          <p className="text-sm text-white/75">{incomeLabel}</p>
+          <p className="text-base text-white/80">{incomeLabel}</p>
           <p className="font-num text-2xl font-bold">{money(income)}</p>
         </div>
         <div>
-          <p className="text-sm text-white/75">{expenseLabel}</p>
+          <p className="text-base text-white/80">{expenseLabel}</p>
           <p className="font-num text-2xl font-bold">{money(expense)}</p>
         </div>
         <div>
-          <p className="text-sm text-white/75">הפער</p>
+          <p className="text-base text-white/80">הפער</p>
           <p className={`font-num text-2xl font-bold ${diff < 0 ? "text-brand-mand" : ""}`}>{money(diff)}</p>
         </div>
       </div>
-      <p className="mt-3 text-sm text-white/80">
+      <p className="mt-4 text-lg text-white/90">
         {diff < 0 ? `חסרים ${money(-diff)} בחודש` : `נשארים ${money(diff)} בחודש`}
       </p>
-      {note && <p className="mt-2 text-sm text-white/80">{note}</p>}
+      {note && <p className="mt-2 text-base text-white/85">{note}</p>}
     </div>
   );
 }
@@ -151,8 +151,8 @@ function HeadlineCard({
 function SectionTitle({ children, sub }: { children: React.ReactNode; sub?: string }) {
   return (
     <div className="mt-8 mb-3">
-      <h2 className="font-display text-2xl text-ru-blue">{children}</h2>
-      {sub && <p className="text-base text-ru-muted">{sub}</p>}
+      <h2 className="font-display text-3xl text-ru-blue">{children}</h2>
+      {sub && <p className="text-lg text-ru-muted">{sub}</p>}
     </div>
   );
 }
@@ -177,8 +177,8 @@ export function MonthlyPicture({ picture, familyId, names }: { picture: Picture;
         expense={s.monthlyExpenseNoDebt.now + s.monthlyDebts.now}
         note={s.monthlyDebts.now ? `מתוכם ${money(s.monthlyDebts.now)} החזרי חובות בחודש.` : undefined}
       />
-      <p className="mt-3 text-base">
-        ממלאים כמה זה היום, בערך. לא צריך להיות מדויק, מספיק קרוב. בלחיצה על &quot;פרטים&quot; אפשר להוסיף יעד חדש, סדר עדיפות והערה.
+      <p className="mt-3 text-lg">
+        ממלאים כמה זה היום, בערך. לא צריך להיות מדויק, מספיק קרוב. בלחיצה על &quot;יעד והערות&quot; אפשר לכתוב את היעד החדש שלנו ולהוסיף הערה.
       </p>
 
       <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
@@ -215,7 +215,7 @@ export function AnnualPicture({ picture, familyId, names }: { picture: Picture; 
         expense={s.annualExpense.now}
         note={`בחלוקה ל-12 זה ${money(s.annualIncome.now / 12)} הכנסה ו-${money(s.annualExpense.now / 12)} הוצאה בכל חודש. את זה אנחנו מוסיפים לתמונה החודשית.`}
       />
-      <p className="mt-3 text-base">
+      <p className="mt-3 text-lg">
         כאן הדברים שלא קורים כל חודש: ביטוחים, בגדים, חגים וחופשה. כותבים כמה זה עולה בשנה שלמה.
       </p>
 
@@ -269,11 +269,11 @@ export function AnnualPicture({ picture, familyId, names }: { picture: Picture; 
 function Row({ label, now, target, strong }: { label: string; now: number | null; target?: number | null; strong?: boolean }) {
   return (
     <tr className={strong ? "border-t-2 border-ru-line font-bold" : ""}>
-      <th scope="row" className="py-2.5 pe-2 text-start text-base font-normal leading-snug">
+      <th scope="row" className="py-3 pe-2 text-start text-lg font-normal leading-snug">
         <span className={strong ? "font-bold" : ""}>{label}</span>
       </th>
-      <td className="py-2.5 ps-2 text-end font-num text-base font-bold">{now === null ? "" : money(now)}</td>
-      <td className="py-2.5 ps-2 text-end font-num text-base font-bold text-brand-mand">
+      <td className="py-3 ps-2 text-end font-num text-lg font-bold">{now === null ? "" : money(now)}</td>
+      <td className="py-3 ps-2 text-end font-num text-lg font-bold text-brand-mand">
         {target === undefined || target === null ? "" : money(target)}
       </td>
     </tr>
@@ -305,8 +305,8 @@ export function PictureSummaryView({
     <div className="lg:grid lg:grid-cols-2 lg:items-start lg:gap-8">
       <div>
       <section className="mt-5 rounded-3xl bg-white p-5 shadow-[0_4px_20px_rgba(11,95,88,0.07)]">
-        <h2 className="font-display text-2xl text-ru-blue">סיכום תמונת המצב</h2>
-        <p className="text-base text-ru-muted">הכל לחודש. הסכומים השנתיים מחולקים ל-12 ונכנסים פנימה.</p>
+        <h2 className="font-display text-3xl text-ru-blue">סיכום תמונת המצב</h2>
+        <p className="text-lg text-ru-muted">הכל לחודש. הסכומים השנתיים מחולקים ל-12 ונכנסים פנימה.</p>
         <table className="mt-3 w-full">
           <thead>
             <tr className="text-sm text-ru-muted">
@@ -350,7 +350,7 @@ export function PictureSummaryView({
       <div>
       {compare.length > 0 && (
         <section className="mt-4 rounded-3xl bg-white p-5 shadow-[0_4px_20px_rgba(11,95,88,0.07)]">
-          <h2 className="font-display text-2xl text-ru-blue">מה שכתבנו מול הבנק</h2>
+          <h2 className="font-display text-3xl text-ru-blue">מה שכתבנו מול הבנק</h2>
           {hasBank ? (
             <p className="text-base text-ru-muted">לכל קטגוריה: מה שכתבנו בתמונה, ומה שיצא בפועל בממוצע בבנק ובאשראי.</p>
           ) : (

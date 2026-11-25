@@ -13,19 +13,19 @@ export default async function AssetsTab({ familyId, advisorView }: { familyId: s
   return (
     <div className="mt-5 space-y-4">
       <div className={CARD}>
-        <p className="text-sm text-ru-muted">השווי הנקי</p>
-        <p className={`mt-1 text-3xl font-bold ${worth.net >= 0 ? "text-ru-ink" : "text-ru-pink"}`}>
+        <p className="text-lg text-ru-muted">השווי הנקי</p>
+        <p className={`mt-1 text-4xl font-bold ${worth.net >= 0 ? "text-ru-ink" : "text-ru-pink"}`}>
           {worth.net < 0 ? "-" : ""}
           {formatShekel(Math.abs(worth.net))}
         </p>
         <div className="mt-3 grid grid-cols-2 gap-2 text-center">
           <div>
-            <p className="text-xs text-ru-muted">נכסים</p>
-            <p className="text-base font-bold text-ru-green">{formatShekel(worth.assets)}</p>
+            <p className="text-base text-ru-muted">נכסים</p>
+            <p className="text-xl font-bold text-ru-green">{formatShekel(worth.assets)}</p>
           </div>
           <div>
-            <p className="text-xs text-ru-muted">התחייבויות</p>
-            <p className="text-base font-bold text-ru-pink">{formatShekel(worth.liabilities)}</p>
+            <p className="text-base text-ru-muted">התחייבויות</p>
+            <p className="text-xl font-bold text-ru-pink">{formatShekel(worth.liabilities)}</p>
           </div>
         </div>
       </div>

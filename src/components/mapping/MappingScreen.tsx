@@ -56,9 +56,9 @@ export default async function MappingScreen({
   return (
     <div>
       <AutoRefresh />
-      <p className="text-base text-ru-muted">שלב 1 בתהליך</p>
-      <h1 className="text-3xl text-ru-blue">המיפוי: איפה אנחנו היום</h1>
-      <p className="mt-1 text-base">{INTRO[tab]}</p>
+      <p className="text-lg text-ru-muted">שלב 1 בתהליך</p>
+      <h1 className="text-4xl leading-tight text-ru-blue">המיפוי: איפה אנחנו היום</h1>
+      <p className="mt-2 text-lg leading-relaxed">{INTRO[tab]}</p>
 
       {advisorView && <PictureImport familyId={id} />}
 

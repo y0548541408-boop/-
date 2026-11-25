@@ -77,16 +77,16 @@ export function PictureLineRow({
     });
   }
 
-  const hasDetails = line.targetAmount !== null || line.priority !== null || !!line.notes || !!line.whenText;
+  const hasDetails = line.targetAmount !== null || !!line.notes || !!line.whenText;
 
   return (
-    <div className="py-2.5">
+    <div className="py-3">
       <div className="flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-base font-bold leading-snug">{line.name}</p>
-          {hint && <p className="text-sm leading-snug text-ru-muted">{hint}</p>}
+          <p className="text-lg font-bold leading-snug">{line.name}</p>
+          {hint && <p className="text-base leading-snug text-ru-muted">{hint}</p>}
           {line.targetAmount !== null && line.targetAmount !== line.amount && (
-            <p className="text-sm font-bold text-brand-mand">היעד: {shekel(line.targetAmount)}</p>
+            <p className="text-base font-bold text-brand-mand">היעד: {shekel(line.targetAmount)}</p>
           )}
         </div>
         <label className="flex shrink-0 items-center gap-1 rounded-xl border border-ru-line bg-ru-bg px-2 focus-within:border-ru-blue">
@@ -106,7 +106,7 @@ export function PictureLineRow({
             onKeyDown={(e) => {
               if (e.key === "Enter") (e.target as HTMLInputElement).blur();
             }}
-            className="min-h-12 w-24 bg-transparent font-num text-lg font-bold outline-none"
+            className="min-h-12 w-24 bg-transparent font-num text-xl font-bold outline-none"
           />
         </label>
       </div>
@@ -116,17 +116,20 @@ export function PictureLineRow({
           type="button"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
-          className="min-h-11 pe-3 text-sm font-bold text-ru-blue"
+          className="min-h-11 pe-3 text-base font-bold text-ru-blue"
         >
-          {open ? "סגירה" : hasDetails ? "פרטים ✓" : "פרטים"}
+          {open ? "סגירה" : hasDetails ? "יעד והערות ✓" : "יעד והערות"}
         </button>
-        <span className="text-sm text-ru-muted">{pending ? "שומר..." : saved ? "נשמר ✓" : ""}</span>
+        <span className="text-base text-ru-muted">{pending ? "שומר..." : saved ? "נשמר ✓" : ""}</span>
       </div>
 
       {open && (
-        <div className="mb-1 space-y-3 rounded-2xl bg-ru-bg p-3.5">
+        <div className="mb-1 space-y-4 rounded-2xl bg-ru-bg p-4">
           <label className="block">
-            <span className="text-sm font-bold">היעד החדש שלנו (בחודש או בשנה, כמו השורה)</span>
+            <span className="text-base font-bold">היעד החדש שלנו</span>
+            <span className="mt-0.5 block text-base text-ru-muted">
+              כמה זה צריך להיות אחרי השינוי. באותו סוג כמו השורה: בחודש בחודשית, בשנה בשנתית.
+            </span>
             <input
               type="number"
               inputMode="decimal"
@@ -138,35 +141,13 @@ export function PictureLineRow({
                 const next = target === "" ? null : Number(target);
                 if (next !== line.targetAmount) save({ targetAmount: next });
               }}
-              className="mt-1 min-h-12 w-full rounded-xl border border-ru-line bg-white px-3 font-num text-base"
+              className="mt-1 min-h-12 w-full rounded-xl border border-ru-line bg-white px-3 font-num text-lg"
             />
           </label>
 
-          <div>
-            <span className="text-sm font-bold">סדר עדיפות</span>
-            <div className="mt-1 flex gap-2">
-              {[null, 1, 2, 3].map((p) => (
-                <button
-                  key={String(p)}
-                  type="button"
-                  onClick={() => save({ priority: p })}
-                  aria-pressed={line.priority === p}
-                  className={`min-h-12 flex-1 rounded-xl border text-base font-bold ${
-                    line.priority === p
-                      ? "border-ru-blue bg-ru-blue text-white"
-                      : "border-ru-line bg-white text-ru-ink"
-                  }`}
-                >
-                  {p === null ? "ללא" : p}
-                </button>
-              ))}
-            </div>
-            <p className="mt-1 text-sm text-ru-muted">1 = מתחילים מזה.</p>
-          </div>
-
           {showWhen && (
             <label className="block">
-              <span className="text-sm font-bold">זמן משוער</span>
+              <span className="text-base font-bold">זמן משוער</span>
               <input
                 value={when}
                 placeholder="למשל: אדר, לפני פסח"
@@ -174,21 +155,25 @@ export function PictureLineRow({
                 onBlur={() => {
                   if (when !== (line.whenText ?? "")) save({ whenText: when });
                 }}
-                className="mt-1 min-h-12 w-full rounded-xl border border-ru-line bg-white px-3 text-base"
+                className="mt-1 min-h-12 w-full rounded-xl border border-ru-line bg-white px-3 text-lg"
               />
             </label>
           )}
 
           <label className="block">
-            <span className="text-sm font-bold">הערות</span>
-            <input
+            <span className="text-base font-bold">הערות</span>
+            <span className="mt-0.5 block text-base text-ru-muted">
+              מה חשוב לדעת על השורה, למשל: אפשר להוזיל, מתי זה חוזר, מה צריך לעשות כדי להגיע ליעד.
+            </span>
+            <textarea
+              rows={2}
               value={notes}
-              placeholder="למשל: יש אפשרות להוזיל"
+              placeholder="כתבו כאן"
               onChange={(e) => setNotes(e.target.value)}
               onBlur={() => {
                 if (notes !== (line.notes ?? "")) save({ notes });
               }}
-              className="mt-1 min-h-12 w-full rounded-xl border border-ru-line bg-white px-3 text-base"
+              className="mt-1 w-full rounded-xl border border-ru-line bg-white px-3 py-2 text-lg"
             />
           </label>
 
@@ -201,7 +186,7 @@ export function PictureLineRow({
                 router.refresh();
               });
             }}
-            className="min-h-11 text-sm text-ru-muted underline hover:text-ru-pink"
+            className="min-h-11 text-base text-ru-muted underline hover:text-ru-pink"
           >
             הסרת השורה
           </button>
