@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
@@ -10,7 +11,8 @@ import DashboardNav from "../DashboardNav";
 import RiseCard, { formatShekel } from "../RiseCard";
 import SubTabs from "../SubTabs";
 import { TASKS_REPORTS_TABS } from "../subTabItems";
-export default async function TasksPage() {
+export default async function TasksPage({ searchParams }: { searchParams: Promise<{ done?: string }> }) {
+  const { done } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -33,6 +35,15 @@ export default async function TasksPage() {
   ]);
 
   const openTasks = tasks.filter((t) => t.status !== "done");
+
+  // The savings task just completed, if any: what it saves a year and a month.
+  const justSaved = done
+    ? await prisma.task.findFirst({
+        where: { id: done, familyId: member.familyId, status: "done", taskType: "savings", savingsAmountAnnual: { not: null } },
+        select: { title: true, savingsAmountAnnual: true },
+      })
+    : null;
+  const savedYear = justSaved ? Number(justSaved.savingsAmountAnnual) : 0;
   const nextFocus = meetingSummaries.find((m) => m.nextFocus)?.nextFocus;
   const isEmpty =
     meetingSummaries.length === 0 &&
@@ -48,6 +59,19 @@ export default async function TasksPage() {
 
         <DashboardNav />
         <SubTabs items={TASKS_REPORTS_TABS} active="/dashboard/tasks" />
+
+        {justSaved && savedYear > 0 && (
+          <div className="mt-5 rounded-3xl bg-ru-green-soft p-5 shadow-[0_2px_14px_rgba(29,138,91,0.15)]">
+            <p className="text-sm font-bold text-ru-green">כל הכבוד, עשיתם צעד של חיסכון</p>
+            <p className="mt-1 text-base leading-relaxed">
+              {justSaved.title} חוסכת לכם <strong>{formatShekel(savedYear)} בשנה</strong>, כלומר{" "}
+              <strong>{formatShekel(savedYear / 12)} בחודש</strong>.
+            </p>
+            <Link href="/dashboard/tasks" className="mt-2 inline-block text-sm font-bold text-ru-blue underline">
+              סגירה
+            </Link>
+          </div>
+        )}
 
         {isEmpty && (
           <p className="mt-10 text-center text-sm text-ru-muted">

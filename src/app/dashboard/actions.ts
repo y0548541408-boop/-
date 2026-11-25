@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getCurrentFamilyMember } from "@/lib/currentMember";
 import { getFamilyBudgetSummary } from "@/lib/budget";
@@ -184,12 +185,23 @@ export async function completeTask(formData: FormData): Promise<void> {
   const id = String(formData.get("id") ?? "");
   if (!id) return;
 
-  await prisma.task.updateMany({
+  const task = await prisma.task.findFirst({
     where: { id, familyId: member.familyId },
+    select: { taskType: true, savingsAmountAnnual: true },
+  });
+  if (!task) return;
+
+  await prisma.task.update({
+    where: { id },
     data: { status: "done", completedAt: new Date() },
   });
 
   revalidatePath("/dashboard", "layout");
+
+  // A savings task with an amount: show the family what it saves, on the tasks page.
+  if (task.taskType === "savings" && task.savingsAmountAnnual) {
+    redirect(`/dashboard/tasks?done=${id}`);
+  }
 }
 
 async function resolveIncomeCategoryId(
