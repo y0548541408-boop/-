@@ -32,6 +32,26 @@ function greeting(): string {
   return "לילה טוב";
 }
 
+// Today's date, in the Gregorian calendar and in the Hebrew calendar (Israel time).
+function todayDates(): { gregorian: string; hebrew: string } {
+  const now = new Date();
+  const timeZone = "Asia/Jerusalem";
+  const gregorian = new Intl.DateTimeFormat("he-IL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone,
+  }).format(now);
+  const hebrew = new Intl.DateTimeFormat("he-IL-u-ca-hebrew", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone,
+  }).format(now);
+  return { gregorian, hebrew };
+}
+
 // One budget line: how much went out of how much was planned, and what is left.
 function CategoryRow({ category, previousSpent }: { category: CategorySummary; previousSpent?: number }) {
   const planned = category.effectivePlanned;
@@ -153,10 +173,12 @@ export default async function DashboardPage({
           </form>
         </div>
 
-        <p className="mt-5 text-base text-ru-muted">
+        <p className="mt-5 text-base font-bold text-ru-ink">{todayDates().gregorian}</p>
+        <p className="text-base text-ru-muted">{todayDates().hebrew}</p>
+        <p className="mt-2 text-base text-ru-muted">
           {greeting()}, {member.fullName}
         </p>
-        <h1 className="text-3xl text-ru-blue">החודש שלכם</h1>
+        <h1 className="text-3xl text-ru-blue">סקירה חודשית</h1>
 
         <SubTabs items={BUDGET_TABS} active="/dashboard" month={monthParam} />
         <MonthSwitcher month={month} basePath="/dashboard" />
