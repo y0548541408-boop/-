@@ -5,6 +5,7 @@ import { ensureDefaultCategories, familyHasNoCategories } from "@/lib/defaultCat
 import AutoRefresh from "@/components/AutoRefresh";
 import MappingView from "./MappingView";
 import AssetsTab from "./AssetsTab";
+import { PictureImport } from "./PictureImport";
 import { MappingTabs, MonthlyPicture, AnnualPicture, PictureSummaryView, type MappingTab } from "./PictureView";
 
 export function parseTab(value: string | undefined): MappingTab {
@@ -66,6 +67,8 @@ export default async function MappingScreen({
       <p className="text-base text-ru-muted">שלב 1 בתהליך</p>
       <h1 className="text-3xl text-ru-blue">המיפוי: איפה אנחנו היום</h1>
       <p className="mt-1 text-base">{INTRO[tab]}</p>
+
+      {advisorView && <PictureImport familyId={id} />}
 
       <MappingTabs active={tab} basePath={basePath} />
 

@@ -7,6 +7,7 @@ import { getCurrentFamilyMember } from "@/lib/currentMember";
 import { parseStatement } from "@/lib/mappingParse";
 import { importMappingRows, assignMerchant, getMappingOverview } from "@/lib/mapping";
 import { getPicture, ensurePictureLines } from "@/lib/picture";
+import { parsePictureWorkbook } from "@/lib/pictureImport";
 
 type Result = { error: string } | { ok: true; message?: string };
 
@@ -298,6 +299,72 @@ export async function removePictureLine(input: { familyId?: string; id: string }
   await prisma.pictureLine.deleteMany({ where: { id: input.id, familyId: who.familyId } });
   refresh(who.familyId);
   return { ok: true };
+}
+
+// The advisor uploads the family's own workbook ("תמונת מצב כלכלית"). Its lines
+// go into the picture. Empty cells leave the app's numbers as they are.
+export async function importPictureWorkbook(formData: FormData): Promise<Result> {
+  const familyId = formData.get("familyId") as string | null;
+  if (!familyId) return { error: "צריך לפתוח את הקובץ מתוך משפחה." };
+  const who = await resolveFamily(familyId);
+  if ("error" in who) return who;
+
+  const file = formData.get("file");
+  if (!(file instanceof File) || file.size === 0) return { error: "לא נבחר קובץ." };
+  if (file.size > MAX_FILE_BYTES) return { error: `הקובץ "${file.name}" גדול מדי.` };
+
+  const parsed = parsePictureWorkbook(await file.arrayBuffer());
+  if (!parsed.ok) return { error: `${file.name}: ${parsed.error}` };
+  if (parsed.lines.length === 0) return { error: `${file.name}: לא מצאתי בתמונת המצב שורות עם סכומים.` };
+
+  await ensurePictureLines(who.familyId);
+  let updated = 0;
+  let added = 0;
+  const newNames: string[] = [];
+
+  await prisma.$transaction(async (tx) => {
+    for (const [i, l] of parsed.lines.entries()) {
+      const key = {
+        familyId: who.familyId,
+        period: l.period,
+        kind: l.kind,
+        groupName: l.groupName,
+        subGroup: l.subGroup,
+        name: l.name,
+      };
+      const data: Record<string, unknown> = {};
+      if (l.amount !== null) data.amount = l.amount;
+      if (l.targetAmount !== null) data.targetAmount = l.targetAmount;
+      if (l.priority !== null) data.priority = l.priority;
+      if (l.notes) data.notes = l.notes;
+      if (l.whenText) data.whenText = l.whenText;
+
+      const existing = await tx.pictureLine.findUnique({
+        where: { familyId_period_kind_groupName_subGroup_name: key },
+        select: { id: true },
+      });
+      if (existing) {
+        if (Object.keys(data).length) {
+          await tx.pictureLine.update({ where: { id: existing.id }, data });
+        }
+        updated++;
+        continue;
+      }
+      // A line the template does not have yet: add it under its group.
+      await tx.pictureLine.create({
+        data: { ...key, ...data, amount: l.amount ?? 0, sortOrder: 9000 + i },
+      });
+      added++;
+      if (!l.matched) newNames.push(l.name);
+    }
+  });
+
+  refresh(who.familyId);
+  const extra = newNames.length ? ` שורות חדשות שנוספו: ${newNames.slice(0, 8).join(", ")}.` : "";
+  return {
+    ok: true,
+    message: `${file.name}: נקראו ${parsed.lines.length} שורות, עודכנו ${updated} ונוספו ${added}.${extra}`,
+  };
 }
 
 export async function setHouseholdSize(input: { familyId?: string; size: number | null }): Promise<Result> {
